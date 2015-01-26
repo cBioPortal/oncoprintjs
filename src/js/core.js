@@ -2,17 +2,27 @@ var d3 = require('d3');
 var _ = require('underscore');
 var utils = require('./utils');
 
-var Oncoprint = function() {
+function compute_svg_width(rect_width, rect_padding, row_length) {
+  return (rect_width + rect_padding) * row_length;
+}
+
+var core = function() {
   var config = { row_height: 15 };
   var container_width = 100;
-  var rows = [];
+  var element_padding = 1;
+  var element_width = 1;
+  var rows = undefined;
   var svg_height = 95;
-  var svg_width = 95;
 
   var me = function(container) {
 
+    // validation
+    if (rows === undefined) {
+      throw "'rows' is unset."
+    }
+
     var svg = container.append('svg')
-      .attr('width', svg_width)
+      .attr('width', compute_svg_width(element_width, element_padding, rows[0].length))
       .attr('height', config.row_height * rows.length);
 
     container.style('width', container_width + "px")
@@ -58,13 +68,19 @@ var Oncoprint = function() {
     return me;
   };
 
-  me.svg_width = function(value) {
-    if (!arguments.length) return svg_width;
-    svg_width = value;
+  me.element_padding = function(value) {
+    if (!arguments.length) return element_padding;
+    element_padding = value;
+    return me;
+  };
+
+  me.element_width = function(value) {
+    if (!arguments.length) return element_width;
+    element_width = value;
     return me;
   };
 
   return me;
 };
 
-module.exports=Oncoprint;
+module.exports=core;

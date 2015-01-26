@@ -1,44 +1,66 @@
 var d3 = require('d3');
-var _ = require("underscore");
+var _ = require('underscore');
+
+var renderers = require('./renderers');
 var Oncoprint = require('./core');
-var utils = require("./utils");
+var utils = require('./utils');
 
-var config = { rect_height: 20, rect_width: 10 };
-config.cna_fills = {null: 'grey', undefined: 'grey', 'AMPLIFIED': 'red', "HOMODELETED": 'blue'};
+var oncoprint = Oncoprint();
 
-var rect_padding = 3;
+var config = { rect_height: 20,
+              rect_padding: 3,
+              rect_width: 10,
+              mutation_fill: 'green',
 
-var gene_renderer = function(selection) {
-  var row_elements = selection.selectAll('g').data(function(d) { return d; })
-  .enter().append('g');
-
-  row_elements.attr('transform', function(d, i) {
-    return utils.translate(i * (config.rect_width + rect_padding), 0);
-  });
-
-  row_elements.append('rect')
-  .attr('fill', function(d) { return config.cna_fills[d.cna]; })
-  .attr('height', config.rect_height)
-  .attr('width', config.rect_width);
+              cna_fills: {
+              null: 'grey',
+              undefined: 'grey',
+              AMPLIFIED: 'red',
+              HOMODELETED: 'blue'
+             }
 };
 
-d3.json("tp53-mdm2-mdm4-gbm.json", function(data) {
-  var oncoprint = Oncoprint();
+var gene_renderer = renderers.gene(config);
 
-  // break into rows
-  rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
-
-  // push selection renderer for each row
-  _.each(rows, function(row) {
-    row.push(gene_renderer);
-  });
-
+var genomic = function() {
   var row_height = 25;
+  var width = 500;
+  var rows = [];
 
-  oncoprint.container_width(500);
-  oncoprint.svg_width((config.rect_width + rect_padding) * rows[0].length);
-  oncoprint.config({row_height: row_height});
-  oncoprint.rows(rows);
+  var me = function(container) {
+    oncoprint.container_width(width);
+    oncoprint.element_width(config.rect_width);
+    oncoprint.element_padding(config.rect_padding);
+    oncoprint.config({row_height: row_height});
+    oncoprint.rows(rows);
+    container.call(oncoprint);
+  };
 
-  d3.select('#main').call(oncoprint);
-});
+  me.rows = function(value) {
+    if (!arguments.length) return rows;
+
+    // push selection renderer for each row
+    value = _.map(value, function(row) {
+      return row.concat([gene_renderer]);
+    });
+
+    rows = value;
+    return me;
+  };
+
+  me.row_height = function(value) {
+    if (!arguments.length) return row_height;
+    row_height = value;
+    return me;
+  };
+
+  me.width = function(value) {
+    if (!arguments.length) return width;
+    width = value;
+    return me;
+  };
+
+  return me;
+};
+
+module.exports = genomic;
