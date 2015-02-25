@@ -1,6 +1,7 @@
 var d3 = require('d3');
 var _ = require('underscore');
 var utils = require('./utils');
+var renderer_functions = require('./renderers');
 
 function compute_svg_width(rect_width, rect_padding, row_length) {
   return (rect_width + rect_padding) * row_length;
@@ -12,8 +13,23 @@ var core = function() {
   var element_padding = 1;
   var element_width = 1;
   var labels = [];
-  var rows = undefined;
   var svg_height = 95;
+
+  function infer_row_length(container) {
+    var rows = container.datum();
+
+    if (rows === undefined)
+      throw "Cannot infer row length from a container without rows.";
+
+    var is_well_formed_matrix = _.every(rows, function(row) {
+      return row.length === rows[0].length;
+    });
+
+    if (!is_well_formed_matrix)
+      throw "Uneven rows, cannot infer row length."
+
+    return rows[0].length;
+  }
 
   // styles, appends, does all the right stuff to the container
   // so that we can go on to work with the inner <svg>.
@@ -23,25 +39,44 @@ var core = function() {
     .style('overflow-x', 'auto')
     .style('overflow-y', 'hidden');
 
+    // infer from the data that is already bound to the div.
+    var row_length = infer_row_length(container)
+
     return container.append('svg')
-    .attr('width', compute_svg_width(element_width, element_padding, rows[0].length))
+    .attr('width', compute_svg_width(element_width, element_padding, row_length))
     .attr('height', config.row_height * rows.length);
   }
 
   var me = function(container) {
-
-    // validation
-    if (rows === undefined) {
-      throw "'rows' is unset."
-    }
 
     container = container.append('table').append('tr')
     var label_container = container.append('td')
     var oncoprint_container = container.append('td').append('div')
     var svg = oncoprint_container_to_svg(oncoprint_container);
 
+    // TODO this was never a good way to bind renderers
+    // Should probably think more along the line of renderering rules, and perhaps an indicator function
+    // which tell you when to use which rendering rule.
+
     // note that this is removing the renderer from each row.
-    var renderers = _.map(rows, function(row) { return row.pop(); });
+//     var renderers = _.map(rows, function(row) { return row.pop(); });
+    _.extend(config, { rect_height: 20,
+                  rect_padding: 3,
+                  rect_width: 10,
+                  mutation_fill: 'green',
+
+                  cna_fills: {
+                    null: 'grey',
+                    undefined: 'grey',
+                    AMPLIFIED: 'red',
+                    HOMODELETED: 'blue'
+                  }
+                 });
+    var gene_renderer = renderer_functions.gene(config);
+    var renderers = [];
+    for (var i = 0; i<container.datum().length; i++) {
+      renderers.push(gene_renderer);
+    }
 
     var element_height = 20;
 
@@ -61,33 +96,21 @@ var core = function() {
       .append('tspan')
       .text(function(d) { return d.text; })
 
-    // setup the rows by binding data and vertically positioning.
-    var row_groups = svg.selectAll('g').data(rows)
+    svg.each(function(rows) {
+      svg.selectAll('g').data(rows)
       .enter().append('g')
-        .attr('transform', function(d,i) {
-          return utils.translate(0, i * config.row_height);
-        });
-
-    // TODO I think that this could be replaced with a `d3.call` to the row_groups.
-    // if you run `d3.each` on a selection, d3 will iterate over the data bound
-    // to an element, not the element itself. So some gymnastics is required to
-    // get access to specific layers of the nested selection.
-    var raw_dom = row_groups[0];       // raw list of DOM elements, i.e. peel away d3
-    _.chain(raw_dom).map(d3.select)    // reselect each one individually
-      .each(function(row,i) {
-        renderers[i](row);             // apply the renderer to each row
-      }).value();
+      .attr('transform', function(d,i) {
+        return utils.translate(0, i * config.row_height);
+      })
+      .each(function(d,i) {
+        d3.select(this).call(renderers[0]);
+      })
+    });
   };
 
   //
   // api
   //
-
-  me.rows = function(value) {
-    if (!arguments.length) return rows;
-    rows = value;
-    return me;
-  };
 
   me.config = function(value) {
     if (!arguments.length) return config;

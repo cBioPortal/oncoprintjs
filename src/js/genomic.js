@@ -42,7 +42,6 @@ function rows_to_labels(rows) {
 var genomic = function() {
   var row_height = 25;
   var width = 500;
-  var rows = [];
 
   var me = function(container) {
     oncoprint_core.config({row_height: row_height});
@@ -50,20 +49,7 @@ var genomic = function() {
     oncoprint_core.element_width(config.rect_width);
     oncoprint_core.element_padding(config.rect_padding);
     oncoprint_core.labels(rows_to_labels(rows));
-    oncoprint_core.rows(rows);
     container.call(oncoprint_core);
-  };
-
-  me.rows = function(value) {
-    if (!arguments.length) return rows;
-
-    // push selection renderer for each row
-    value = _.map(value, function(row) {
-      return row.concat([gene_renderer]);
-    });
-
-    rows = value;
-    return me;
   };
 
   me.row_height = function(value) {
