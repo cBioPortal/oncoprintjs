@@ -7,7 +7,7 @@ function compute_svg_width(rect_width, rect_padding, row_length) {
   return (rect_width + rect_padding) * row_length;
 }
 
-var core = function() {
+var rendering_engine = function() {
   var config = { row_height: 15 };
   var container_width = 100;
   var element_padding = 1;
@@ -146,4 +146,4 @@ var core = function() {
   return me;
 };
 
-module.exports=core;
+module.exports=rendering_engine;

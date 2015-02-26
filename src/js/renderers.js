@@ -1,8 +1,11 @@
 var utils = require('./utils');
 
-var gene = function(config) {
+var gene_rule = function(config) {
   return function(selection) {
-    var row_elements = selection.selectAll('g').data(function(d) { return d; })
+    var row_elements = selection.selectAll('g')
+    // binds the row-wise data to the row group, <g>. See Bostock's
+    // explaination on nested selections: http://bost.ocks.org/mike/nest/#data
+    .data(function(d) { return d; })
     .enter().append('g');
 
     row_elements.attr('transform', function(d, i) {

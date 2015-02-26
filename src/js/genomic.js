@@ -2,10 +2,10 @@ var d3 = require('d3');
 var _ = require('underscore');
 
 var renderers = require('./renderers');
-var core = require('./core');
+var rendering_engine = require('./rendering_engine');
 var utils = require('./utils');
 
-var oncoprint_core = core();
+var rendering_engine = rendering_engine();
 
 var config = { rect_height: 20,
               rect_padding: 3,
@@ -29,14 +29,14 @@ function is_sample_genetically_altered(datum) {
     || datum.protein !== undefined;
 };
 
-function row_to_labels(row) {
+function calculate_row_label(row) {
   var percent_altered = _.filter(row, is_sample_genetically_altered).length / row.length;
   percent_altered = Math.round(percent_altered*100);
   return [{align: 'left', text: row[0].gene}, {align: 'right', text: percent_altered + "%"}];
 };
 
 function rows_to_labels(rows) {
-  return _.flatten(_.map(rows, row_to_labels));
+  return _.flatten(_.map(rows, calculate_row_label));
 }
 
 var genomic = function() {
@@ -44,12 +44,12 @@ var genomic = function() {
   var width = 500;
 
   var me = function(container) {
-    oncoprint_core.config({row_height: row_height});
-    oncoprint_core.container_width(width);
-    oncoprint_core.element_width(config.rect_width);
-    oncoprint_core.element_padding(config.rect_padding);
-    oncoprint_core.labels(rows_to_labels(rows));
-    container.call(oncoprint_core);
+    rendering_engine.config({row_height: row_height});
+    rendering_engine.container_width(width);
+    rendering_engine.element_width(config.rect_width);
+    rendering_engine.element_padding(config.rect_padding);
+    rendering_engine.labels(rows_to_labels(rows));
+    container.call(rendering_engine);
   };
 
   me.row_height = function(value) {
