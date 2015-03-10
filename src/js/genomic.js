@@ -56,6 +56,7 @@ var genomic = function() {
     if (!arguments.length) return row_height;
     row_height = value;
     return me;
+
   };
 
   me.width = function(value) {
