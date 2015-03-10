@@ -35,4 +35,4 @@ var gene_rule = function(config) {
   };
 };
 
-exports.gene = gene;
+exports.gene = gene_rule;
