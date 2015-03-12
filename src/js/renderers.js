@@ -32,6 +32,15 @@ var gene_rule = function(config) {
     mutation.filter(function(d) {
       return d.mutation === undefined;
     }).remove();
+
+    // TODO delete me
+    row_elements.on("mouseenter", function(d) {
+      d3.selectAll('.selected_sample').text(JSON.stringify(d));
+    });
+
+    row_elements.on("mouseleave", function(d) {
+      d3.selectAll('.selected_sample').text("");
+    });
   };
 };
 
