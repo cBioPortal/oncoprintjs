@@ -1,67 +1,71 @@
+var _ = require('underscore');
+
 var exports = module.exports = {};
 
 function copy_array(array) {
   return array.slice();
 }
 
-function swap(i, j, arr) {
-    var temp = arr[j];
-    arr[j] = arr[i];
-    arr[i] = temp;
+function rows_to_indexers(rows) {
+  return _.range(rows.length)
+  .reverse()     // least significant first
+  .map(function(ith_row) {
+    return function(index) { return rows[ith_row][index]; };
+  });
 }
 
-function insertion_sort(datums, compare) {
-  var to_return = copy_array(datums);
+exports.genomic_metric = function genomic_metric(x) {
+  var cna_order = {AMPLIFIED:400, HOMODELETED:300, GAINED:200, HEMIZYGOUSLYDELETED:100, DIPLOID: 0, undefined: 0};
+  var regulated_order = {UPREGULATED: 20, DOWNREGULATED: 10, undefined: 0};
+  var mutation_order_f = function(m) {
+    // fusion > non-fusion mutations.
+    return m === undefined ? 0 : (/fusion($|,)/i.test(m)?2:1);
+  };
 
-  // For each element in the array,
-  // keep swapping it backwards in the array until
-  // you run up against an element which is less-than it.
-  // The list of a single element is trivially sorted so start at index, i = 1.
-  for (var i=1; i<to_return.length; i++) {
-    var j = i
-    while(j>0 && compare(to_return[j], to_return[j-1])) {
-      swap(j,j-1,to_return);
-      j--;
-    }
-  }
+  // TODO I anticipate that another order of magnitude will have to be introduced
+  // to distinguish between mRNA and RPPA, i.e. instead of regulated_order, rppa_order
+  // and mrna_order.
 
-  return to_return;
-}
+  // need -1 to flip the order.
+  return -1 * (cna_order[x.cna]
+               + regulated_order[x.mrna]
+               + regulated_order[x.rppa]
+               + mutation_order_f(x.mutation));
+};
 
 // indexers is least significant first.
 exports.radix = function radix(datums, compare, indexers) {
   var to_return = copy_array(datums);
 
   indexers.forEach(function(indexer) {
-    to_return = insertion_sort(to_return, function(x, y) {
-      return compare(indexer(x), indexer(y));
+    to_return = _.sortBy(to_return, function(x) {
+      return compare(indexer(x));
     });
   });
 
   return to_return;
 };
 
+exports.sort_rows = function sort_rows(rows, metric) {
+  var indexers = rows_to_indexers(rows);
+  var sorted_column_indices = exports.radix(_.range(rows[0].length), metric, indexers);
+  return _.map(rows, function(row) {
+    return sorted_column_indices.map(function(i) { return row[i]; });
+  });
+};
+
 //
 // BASIC TESTS
 //
 
-// swap
-var l = [0,1,2,3]; swap(2,3,l); l;
-
-// insertion sort
-insertion_sort([1,5,3,2,1], function(a,b) { return a < b; });
-
-// check that the sort is stable.
-insertion_sort([{data: 42, to_be_compared: 100},
-                {data: 43, to_be_compared: 100},
-                {data: 44, to_be_compared: 100}], function(a,b) { return a.to_be_compared < b.to_be_compared; })
-.map(function(d) { return d.data;});
+var indexers = [function(d) { return d[4]; },
+                function(d) { return d[3]; },
+                function(d) { return d[2]; },
+                function(d) { return d[1]; },
+                function(d) { return d[0]; }];
 
 // radix
-console.log(
-exports.radix(["hello", "asdfd", "dafds", "aaafa"], function(x,y) { return x < y; }, [function(d) { return d[4]; },
-                                                                                      function(d) { return d[3]; },
-                                                                                      function(d) { return d[2]; },
-                                                                                      function(d) { return d[1]; },
-                                                                                      function(d) { return d[0]; }])
-  );
+exports.radix(["hello", "asdfd", "dafds", "aaafa"], function(x,y) { return x < y; }, indexers);
+exports.radix(["aaaaa", "bbbbb", "aaaaa", "aaaaa"], function(x,y) { return x < y; }, indexers);
+exports.radix([], function(x,y) { return x < y; }, indexers);
+exports.radix(["hello", "asdfd", "dafds", "aaafa"], function(x,y) { return x > y; }, indexers);
