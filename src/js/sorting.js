@@ -49,19 +49,3 @@ exports.sort_rows = function sort_rows(rows, metric) {
     return sorted_column_indices.map(function(i) { return row[i]; });
   });
 };
-
-//
-// BASIC TESTS
-//
-
-var indexers = [function(d) { return d[4]; },
-                function(d) { return d[3]; },
-                function(d) { return d[2]; },
-                function(d) { return d[1]; },
-                function(d) { return d[0]; }];
-
-// radixSort
-exports.radixSort(["hello", "asdfd", "dafds", "aaafa"], function(x,y) { return x < y; }, indexers);
-exports.radixSort(["aaaaa", "bbbbb", "aaaaa", "aaaaa"], function(x,y) { return x < y; }, indexers);
-exports.radixSort([], function(x,y) { return x < y; }, indexers);
-exports.radixSort(["hello", "asdfd", "dafds", "aaafa"], function(x,y) { return x > y; }, indexers);
