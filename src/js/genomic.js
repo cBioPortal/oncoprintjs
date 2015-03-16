@@ -20,7 +20,7 @@ var config = { rect_height: 20,
              }
 };
 
-var gene_renderer = renderers.gene(config);
+var gene_renderer = renderers.gene_rule(config);
 
 function is_sample_genetically_altered(datum) {
   return datum.cna !== undefined

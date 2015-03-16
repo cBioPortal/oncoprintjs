@@ -73,7 +73,7 @@ var rendering_engine = function() {
                   }
                  });
 
-    var gene_renderer = renderer_functions.gene(config);
+    var gene_renderer = renderer_functions.gene_rule(config);
     var renderers = [];
     for (var i = 0; i<container.datum().length; i++) {
       renderers.push(gene_renderer);
