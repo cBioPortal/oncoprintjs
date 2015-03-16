@@ -1,6 +1,16 @@
 var utils = require('./utils');
+var exports = module.exports = {};
 
-var gene_rule = function(config) {
+exports.continuous_data_rule = function continuous_data_rule(config) {
+};
+
+exports.discrete_data_rule = function discrete_data_rule(config) {
+};
+
+exports.gender_rule = function gender_rule(config) {
+};
+
+exports.gene_rule = function gene_rule(config) {
   return function(selection) {
     var row_elements = selection.selectAll('g')
     // binds the row-wise data to the row group, <g>. See Bostock's
@@ -39,5 +49,3 @@ var gene_rule = function(config) {
     });
   };
 };
-
-exports.gene = gene_rule;

@@ -72,6 +72,7 @@ var rendering_engine = function() {
                     HOMODELETED: 'blue'
                   }
                  });
+
     var gene_renderer = renderer_functions.gene(config);
     var renderers = [];
     for (var i = 0; i<container.datum().length; i++) {
