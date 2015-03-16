@@ -34,12 +34,8 @@ var gene_rule = function(config) {
     }).remove();
 
     // TODO delete me
-    row_elements.on("mouseenter", function(d) {
+    row_elements.on("click", function(d) {
       d3.selectAll('.selected_sample').text(JSON.stringify(d));
-    });
-
-    row_elements.on("mouseleave", function(d) {
-      d3.selectAll('.selected_sample').text("");
     });
   };
 };
