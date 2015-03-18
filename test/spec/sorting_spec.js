@@ -10,21 +10,21 @@ var indexers = [function(d) { return d[4]; },
 
 describe("radix sorting", function() {
   it("sorts an empty list (guess what, it's already sorted...)", function() {
-    expect(sorting.radix([], function(x) { return x; }, indexers).length).toEqual([].length);
+    expect(sorting.radixSort([], function(x) { return x; }, indexers).length).toEqual([].length);
   });
 
   it("sorts some strings of equal length", function() {
-    expect(sorting.radix(["hello", "asdfd", "dafds", "aaafa"],
+    expect(sorting.radixSort(["hello", "asdfd", "dafds", "aaafa"],
                          function(x) { return x; }, indexers))
     .toEqual(["aaafa", "asdfd", "dafds", "hello"]);
 
-    expect(sorting.radix(["aaaaa", "bbbbb", "aaaaa", "aaaaa"],
+    expect(sorting.radixSort(["aaaaa", "bbbbb", "aaaaa", "aaaaa"],
                          function(x) { return x; }, indexers))
     .toEqual(["aaaaa", "aaaaa", "aaaaa", "bbbbb"]);
   });
 
   it("sorts strings backwards when the indicator function is negative", function() {
-    expect(sorting.radix(["hello", "asdfd", "dafds", "aaafa"],
+    expect(sorting.radixSort(["hello", "asdfd", "dafds", "aaafa"],
                   function(x) { return -1 * x.charCodeAt(0); }, indexers))
     .toEqual(["hello", "dafds", "asdfd", "aaafa"]);
   });
