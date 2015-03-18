@@ -15,21 +15,17 @@ function rows_to_indexers(rows) {
 }
 
 exports.genomic_metric = function genomic_metric(x) {
-  var cna_order = {AMPLIFIED:400, HOMODELETED:300, GAINED:200, HEMIZYGOUSLYDELETED:100, DIPLOID: 0, undefined: 0};
-  var regulated_order = {UPREGULATED: 20, DOWNREGULATED: 10, undefined: 0};
+  var cna_order = {AMPLIFIED:4, HOMODELETED:3, GAINED:2, HEMIZYGOUSLYDELETED:1, DIPLOID: 0, undefined: 0};
+  var regulated_order = {UPREGULATED: 2, DOWNREGULATED: 1, undefined: 0};
   var mutation_order_f = function(m) {
     // fusion > non-fusion mutations.
     return m === undefined ? 0 : (/fusion($|,)/i.test(m)?2:1);
   };
 
-  // TODO I anticipate that another order of magnitude will have to be introduced
-  // to distinguish between mRNA and RPPA, i.e. instead of regulated_order, rppa_order
-  // and mrna_order.
-
   // need -1 to flip the order.
-  return -1 * (cna_order[x.cna]
-               + regulated_order[x.mrna]
-               + regulated_order[x.rppa]
+  return -1 * (1000 * cna_order[x.cna]
+               + 100 * regulated_order[x.mrna]
+               + 10 * regulated_order[x.rppa]
                + mutation_order_f(x.mutation));
 };
 
