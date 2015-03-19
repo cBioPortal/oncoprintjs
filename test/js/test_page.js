@@ -1,7 +1,23 @@
 var _ = require("underscore");
+
+var renderers = require("../../src/js/renderers");
 var sorting = require("../../src/js/sorting");
 
 var genomic_oncoprint = require('../../src/js/genomic');
+
+var config = { rect_height: 20,
+              rect_padding: 3,
+              rect_width: 10,
+              row_height: 25,
+              mutation_fill: 'green',
+              width: 750,
+              cna_fills: {
+              null: 'grey',
+              undefined: 'grey',
+              AMPLIFIED: 'red',
+              HOMODELETED: 'blue'
+             }
+};
 
 // TODO this is dirty.
 window.test_for_genomic_data = function(filename, div_selector_string) {
@@ -14,14 +30,19 @@ window.test_for_genomic_data = function(filename, div_selector_string) {
 
     var oncoprint = genomic_oncoprint();
 
-    oncoprint.width(750);
-    oncoprint.row_height(25);
+    oncoprint.config(config);
+
+    var rendering_rules = _.map(rows, function(row) {
+      // at the cBioPortal OncoPrints always start as just genomic data.
+      return renderers.gene_rule;
+    });
+    oncoprint.rendering_rules(rendering_rules);
 
     d3.select(div_selector_string).call(oncoprint);
 
-    d3.json("gender.json", function(data) {
-      oncoprint.insertRow(data);
-    });
+//     d3.json("gender.json", function(data) {
+//       oncoprint.insertRow(data);
+//     });
 
   });
 };

@@ -8,8 +8,20 @@ describe("translate function", function() {
   });
 });
 
-describe("This test fails", function() {
-  it("FAIL", function() {
-    expect(true).toBe(true);
+describe("is sample genetically altered", function() {
+  it("shows that an empty sample (no data) is not genetically altered", function() {
+    expect(utils.is_sample_genetically_altered({})).toBe(false);
+  });
+
+  it("shows that a clinical-ish sample is not genetically altered", function() {
+    expect(utils.is_sample_genetically_altered({sample_id: "ABC123",
+                                                attr_id: "MY_SPECIAL_ATTR",
+                                                attr_val: 42})).toBe(false);
+  });
+
+  it("shows that a genetically altered sample as altered", function() {
+    expect(utils.is_sample_genetically_altered({sample_id: "ABC123",
+                                                gene: "TP53",
+                                                cna: "AMPLIFIED"})).toBe(true);
   });
 });
