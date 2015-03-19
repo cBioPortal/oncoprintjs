@@ -49,9 +49,17 @@ module.exports = function rendering_engine() {
     });
   };
 
+  me.insert_row = function(container, row, rendering_rule) {
+    alert(container.datum());
+  };
+
   //
   // HELPER FUNCTIONS
   //
+
+  function compute_svg_width(rect_width, rect_padding, row_length) {
+    return (rect_width + rect_padding) * row_length;
+  }
 
   function infer_row_length(container) {
     var rows = container.datum();
@@ -123,7 +131,3 @@ module.exports = function rendering_engine() {
 
   return me;
 };
-
-function compute_svg_width(rect_width, rect_padding, row_length) {
-  return (rect_width + rect_padding) * row_length;
-}

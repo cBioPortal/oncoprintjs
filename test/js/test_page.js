@@ -44,5 +44,6 @@ window.test_for_genomic_data = function(filename, div_selector_string) {
 //       oncoprint.insertRow(data);
 //     });
 
+    d3.select(div_selector_string).call(oncoprint.insert_row);
   });
 };
