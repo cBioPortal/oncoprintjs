@@ -27,6 +27,9 @@ module.exports = function genomic() {
     return me;
   };
 
+  // expose this function
+  me.insert_row = rendering_engine.insert_row;
+
   me.rendering_rules = function(value) {
     if (!arguments.length) return rendering_rules;
     rendering_rules = value;
