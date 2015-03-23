@@ -63,9 +63,13 @@ exports.gene_rule = function gene_rule(config) {
       return d.mutation === undefined;
     }).remove();
 
-    // TODO delete me
-    row_elements.on("click", function(d) {
-      d3.selectAll('.selected_sample').text(JSON.stringify(d));
-    });
+    update(row_elements);
   };
 };
+
+// TODO dev only
+function update(row_elements) {
+  row_elements.on("click", function(d) {
+    d3.selectAll('.selected_sample').text(JSON.stringify(d));
+  });
+}
