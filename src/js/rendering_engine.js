@@ -17,7 +17,7 @@ module.exports = function rendering_engine() {
     container = container.append('table').append('tr')
     var label_container = container.append('td')
     var oncoprint_container = container.append('td').append('div')
-    var svg = oncoprint_container_to_svg(oncoprint_container);
+    var svg = create_svg_for_container(oncoprint_container);
 
     var element_height = 20;
 
@@ -37,20 +37,45 @@ module.exports = function rendering_engine() {
       .append('tspan')
       .text(function(d) { return d.text; })
 
-    svg.each(function(rows) {
-      svg.selectAll('g').data(rows)
-      .enter().append('g')
-      .attr('transform', function(d,i) {
-        return utils.translate(0, i * config.row_height);
-      })
-      .each(function(d,i) {
-        d3.select(this).call(renderers[i]);
-      })
-    });
+    svg.selectAll('g')
+    .data(function(d) { return d; })
+    .enter().append('g')
+    .attr('transform', function(d,i) {
+      return utils.translate(0, i * config.row_height);
+    })
+    .each(function(d,i) {
+      d3.select(this).call(renderers[i]);
+    })
+    .attr('class', 'oncoprint-row');
   };
 
   me.insert_row = function(container, row, rendering_rule) {
-    alert(container.datum());
+    var svg = get_svg_from_container(container);
+
+    // make the svg one row taller
+    svg.attr('height', parseInt(svg.attr('height')) + config.row_height);
+
+    // slide the current rows down
+    svg.selectAll('.oncoprint-row')
+    .attr('transform', function(d, i) {
+      return utils.translate(0, config.row_height + (i * config.row_height));
+    });
+
+    // update the data which is bound to the container
+    var internal_data = container.datum();
+    internal_data.unshift(row);
+    container.datum(internal_data);
+
+    // use d3 to detect which row is new and use the rendering function to render.
+    svg = get_svg_from_container(container);
+    svg.selectAll('g')
+    .data(function(d) { return d; })
+    .enter().append('g')
+    .attr('transform', utils.translate(0,0))
+    .each(function(d,i) {
+      d3.select(this).call(rendering_rule(config))
+    })
+    .attr('class', 'oncoprint-row')
   };
 
   //
@@ -75,7 +100,7 @@ module.exports = function rendering_engine() {
 
   // styles, appends, does all the right stuff to the container
   // so that we can go on to work with the inner <svg>.
-  function oncoprint_container_to_svg(container) {
+  function create_svg_for_container(container) {
     container.style('width', container_width + "px")
     .style('display', 'inline-block')
     .style('overflow-x', 'auto')
@@ -87,6 +112,11 @@ module.exports = function rendering_engine() {
     return container.append('svg')
     .attr('width', compute_svg_width(element_width, element_padding, row_length))
     .attr('height', config.row_height * rows.length);
+  }
+
+  function get_svg_from_container(container) {
+    // the first child contains the labels
+    return container.selectAll("table tr td:nth-child(2) div svg");
   }
 
   //

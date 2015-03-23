@@ -8,6 +8,9 @@ exports.discrete_data_rule = function discrete_data_rule(config) {
 };
 
 exports.gender_rule = function gender_rule(config) {
+  return function(selection) {
+    console.log(selection[0]);
+  };
 };
 
 exports.gene_rule = function gene_rule(config) {
