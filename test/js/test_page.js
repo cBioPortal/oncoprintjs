@@ -41,7 +41,8 @@ window.test_for_genomic_data = function(filename, div_selector_string) {
     d3.select(div_selector_string).call(oncoprint);
 
     d3.json("gender.json", function(payload) {
-      oncoprint.insert_row(d3.select(div_selector_string), payload.data, renderers.gender_rule);
+      var gender_data = payload.data;
+      oncoprint.insert_row(d3.select(div_selector_string), gender_data, renderers.gender_rule);
     });
 
   });

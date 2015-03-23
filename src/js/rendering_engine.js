@@ -39,7 +39,7 @@ module.exports = function rendering_engine() {
 
     svg.selectAll('g')
     .data(svg.data()[0], function(d) {
-      return d[0].gene;
+      return oncoprint_key_function(d[0]);
     })
     .enter().append('g')
     .attr('transform', function(d,i) {
@@ -81,9 +81,6 @@ module.exports = function rendering_engine() {
     })
   };
 
-  function oncoprint_key_function(d) {
-    return d.gene || d.attr_id;
-  }
 
   //
   // HELPER FUNCTIONS
@@ -124,6 +121,10 @@ module.exports = function rendering_engine() {
   function get_svg_from_container(container) {
     // the first child contains the labels
     return container.selectAll("table tr td:nth-child(2) div svg");
+  }
+
+  function oncoprint_key_function(d) {
+    return d.gene || d.attr_id;
   }
 
   //
