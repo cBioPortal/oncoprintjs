@@ -9,7 +9,24 @@ exports.discrete_data_rule = function discrete_data_rule(config) {
 
 exports.gender_rule = function gender_rule(config) {
   return function(selection) {
-    console.log(selection[0]);
+    selection.selectAll('rect')
+    .data(function(d) { return d; })
+    .enter()
+    .append('rect')
+    .attr('x', function(d, i) {
+      return i * (config.rect_width + config.rect_padding);
+    })
+    .attr('fill', function(d) {
+      if (d.attr_val === "MALE")
+        return 'black';
+      if (d.attr_val === "FEMALE")
+        return 'pink';
+      return 'grey';
+    })
+    .attr('height', config.rect_height)
+    .attr('width', config.rect_width);
+
+    update(selection.selectAll('rect'));
   };
 };
 

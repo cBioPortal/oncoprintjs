@@ -38,7 +38,9 @@ module.exports = function rendering_engine() {
       .text(function(d) { return d.text; })
 
     svg.selectAll('g')
-    .data(function(d) { return d; })
+    .data(svg.data()[0], function(d) {
+      return d[0].gene;
+    })
     .enter().append('g')
     .attr('transform', function(d,i) {
       return utils.translate(0, i * config.row_height);
@@ -67,16 +69,21 @@ module.exports = function rendering_engine() {
     container.datum(internal_data);
 
     // use d3 to detect which row is new and use the rendering function to render.
-    svg = get_svg_from_container(container);
-    svg.selectAll('g')
-    .data(function(d) { return d; })
-    .enter().append('g')
+    svg.selectAll('.oncoprint-row')
+    .data(svg.data()[0], function(d) {
+      return oncoprint_key_function(d[0])
+    })
+    .enter()
+    .append('g')
     .attr('transform', utils.translate(0,0))
     .each(function(d,i) {
       d3.select(this).call(rendering_rule(config))
     })
-    .attr('class', 'oncoprint-row')
   };
+
+  function oncoprint_key_function(d) {
+    return d.gene || d.attr_id;
+  }
 
   //
   // HELPER FUNCTIONS
