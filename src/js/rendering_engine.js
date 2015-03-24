@@ -52,6 +52,10 @@ module.exports = function rendering_engine() {
   };
 
   me.insert_row = function(container, row, rendering_rule) {
+    var internal_data = container.datum();
+
+    utils.validate_row_against_rows(row, internal_data);
+
     var svg = get_svg_from_container(container);
 
     // make the svg one row taller
@@ -64,7 +68,6 @@ module.exports = function rendering_engine() {
     });
 
     // update the data which is bound to the container
-    var internal_data = container.datum();
     internal_data.unshift(row);
     container.datum(internal_data);
 
@@ -80,7 +83,6 @@ module.exports = function rendering_engine() {
       d3.select(this).call(rendering_rule(config))
     })
   };
-
 
   //
   // HELPER FUNCTIONS
