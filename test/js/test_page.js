@@ -20,9 +20,12 @@ var config = { rect_height: 20,
 };
 
 // TODO this is dirty.
-window.test_for_genomic_data = function(filename, div_selector_string) {
-  return d3.json(filename, function(data) {
+window.test_for_genomic_data = function(filenames, div_selector_string) {
+  var genomic_file = filenames[0];
+  var additional_file = filenames[1];
 
+  // filenames has length 2.
+  return d3.json(genomic_file, function(data) {
     // break into rows
     rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
     sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
@@ -40,10 +43,11 @@ window.test_for_genomic_data = function(filename, div_selector_string) {
 
     d3.select(div_selector_string).call(oncoprint);
 
-    d3.json("gender.json", function(payload) {
-      var gender_data = payload.data;
-      oncoprint.insert_row(d3.select(div_selector_string), gender_data, renderers.gender_rule);
-    });
-
+    if (additional_file !== undefined) {
+      d3.json(additional_file, function(payload) {
+        var gender_data = payload.data;
+        oncoprint.insert_row(d3.select(div_selector_string), gender_data, renderers.gender_rule);
+      });
+    }
   });
 };
