@@ -46,6 +46,22 @@ window.test_for_genomic_data = function(filenames, div_selector_string) {
     if (additional_file !== undefined) {
       d3.json(additional_file, function(payload) {
         var gender_data = payload.data;
+
+        gender_data = _.sortBy(gender_data, function(d) {
+          // grab the sorted sampleids
+          var sampleids = sorted_rows[0].map(function(d) {
+            return d.sample_id || d.sample;
+          });
+
+          // sort the new gender data based on the previous sorting
+          var sampleid_to_array_index = sampleids.reduce(function(curr, next, index) {
+            curr[next] = index;
+            return curr;
+          }, {});
+
+          return sampleid_to_array_index[d.sample_id || d.sample];
+        });
+
         oncoprint.insert_row(d3.select(div_selector_string), gender_data, renderers.gender_rule);
       });
     }
