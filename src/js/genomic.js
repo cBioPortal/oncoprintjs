@@ -16,7 +16,7 @@ module.exports = function genomic() {
     rendering_engine.container_width(config.width);
     rendering_engine.element_width(config.rect_width);
     rendering_engine.element_padding(config.rect_padding);
-    rendering_engine.labels(rows_to_labels(rows));
+    rendering_engine.label_function(rows_to_labels);
     rendering_engine.renderers(_.map(rendering_rules, function(r) { return r(config); }));
     container.call(rendering_engine);
   };
