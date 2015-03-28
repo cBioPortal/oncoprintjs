@@ -27,8 +27,8 @@ window.test_for_genomic_data = function(filenames, div_selector_string) {
   // filenames has length 2.
   return d3.json(genomic_file, function(data) {
     // break into rows
-    rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
-    sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
+    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
+    var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
     d3.select(div_selector_string).datum(sorted_rows);
 
     var oncoprint = genomic_oncoprint();
