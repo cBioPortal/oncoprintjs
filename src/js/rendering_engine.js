@@ -8,7 +8,7 @@ module.exports = function rendering_engine() {
   var container_width = 100;
   var element_padding = 1;
   var element_width = 1;
-  var labels = [];
+  var label_function = undefined;
   var renderers = [];
   var svg_height = 95;
 
@@ -23,7 +23,7 @@ module.exports = function rendering_engine() {
 
     // TODO!
     label_container.append('svg').append('g').selectAll('text')
-      .data(labels)
+      .data(label_function(container.datum()))
       .enter()
       .append('text')
       .attr('text-anchor', function(d) {
@@ -113,6 +113,7 @@ module.exports = function rendering_engine() {
     .style('overflow-y', 'hidden');
 
     // infer from the data that is already bound to the div.
+    var rows = container.datum();
     var row_length = infer_row_length(container)
 
     return container.append('svg')
@@ -157,9 +158,9 @@ module.exports = function rendering_engine() {
     return me;
   };
 
-  me.labels = function(value) {
-    if (!arguments.length) return labels;
-    labels = value;
+  me.label_function = function(value) {
+    if (!arguments.length) return label_function;
+    label_function = value;
     return me;
   };
 
