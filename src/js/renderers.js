@@ -32,24 +32,24 @@ exports.gender_rule = function gender_rule(config) {
 
 exports.gene_rule = function gene_rule(config) {
   return function(selection) {
-    var row_elements = selection.selectAll('g')
+    var sample_elements = selection.selectAll('g')
     // binds the row-wise data to the row group, <g>. See Bostock's
     // explaination on nested selections: http://bost.ocks.org/mike/nest/#data
     .data(function(d) { return d; })
     .enter().append('g');
 
-    row_elements.attr('transform', function(d, i) {
+    sample_elements.attr('transform', function(d, i) {
       return utils.translate(i * (config.rect_width + config.rect_padding), 0);
     });
 
-    row_elements.append('rect')
+    sample_elements.append('rect')
     .attr('fill', function(d) { return config.cna_fills[d.cna]; })
     .attr('height', config.rect_height)
     .attr('width', config.rect_width);
 
     var one_third_height = config.rect_height / 3;
 
-    var mutation = row_elements.append('rect')
+    var mutation = sample_elements.append('rect')
     .attr('y', one_third_height)
     .attr('fill', function(d) {
       // leave the ones without mutations uncolored
@@ -63,13 +63,13 @@ exports.gene_rule = function gene_rule(config) {
       return d.mutation === undefined;
     }).remove();
 
-    update(row_elements);
+    update(sample_elements);
   };
 };
 
 // TODO dev only
-function update(row_elements) {
-  row_elements.on("click", function(d) {
+function update(sample_elements) {
+  sample_elements.on("click", function(d) {
     d3.selectAll('.selected_sample').text(JSON.stringify(d));
   });
 }

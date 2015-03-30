@@ -10,7 +10,6 @@ module.exports = function rendering_engine() {
   var element_width = 1;
   var label_function = undefined;
   var renderers = [];
-  var svg_height = 95;
 
   var me = function(container) {
 
@@ -37,6 +36,10 @@ module.exports = function rendering_engine() {
       .append('tspan')
       .text(function(d) { return d.text; })
 
+    var bind_renderers_to_config = _.map(renderers, function(r) {
+      return r(config);
+    });
+
     svg.selectAll('g')
     .data(svg.data()[0], function(d) {
       return oncoprint_key_function(d[0]);
@@ -46,7 +49,7 @@ module.exports = function rendering_engine() {
       return utils.translate(0, i * config.row_height);
     })
     .each(function(d,i) {
-      d3.select(this).call(renderers[i]);
+      d3.select(this).call(bind_renderers_to_config[i]);
     })
     .attr('class', 'oncoprint-row');
   };
