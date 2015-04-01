@@ -29,8 +29,13 @@ exports.gender_rule = function gender_rule(config) {
     update(selection.selectAll('rect'));
   };
 
-  ret.resort = function(selection) {
-//     alert("HELLO");
+  ret.resort = function(selection, sample_order) {
+    selection.selectAll('rect')
+    .transition(function(d, i) { return i; })
+    .attr('x', function(d, i) {
+      return sample_order[d.sample_id || d.sample] *
+        (config.rect_width + config.rect_padding);
+    });
   };
 
   return ret;
@@ -46,8 +51,13 @@ exports.gene_rule = function gene_rule(config) {
     update(sample_group);
   };
 
-  ret.resort = function(selection) {
-//     alert("HELLO");
+  ret.resort = function(selection, sample_order) {
+    selection.selectAll('g')
+    .transition(function(d, i) { return i; })
+    .attr('transform', function(d, i) {
+      return utils.translate(sample_order[d.sample_id || d.sample]
+                             * (config.rect_width + config.rect_padding), 0);
+    });
   }
 
   return ret;
