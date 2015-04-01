@@ -76,7 +76,6 @@ window.test_for_genomic_data = function(filenames, div_selector_string) {
           curr[next] = index;
           return curr;
         }, {});
-
         oncoprint.resort(container, sampleid_to_array_index);
       });
     }
