@@ -45,9 +45,14 @@ gulp.task('test', function() {
   .pipe(gulp.dest('dist/test/'));
 });
 
-// JavaScript
-// TODO need to figure out what to compile other than test code...
-//gulp.task('js', function() {
+gulp.task('js', function() {
+  browserify('./src/js/main.js',
+                     {standalone: 'oncoprint'}).bundle()
+//   .pipe(source("oncoprint.js")) // placeholder
+//   .pipe(rename("oncoprint-bundle.js"))
+  .pipe(gulp.dest('dist'));
+
+
 //  browserify({entries: './src/js/main.js',
 //              debug: !process.env.production
 //             }).bundle()
@@ -56,7 +61,7 @@ gulp.task('test', function() {
 //  .pipe(gulp.dest('dist/asset/js'))
 //  .pipe(streamify(uglify()))
 //  .pipe(notify("Done with JavaScript."))
-//});
+});
 
 // Clean
 gulp.task('clean', function(cb) {
