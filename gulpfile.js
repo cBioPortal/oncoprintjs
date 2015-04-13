@@ -47,8 +47,9 @@ gulp.task('test', function() {
 
 gulp.task('js', function() {
   browserify('./src/js/main.js',
-                     {standalone: 'oncoprint'}).bundle()
-//   .pipe(source("oncoprint.js")) // placeholder
+                     {standalone: 'oncoprint'})
+  .bundle()
+  .pipe(source("oncoprint.js")) // placeholder
 //   .pipe(rename("oncoprint-bundle.js"))
   .pipe(gulp.dest('dist'));
 
