@@ -45,23 +45,13 @@ gulp.task('test', function() {
   .pipe(gulp.dest('dist/test/'));
 });
 
-gulp.task('js', function() {
+gulp.task('prod', function() {
   browserify('./src/js/main.js',
-                     {standalone: 'oncoprint'})
-  .bundle()
-  .pipe(source("oncoprint.js")) // placeholder
-//   .pipe(rename("oncoprint-bundle.js"))
-  .pipe(gulp.dest('dist'));
-
-
-//  browserify({entries: './src/js/main.js',
-//              debug: !process.env.production
-//             }).bundle()
-//  .pipe(source('genomic.js'))
-//  .pipe(rename('genomic-oncoprint-bundle.js'))
-//  .pipe(gulp.dest('dist/asset/js'))
-//  .pipe(streamify(uglify()))
-//  .pipe(notify("Done with JavaScript."))
+             {standalone: 'oncoprint'}).bundle()
+  .pipe(source('oncoprint-bundle.js'))
+  .pipe(streamify(uglify()))
+  .pipe(gulp.dest('dist/prod/'))
+  .pipe(notify("Done with generating production code."))
 });
 
 // Clean
@@ -71,10 +61,10 @@ gulp.task('clean', function(cb) {
 
 // Default
 gulp.task('default', ['clean'], function() {
-    gulp.start('js');
+    gulp.start('prod');
 });
 
 // Watch
 gulp.task('watch', function() {
-  gulp.watch(['src/js/**/*.js', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test']);
+  gulp.watch(['src/js/**/*.js', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test', 'prod']);
 });
