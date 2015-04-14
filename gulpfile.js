@@ -23,9 +23,6 @@ gulp.task('spec', function() {
 
 // Test Page
 gulp.task('test', function() {
-  // Unit tests
-  gulp.start('spec');
-
   // JavaScript
   browserify({entries: './test/js/test_page.js',
               debug: true
@@ -35,6 +32,9 @@ gulp.task('test', function() {
   .pipe(gulp.dest('dist/test/'))
   .pipe(streamify(uglify()))
   .pipe(notify("Done with building code for testing."))
+
+  // Unit tests
+  gulp.start('spec');
 
   // Copy over the HTML.
   gulp.src('test/index.html')
@@ -70,5 +70,5 @@ gulp.task('default', ['clean'], function() {
 
 // Watch
 gulp.task('watch', function() {
-  gulp.watch(['src/js/**/*.js', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test', 'prod']);
+  gulp.watch(['src/js/**/*.js', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test']);
 });
