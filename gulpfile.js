@@ -29,9 +29,8 @@ gulp.task('test', function() {
               standalone: 'test_script'
              }).bundle()
   .pipe(source('test.js'))
-  .pipe(rename('test_page_bundle.js'))
+  .pipe(rename('test-oncoprint-bundle.js'))
   .pipe(gulp.dest('dist/test/'))
-  .pipe(streamify(uglify()))
   .pipe(notify("Done with building code for testing."))
 
   // Unit tests
@@ -53,10 +52,6 @@ gulp.task('prod', function() {
   .pipe(streamify(uglify()))
   .pipe(gulp.dest('dist/prod/'))
   .pipe(notify("Done with generating production code."));
-
-  // Copy over the HTML.
-  gulp.src('src/index.html')
-  .pipe(gulp.dest('dist/prod/'));
 });
 
 // Clean
