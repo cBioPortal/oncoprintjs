@@ -1,10 +1,8 @@
 var _ = require("underscore");
 
+var OncoPrint = require('../../src/js/main');
 var renderers = require("../../src/js/renderers");
-var sorting = require("../../src/js/sorting");
 var utils = require("../../src/js/utils");
-
-var genomic_oncoprint = require('../../src/js/main');
 
 var config = { rect_height: 20,
               rect_padding: 3,
@@ -20,15 +18,14 @@ var config = { rect_height: 20,
              }
 };
 
-// TODO this is dirty.
-window.test_for_genomic_data = function(filenames, div_selector_string) {
+module.exports = function test_script(filenames, div_selector_string) {
   // filenames has length 2.
   var genomic_file = filenames[0];
   var additional_file = filenames[1];
 
   // genomic data
   return d3.json(genomic_file, function(data) {
-    var oncoprint = genomic_oncoprint();
+    var oncoprint = OncoPrint();
     var container = oncoprint.prepare_container(d3.select(div_selector_string, data), data);
     container.call(oncoprint);
 

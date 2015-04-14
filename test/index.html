@@ -26,8 +26,9 @@
     <div id="prostate-ar-signalling"></div>
 
 <script>
-    test_for_genomic_data(["gbm/tp53-mdm2-mdm4-gbm.json", "gbm/gender-gbm.json"], "#tp53-mdm2-mdm4-gbm");
-    test_for_genomic_data(["prostate-ar-signalling.json"], "#prostate-ar-signalling")
+    // for some reason browserify removes the underscore
+    testscript(["gbm/tp53-mdm2-mdm4-gbm.json", "gbm/gender-gbm.json"], "#tp53-mdm2-mdm4-gbm");
+    testscript(["prostate-ar-signalling.json"], "#prostate-ar-signalling")
 </script>
 </body>
 

@@ -25,7 +25,8 @@ gulp.task('spec', function() {
 gulp.task('test', function() {
   // JavaScript
   browserify({entries: './test/js/test_page.js',
-              debug: true
+              debug: true,
+              standalone: 'test_script'
              }).bundle()
   .pipe(source('test.js'))
   .pipe(rename('test_page_bundle.js'))
