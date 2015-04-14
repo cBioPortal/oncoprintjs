@@ -123,7 +123,6 @@ module.exports = function() {
     return _.flatten(_.map(rows, calculate_row_label));
   }
 
-
   return me;
 };
 
