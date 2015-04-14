@@ -3,7 +3,7 @@ var _ = require("underscore");
 var renderers = require("../../src/js/renderers");
 var sorting = require("../../src/js/sorting");
 
-var genomic_oncoprint = require('../../src/js/genomic');
+var genomic_oncoprint = require('../../src/js/main');
 
 var config = { rect_height: 20,
               rect_padding: 3,
@@ -33,8 +33,6 @@ window.test_for_genomic_data = function(filenames, div_selector_string) {
     var container = d3.select(div_selector_string).datum(sorted_rows);
 
     var oncoprint = genomic_oncoprint();
-
-    oncoprint.config(config);
 
     var rendering_rules = _.map(rows, function(row) {
       // at the cBioPortal OncoPrints always start as just genomic data.

@@ -51,7 +51,11 @@ gulp.task('prod', function() {
   .pipe(source('oncoprint-bundle.js'))
   .pipe(streamify(uglify()))
   .pipe(gulp.dest('dist/prod/'))
-  .pipe(notify("Done with generating production code."))
+  .pipe(notify("Done with generating production code."));
+
+  // Copy over the HTML.
+  gulp.src('src/index.html')
+  .pipe(gulp.dest('dist/prod/'));
 });
 
 // Clean
