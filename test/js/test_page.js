@@ -26,19 +26,21 @@ module.exports = function test_script(filenames, div_selector_string) {
   // genomic data
   return d3.json(genomic_file, function(data) {
     var oncoprint = OncoPrint();
-    var container = oncoprint.prepare_container(d3.select(div_selector_string, data), data);
-    container.call(oncoprint);
+    oncoprint(div_selector_string, data);
 
     // additional clinical data if it has been specified.
     if (additional_file !== undefined) {
       d3.json(additional_file, function(payload) {
-        oncoprint.insert_row(container, payload.data, renderers.gender_rule);
+        oncoprint.insert_row(div_selector_string, payload.data, renderers.gender_rule);
 
         d3.select('#shuffle-gbm').on('click', function() {
+          // get and shuffle order
+          var container = d3.select(div_selector_string);
           var sampleids = container.datum()[0].map(function(d) { return d.sample_id || d.sample; });
           var shuffled_sampleids = d3.shuffle(sampleids);
+
           var sampleid_to_array_index = utils.invert_array(shuffled_sampleids);
-          oncoprint.resort(container, sampleid_to_array_index);
+          oncoprint.resort(div_selector_string, sampleid_to_array_index);
         });
       });
     }

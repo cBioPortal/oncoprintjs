@@ -23,7 +23,9 @@ module.exports = function() {
 
   var engine = rendering_engine();
 
-  var me = function(container) {
+  var me = function(container_selector_string, data) {
+    var container = prepare_container(d3.select(container_selector_string), data)
+
     engine.config(get_config());
     engine.container_width(width);
     engine.element_width(rect_width);
@@ -35,7 +37,9 @@ module.exports = function() {
 
 //   me.insert_row = engine.insert_row;
 
-  me.insert_row = function(container, row, rendering_rule) {
+  me.insert_row = function(container_selector_string, row, rendering_rule) {
+    var container = d3.select(container_selector_string);
+
     // grab the sorted sampleids
     var sampleids = container.datum()[0].map(function(d) {
       return d.sample_id || d.sample;
@@ -55,7 +59,9 @@ module.exports = function() {
     engine.insert_row(container, sorted_data, rendering_rule);
   }
 
-  me.resort = function(container, sample_id_to_array_index) {
+  me.resort = function(container_selector_string, sample_id_to_array_index) {
+    var container = d3.select(container_selector_string);
+
     var row_groups = container.selectAll('.oncoprint-row');
     row_groups = row_groups[0].map(d3.select);
     utils.assert(row_groups.length === rendering_rules.length,
@@ -67,13 +73,6 @@ module.exports = function() {
       var rr = row_group_and_rr[1];
       rr(get_config()).resort(row_group, sample_id_to_array_index);
     });
-  };
-
-  me.prepare_container = function(container, data) {
-    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
-    var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
-    container.datum(sorted_rows);
-    return container;
   };
 
   //
@@ -164,6 +163,14 @@ module.exports = function() {
   function rows_to_labels(rows) {
     return _.flatten(_.map(rows, calculate_row_label));
   }
+
+  function prepare_container(container, data) {
+    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
+    var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
+    container.datum(sorted_rows);
+    return container;
+  };
+
 
   return me;
 };
