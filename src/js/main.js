@@ -3,6 +3,7 @@ var _ = require('underscore');
 
 var renderers = require('./renderers');
 var rendering_engine = require('./rendering_engine');
+var sorting = require('./sorting');
 var utils = require('./utils');
 
 module.exports = function() {
@@ -28,11 +29,31 @@ module.exports = function() {
     engine.element_width(rect_width);
     engine.element_padding(rect_padding);
     engine.label_function(rows_to_labels);
-    engine.renderers(rendering_rules);
+    engine.renderers(rendering_rules_or_default(container));
     container.call(engine);
   };
 
-  me.insert_row = engine.insert_row;
+//   me.insert_row = engine.insert_row;
+
+  me.insert_row = function(container, row, rendering_rule) {
+    // grab the sorted sampleids
+    var sampleids = container.datum()[0].map(function(d) {
+      return d.sample_id || d.sample;
+    });
+
+    var sampleid_to_array_index = utils.invert_array(sampleids);
+
+    // sort the new gender data based on the previous sorting
+    var sorted_data = _.sortBy(row, function(d) {
+      return sampleid_to_array_index[d.sample_id || d.sample];
+    });
+
+    // update the list of renderers
+    rendering_rules.unshift(renderers.gender_rule);
+    engine.rendering_rules(rendering_rules);
+
+    engine.insert_row(container, sorted_data, rendering_rule);
+  }
 
   me.resort = function(container, sample_id_to_array_index) {
     var row_groups = container.selectAll('.oncoprint-row');
@@ -47,6 +68,17 @@ module.exports = function() {
       rr(get_config()).resort(row_group, sample_id_to_array_index);
     });
   };
+
+  me.prepare_container = function(container, data) {
+    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
+    var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
+    container.datum(sorted_rows);
+    return container;
+  };
+
+  //
+  // getters and setters
+  //
 
   me.cna_fills = function(value) {
     if (!arguments.length) return cna_fills;
@@ -104,6 +136,17 @@ module.exports = function() {
     var percent_altered = _.filter(row, utils.is_sample_genetically_altered).length / row.length;
     percent_altered = Math.round(percent_altered*100);
     return [{align: 'left', text: row[0].gene}, {align: 'right', text: percent_altered + "%"}];
+  }
+
+  function rendering_rules_or_default(container) {
+    if (rendering_rules.length === 0) {
+      return _.map(container.datum(), function(row) {
+        return renderers.gene_rule;
+      });
+    }
+    else {
+      return rendering_rules;
+    }
   }
 
   function get_config() {
