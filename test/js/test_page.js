@@ -2,6 +2,7 @@ var _ = require("underscore");
 
 var renderers = require("../../src/js/renderers");
 var sorting = require("../../src/js/sorting");
+var utils = require("../../src/js/utils");
 
 var genomic_oncoprint = require('../../src/js/main');
 
@@ -39,10 +40,7 @@ window.test_for_genomic_data = function(filenames, div_selector_string) {
         d3.select('#shuffle-gbm').on('click', function() {
           var sampleids = container.datum()[0].map(function(d) { return d.sample_id || d.sample; });
           var shuffled_sampleids = d3.shuffle(sampleids);
-          var sampleid_to_array_index = shuffled_sampleids.reduce(function(curr, next, index) {
-            curr[next] = index;
-            return curr;
-          }, {});
+          var sampleid_to_array_index = utils.invert_array(shuffled_sampleids);
           oncoprint.resort(container, sampleid_to_array_index);
         });
       });
