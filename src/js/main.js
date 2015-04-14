@@ -50,7 +50,7 @@ module.exports = function() {
 
     // update the list of renderers
     rendering_rules.unshift(renderers.gender_rule);
-    engine.rendering_rules(rendering_rules);
+    engine.renderers(rendering_rules);
 
     engine.insert_row(container, sorted_data, rendering_rule);
   }
@@ -140,13 +140,12 @@ module.exports = function() {
 
   function rendering_rules_or_default(container) {
     if (rendering_rules.length === 0) {
-      return _.map(container.datum(), function(row) {
+      rendering_rules = _.map(container.datum(), function(row) {
         return renderers.gene_rule;
       });
     }
-    else {
-      return rendering_rules;
-    }
+
+    return rendering_rules;
   }
 
   function get_config() {
