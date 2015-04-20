@@ -11,7 +11,6 @@ module.exports = function rendering_engine() {
   var renderers = [];
 
   var me = function(container) {
-
     container = container.append('table').append('tr')
     var label_container = container.append('td')
     var oncoprint_container = container.append('td').append('div')

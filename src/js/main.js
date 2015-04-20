@@ -24,14 +24,32 @@ module.exports = function() {
   var engine = rendering_engine();
 
   var me = function(container_selector_string, data) {
-    var container = prepare_container(d3.select(container_selector_string), data)
+    var top_level_container = d3.select(container_selector_string);
+    var table = prepare_table(top_level_container);
+    var label_column = table[0];
+    var oncoprint_column = table[1];
 
+    // do your oncoprint magic
+    oncoprint_column.append('div');
+    var oncoprint_container = prepare_oncoprint_container(oncoprint_column, data)
     engine.config(get_config());
     engine.container_width(width);
     engine.element_width(rect_width);
     engine.element_padding(rect_padding);
-    engine.renderers(rendering_rules_or_default(container));
-    container.call(engine);
+    engine.renderers(rendering_rules_or_default(oncoprint_container));
+    oncoprint_container.call(engine);
+
+    // do your label magic
+    label_column.append('div');
+    var label_container = prepare_label_container(label_column);
+//     var label_engine = rendering_engine();
+//     engine.config(get_config());
+//     engine.container_width(100);
+//     engine.renderers(_.map(label_container.datum(), function(_){
+// //       return label_renderer;
+//       return undefined;
+//     }));
+
   };
 
 //   me.insert_row = engine.insert_row;
@@ -152,14 +170,38 @@ module.exports = function() {
     };
   }
 
+  // returns a 2-ple [labels_container, oncoprint_container]
+  // where each is a <td>.
+  function prepare_table(container) {
+    var table = container.append('table');
+    var the_row = table.append('tr')
+    var labels_container = the_row.append('td')
+    var oncoprint_container = the_row.append('td')
+    return [labels_container, oncoprint_container];
+  }
+
+  function prepare_label_container(container, data) {
+    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
+    container.datum(_.flatten(_.map(rows, calculate_row_label)));
+    return container;
+
+    function calculate_row_label(row) {
+      var percent_altered = _.filter(row, utils.is_sample_genetically_altered).length / row.length;
+      percent_altered = Math.round(percent_altered*100);
+      return [{align: 'left', text: row[0].gene},
+              {align: 'right', text: percent_altered + "%"}];
+    }
+  }
+
+
   // reorganize the flat data into a list of sorted rows
   // bind those rows to the container using .datum()
-  function prepare_container(container, data) {
+  function prepare_oncoprint_container(container, data) {
     var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
     var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
     container.datum(sorted_rows);
     return container;
-  };
+  }
 
   return me;
 };
