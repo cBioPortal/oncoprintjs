@@ -30,7 +30,6 @@ module.exports = function() {
     engine.container_width(width);
     engine.element_width(rect_width);
     engine.element_padding(rect_padding);
-    engine.label_function(rows_to_labels);
     engine.renderers(rendering_rules_or_default(container));
     container.call(engine);
   };
@@ -130,12 +129,6 @@ module.exports = function() {
   // HELPER FUNCTIONS
   //
 
-  function calculate_row_label(row) {
-    var percent_altered = _.filter(row, utils.is_sample_genetically_altered).length / row.length;
-    percent_altered = Math.round(percent_altered*100);
-    return [{align: 'left', text: row[0].gene}, {align: 'right', text: percent_altered + "%"}];
-  }
-
   function rendering_rules_or_default(container) {
     if (rendering_rules.length === 0) {
       rendering_rules = _.map(container.datum(), function(row) {
@@ -157,10 +150,6 @@ module.exports = function() {
       mutation_fill: mutation_fill,
       width: width
     };
-  }
-
-  function rows_to_labels(rows) {
-    return _.flatten(_.map(rows, calculate_row_label));
   }
 
   // reorganize the flat data into a list of sorted rows

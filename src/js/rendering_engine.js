@@ -8,7 +8,6 @@ module.exports = function rendering_engine() {
   var container_width = 100;
   var element_padding = 1;
   var element_width = 1;
-  var label_function = undefined;
   var renderers = [];
 
   var me = function(container) {
@@ -19,22 +18,6 @@ module.exports = function rendering_engine() {
     var svg = create_svg_for_container(oncoprint_container);
 
     var element_height = 20;
-
-    // TODO!
-    label_container.append('svg').append('g').selectAll('text')
-      .data(label_function(container.datum()))
-      .enter()
-      .append('text')
-      .attr('text-anchor', function(d) {
-        return d.align === 'right' ? 'end' : 'start';
-      })
-      .attr('x', function(d) { return d.align === 'right' ? 50 : 0 })
-      .attr('y', function(d, i) {
-        return (element_padding + 20 - 12 / 2) + i * 1.5 * (element_padding + 20 - 12 / 2);
-      })
-      .attr('font-size', '12px')
-      .append('tspan')
-      .text(function(d) { return d.text; })
 
     var bind_renderers_to_config = _.map(renderers, function(r) {
       return r(config);
@@ -159,12 +142,6 @@ module.exports = function rendering_engine() {
   me.element_width = function(value) {
     if (!arguments.length) return element_width;
     element_width = value;
-    return me;
-  };
-
-  me.label_function = function(value) {
-    if (!arguments.length) return label_function;
-    label_function = value;
     return me;
   };
 
