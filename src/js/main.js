@@ -42,13 +42,25 @@ module.exports = function() {
     // do your label magic
     label_column = label_column.append('div');
     var label_container = prepare_label_container(label_column, data);
-//     var label_engine = rendering_engine();
-//     engine.config(get_config());
-//     engine.container_width(100);
-//     engine.renderers(_.map(label_container.datum(), function(_){
-// //       return label_renderer;
-//       return undefined;
-//     }));
+    var label_engine = rendering_engine();
+    engine.config(get_config());
+    engine.container_width(100);
+    engine.renderers(_.map(label_container.datum(), function(_){
+      return label_renderer;
+    }));
+
+    label_column.call(engine);
+
+    function label_renderer(config) {
+      var ret = function(selection) {
+        selection.selectAll('text')
+        .data(function(d) { return d; })
+        .append('text')
+
+      };
+
+      return ret;
+    }
 
   };
 

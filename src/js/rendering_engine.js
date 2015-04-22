@@ -10,8 +10,8 @@ module.exports = function rendering_engine() {
   var element_width = 1;
   var renderers = [];
 
-  var me = function(oncoprint_container) {
-    var svg = create_svg_for_container(oncoprint_container);
+  var me = function(container) {
+    var svg = create_svg_for_container(container);
 
     var element_height = 20;
 
@@ -21,7 +21,7 @@ module.exports = function rendering_engine() {
 
     svg.selectAll('g')
     .data(svg.data()[0], function(d) {
-      return oncoprint_key_function(d[0]);
+      return utils.pluck_row_id(d[0]);
     })
     .enter().append('g')
     .attr('transform', function(d,i) {
@@ -56,7 +56,7 @@ module.exports = function rendering_engine() {
     // use d3 to detect which row is new and use the rendering function to render.
     svg.selectAll('.oncoprint-row')
     .data(internal_data, function(d) {
-      return oncoprint_key_function(d[0])
+      return utils.pluck_row_id(d[0]);
     })
     .enter()
     .append('g')
@@ -107,10 +107,6 @@ module.exports = function rendering_engine() {
   function get_svg_from_container(container) {
     // the first child contains the labels
     return container.selectAll("table tr td:nth-child(2) div svg");
-  }
-
-  function oncoprint_key_function(d) {
-    return d.gene || d.attr_id;
   }
 
   //
