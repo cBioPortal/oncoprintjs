@@ -41,7 +41,7 @@ module.exports = function() {
 
     // do your label magic
     label_column = label_column.append('div');
-    var label_container = prepare_label_container(label_column);
+    var label_container = prepare_label_container(label_column, data);
 //     var label_engine = rendering_engine();
 //     engine.config(get_config());
 //     engine.container_width(100);
