@@ -194,14 +194,15 @@ module.exports = function() {
 
   function prepare_label_container(container, data) {
     var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
-    container.datum(_.flatten(_.map(rows, calculate_row_label)));
+    container.datum(_.map(rows, calculate_row_label));
     return container;
 
     function calculate_row_label(row) {
       var percent_altered = _.filter(row, utils.is_sample_genetically_altered).length / row.length;
       percent_altered = Math.round(percent_altered*100);
-      return [{align: 'left', text: row[0].gene},
-              {align: 'right', text: percent_altered + "%"}];
+      var gene = row[0].gene;
+      return [{align: 'left', text: gene, gene: gene},
+              {align: 'right', text: percent_altered + "%", gene: gene}];
     }
   }
 
