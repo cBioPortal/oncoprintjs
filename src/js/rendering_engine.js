@@ -10,10 +10,7 @@ module.exports = function rendering_engine() {
   var element_width = 1;
   var renderers = [];
 
-  var me = function(container) {
-    container = container.append('table').append('tr')
-    var label_container = container.append('td')
-    var oncoprint_container = container.append('td').append('div')
+  var me = function(oncoprint_container) {
     var svg = create_svg_for_container(oncoprint_container);
 
     var element_height = 20;

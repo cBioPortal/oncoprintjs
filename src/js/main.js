@@ -30,7 +30,7 @@ module.exports = function() {
     var oncoprint_column = table[1];
 
     // do your oncoprint magic
-    oncoprint_column.append('div');
+    oncoprint_column = oncoprint_column.append('div');
     var oncoprint_container = prepare_oncoprint_container(oncoprint_column, data)
     engine.config(get_config());
     engine.container_width(width);
@@ -40,7 +40,7 @@ module.exports = function() {
     oncoprint_container.call(engine);
 
     // do your label magic
-    label_column.append('div');
+    label_column = label_column.append('div');
     var label_container = prepare_label_container(label_column);
 //     var label_engine = rendering_engine();
 //     engine.config(get_config());
