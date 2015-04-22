@@ -48,15 +48,27 @@ module.exports = function() {
     engine.renderers(_.map(label_container.datum(), function(_){
       return label_renderer;
     }));
+    engine.container_width(175);
 
     label_column.call(engine);
 
     function label_renderer(config) {
       var ret = function(selection) {
-        selection.selectAll('text')
+        var text = selection.selectAll('text')
         .data(function(d) { return d; })
+        .enter()
         .append('text')
+        .attr('text-anchor', function(d) {
+          return d.align === 'right' ? 'end' : 'start';
+        })
+        .attr('y', config.rect_height / 2)
+        .attr('font-size', '12px');
 
+        var tspan = text.append('tspan')
+        .attr('x', function(d) {
+          return d.align === 'right' ? config.container_width : 0;
+        })
+        .text(function(d) { return d.text; });
       };
 
       return ret;
