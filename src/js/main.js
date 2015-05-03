@@ -24,7 +24,7 @@ module.exports = function() {
   var engine = rendering_engine();
 
   var me = function(container_selector_string, data) {
-    var container = prepare_container(d3.select(container_selector_string), data)
+    var container = prepare_container(d3.select(container_selector_string), data);
 
     engine.config(get_config());
     engine.container_width(width);
