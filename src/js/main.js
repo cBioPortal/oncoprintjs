@@ -32,7 +32,7 @@ module.exports = function() {
     engine.element_padding(rect_padding);
     engine.label_function(rows_to_labels);
     engine.renderers(rendering_rules_or_default(container));
-    container.call(engine);
+    engine(container);
   };
 
 //   me.insert_row = engine.insert_row;
@@ -166,7 +166,10 @@ module.exports = function() {
   // reorganize the flat data into a list of sorted rows
   // bind those rows to the container using .datum()
   function prepare_container(container, data) {
-    var rows = _.chain(data).groupBy(function(d) { return d.gene; }).values().value();
+    var rows = _.chain(data).groupBy(function(d) {
+      return d.gene;
+    }).values().value();
+
     var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
     container.datum(sorted_rows);
     return container;
