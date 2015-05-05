@@ -30,12 +30,12 @@ module.exports = function rendering_engine() {
       var row = pair[1];
 
       var tr = table.append('tr');
-      var label = tr.append('td');
+      var label_container = tr.append('td');
       var oncoprint_container = tr.append('td');
       //oncoprint_container.attr('overflow-x', 'hidden');
       oncoprint_container.attr('width', config.width);
       oncoprint_container.attr('height', config.rect_height * 2);
-      renderer(row, label, oncoprint_container);
+      renderer(row, label_container, oncoprint_container);
     });
 
     // container.append('table');
