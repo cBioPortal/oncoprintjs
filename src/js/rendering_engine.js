@@ -32,8 +32,10 @@ module.exports = function rendering_engine() {
       var tr = table.append('tr');
       var label = tr.append('td');
       var oncoprint_container = tr.append('td');
-      oncoprint_container.datum(row);
-      renderer(oncoprint_container);
+      //oncoprint_container.attr('overflow-x', 'hidden');
+      oncoprint_container.attr('width', config.width);
+      oncoprint_container.attr('height', config.rect_height * 2);
+      renderer(row, label, oncoprint_container);
     });
 
     // container.append('table');
@@ -138,7 +140,7 @@ module.exports = function rendering_engine() {
   function create_svg_for_container(container) {
     container.style('width', container_width + "px")
       .style('display', 'inline-block')
-      .style('overflow-x', 'auto')
+      //.style('overflow-x', 'auto')
       .style('overflow-y', 'hidden');
 
     // infer from the data that is already bound to the div.
