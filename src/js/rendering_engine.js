@@ -8,33 +8,12 @@ module.exports = function rendering_engine() {
   var container_width = 100;
   var element_padding = 1;
   var element_width = 1;
-  var label_function = undefined;
   var renderers = [];
 
   var me = function(container) {
-
-    container = container.append('table').append('tr')
-    var label_container = container.append('td')
-    var oncoprint_container = container.append('td').append('div')
-    var svg = create_svg_for_container(oncoprint_container);
+    var svg = create_svg_for_container(container);
 
     var element_height = 20;
-
-    // TODO!
-    label_container.append('svg').append('g').selectAll('text')
-      .data(label_function(container.datum()))
-      .enter()
-      .append('text')
-      .attr('text-anchor', function(d) {
-        return d.align === 'right' ? 'end' : 'start';
-      })
-      .attr('x', function(d) { return d.align === 'right' ? 50 : 0 })
-      .attr('y', function(d, i) {
-        return (element_padding + 20 - 12 / 2) + i * 1.5 * (element_padding + 20 - 12 / 2);
-      })
-      .attr('font-size', '12px')
-      .append('tspan')
-      .text(function(d) { return d.text; })
 
     var bind_renderers_to_config = _.map(renderers, function(r) {
       return r(config);
@@ -42,7 +21,7 @@ module.exports = function rendering_engine() {
 
     svg.selectAll('g')
     .data(svg.data()[0], function(d) {
-      return oncoprint_key_function(d[0]);
+      return utils.pluck_row_id(d[0]);
     })
     .enter().append('g')
     .attr('transform', function(d,i) {
@@ -77,7 +56,7 @@ module.exports = function rendering_engine() {
     // use d3 to detect which row is new and use the rendering function to render.
     svg.selectAll('.oncoprint-row')
     .data(internal_data, function(d) {
-      return oncoprint_key_function(d[0])
+      return utils.pluck_row_id(d[0]);
     })
     .enter()
     .append('g')
@@ -130,10 +109,6 @@ module.exports = function rendering_engine() {
     return container.selectAll("table tr td:nth-child(2) div svg");
   }
 
-  function oncoprint_key_function(d) {
-    return d.gene || d.attr_id;
-  }
-
   //
   // GETTERS / SETTERS
   //
@@ -159,12 +134,6 @@ module.exports = function rendering_engine() {
   me.element_width = function(value) {
     if (!arguments.length) return element_width;
     element_width = value;
-    return me;
-  };
-
-  me.label_function = function(value) {
-    if (!arguments.length) return label_function;
-    label_function = value;
     return me;
   };
 

@@ -16,6 +16,14 @@ exports.is_sample_genetically_altered = function is_sample_genetically_altered(d
   || datum.protein !== undefined;
 };
 
+exports.pluck_row_id = function pluck_row_id(datum) {
+  return datum.gene || datum.attr_id;
+};
+
+exports.pluck_row_name = function pluck_row_name(row) {
+  return pluck_row_id(row[0]);
+};
+
 exports.sort_row_by_rows = function(row, rows) {
   // TODO test this
   var ordering = exports.invert_array(
@@ -85,3 +93,4 @@ exports.assert = assert;
 function pluck_sample_id(datum) {
   return datum.sample || datum.sample_id;
 }
+
