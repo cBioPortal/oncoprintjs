@@ -23,6 +23,9 @@ module.exports = function test_script(filenames, div_selector_string) {
   var genomic_file = filenames[0];
   var additional_file = filenames[1];
 
+  // expose the oncoprint instance for the UI buttons
+  var oncoprint;
+
   // genomic data
   return d3.json(genomic_file, function(genomic_data) {
     if (additional_file !== undefined) {
