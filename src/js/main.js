@@ -35,8 +35,6 @@ module.exports = function() {
     engine(container);
   };
 
-//   me.insert_row = engine.insert_row;
-
   me.insert_row = function(container_selector_string, row, rendering_rule) {
     var container = d3.select(container_selector_string);
 
@@ -165,11 +163,7 @@ module.exports = function() {
 
   // reorganize the flat data into a list of sorted rows
   // bind those rows to the container using .datum()
-  function prepare_container(container, data) {
-    var rows = _.chain(data).groupBy(function(d) {
-      return d.gene;
-    }).values().value();
-
+  function prepare_container(container, rows) {
     var sorted_rows = sorting.sort_rows(rows, sorting.genomic_metric);
     container.datum(sorted_rows);
     return container;

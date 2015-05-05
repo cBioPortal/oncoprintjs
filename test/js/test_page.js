@@ -34,7 +34,7 @@ module.exports = function test_script(filenames, div_selector_string) {
                                 renderers.gene_rule]);
 
         var genomic_data_rows = _.chain(genomic_data)
-              .groupBy(function(d) {return d.gene;}).valuek().value();
+              .groupBy(function(d) {return d.gene;}).values().value();
 
         var all_rows = [clinical_data.data].concat(genomic_data_rows);
         oncoprint(div_selector_string, all_rows);
