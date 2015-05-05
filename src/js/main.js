@@ -50,26 +50,34 @@ module.exports = function() {
   me.resort = function(container_selector_string, sample_id_to_array_index) {
     // TODO this function should live more in the rendering_engine than here.
 
+    var metric_function = function(d) {
+      return sample_id_to_array_index[d.sample || d.sample_id];
+    };
+
     var container = d3.select(container_selector_string);
 
     var resorted_rows = container.datum().map(function(row) {
-      return _.sortBy(row, function(d) {
-        return sample_id_to_array_index[d.sample || d.sample_id];
-      })});
+      return _.sortBy(row, metric_function);
+    });
 
     container.datum(resorted_rows);
 
-    var row_groups = container.selectAll('.oncoprint-row');
-    row_groups = row_groups[0].map(d3.select);
-    utils.assert(row_groups.length === rendering_rules.length,
-                 "Rows don't matchup with rendering rules.");
-    row_groups = row_groups.reverse();
+    var trs = container.selectAll('tr');
 
-    _.each(_.zip(row_groups, rendering_rules), function(row_group_and_rr) {
-      var row_group = row_group_and_rr[0];
-      var rr = row_group_and_rr[1];
-      rr(get_config()).resort(row_group, sample_id_to_array_index);
-    });
+    utils.assert(trs[0].length === rendering_rules.length,
+                 "Rows don't matchup with rendering rules.");
+
+    // var row_groups = container.selectAll('.oncoprint-row');
+    // row_groups = row_groups[0].map(d3.select);
+    // utils.assert(row_groups.length === rendering_rules.length,
+    //              "Rows don't matchup with rendering rules.");
+    // row_groups = row_groups.reverse();
+
+    // _.each(_.zip(row_groups, rendering_rules), function(row_group_and_rr) {
+    //   var row_group = row_group_and_rr[0];
+    //   var rr = row_group_and_rr[1];
+    //   rr(get_config()).resort(row_group, sample_id_to_array_index);
+    // });
   };
 
   //

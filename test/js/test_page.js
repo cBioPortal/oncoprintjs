@@ -23,9 +23,6 @@ module.exports = function test_script(filenames, div_selector_string) {
   var genomic_file = filenames[0];
   var additional_file = filenames[1];
 
-  // expose the oncoprint instance for the UI buttons
-  var oncoprint;
-
   // genomic data
   return d3.json(genomic_file, function(genomic_data) {
     if (additional_file !== undefined) {
@@ -41,20 +38,22 @@ module.exports = function test_script(filenames, div_selector_string) {
 
         var all_rows = [clinical_data.data].concat(genomic_data_rows);
         oncoprint(div_selector_string, all_rows);
+
+        // shuffle order button
+        if (genomic_file.indexOf("gbm") !== -1) {
+          d3.select('#shuffle-gbm').on('click', function() {
+            // get and shuffle order
+            var container = d3.select(div_selector_string);
+            var sampleids = container.datum()[0].map(function(d) { return d.sample_id || d.sample; });
+            var shuffled_sampleids = d3.shuffle(sampleids);
+
+            var sampleid_to_array_index = utils.invert_array(shuffled_sampleids);
+            oncoprint.resort(div_selector_string, sampleid_to_array_index);
+          });
+        }
+
       });
     }
-
-    // shuffle order button
-    if (genomic_file.indexOf("gbm") !== -1)
-      d3.select('#shuffle-gbm').on('click', function() {
-        // get and shuffle order
-        var container = d3.select(div_selector_string);
-        var sampleids = container.datum()[0].map(function(d) { return d.sample_id || d.sample; });
-        var shuffled_sampleids = d3.shuffle(sampleids);
-
-        var sampleid_to_array_index = utils.invert_array(shuffled_sampleids);
-        oncoprint.resort(div_selector_string, sampleid_to_array_index);
-      });
 
   });
 };
