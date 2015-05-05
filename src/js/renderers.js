@@ -1,3 +1,5 @@
+var d3 = require('d3');
+
 var utils = require('./utils');
 var exports = module.exports = {};
 
@@ -42,25 +44,32 @@ exports.gender_rule = function gender_rule(config) {
 };
 
 exports.gene_rule = function gene_rule(config) {
-  var ret = function(selection) {
-    var sample_group = bind_sample_group(selection);
-    align_sample_group_horizontally(sample_group, config.rect_width, config.rect_padding);
-    cna_visualization(sample_group, config.cna_fills, config.rect_width, config.rect_height);
-    mutation_visualization(sample_group, config.rect_height / 3, config.rect_width, config.mutation_fill);
 
-    update(sample_group);
+  var ret = function(el) {
+    var svg = el.append('svg');
   };
 
-  ret.resort = function(selection, sample_order) {
-    selection.selectAll('g')
-    .transition(function(d, i) { return i; })
-    .attr('transform', function(d, i) {
-      return utils.translate(sample_order[d.sample_id || d.sample]
-                             * (config.rect_width + config.rect_padding), 0);
-    });
-  }
-
   return ret;
+  
+  // var ret = function(selection) {
+  //   var sample_group = bind_sample_group(selection);
+  //   align_sample_group_horizontally(sample_group, config.rect_width, config.rect_padding);
+  //   cna_visualization(sample_group, config.cna_fills, config.rect_width, config.rect_height);
+  //   mutation_visualization(sample_group, config.rect_height / 3, config.rect_width, config.mutation_fill);
+
+  //   update(sample_group);
+  // };
+
+  // ret.resort = function(selection, sample_order) {
+  //   selection.selectAll('g')
+  //   .transition(function(d, i) { return i; })
+  //   .attr('transform', function(d, i) {
+  //     return utils.translate(sample_order[d.sample_id || d.sample]
+  //                            * (config.rect_width + config.rect_padding), 0);
+  //   });
+  // };
+
+  // return ret;
 };
 
 //

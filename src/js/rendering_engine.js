@@ -20,18 +20,21 @@ module.exports = function rendering_engine() {
     var renderers_and_data;
     if (configured_renderers.length === rows.length) {
       renderers_and_data = _.zip(configured_renderers, rows);
-    } else {
+    }
+    else {
       throw "Rows don't match renderers";
     }
 
     renderers_and_data.forEach(function(pair) {
       var renderer = pair[0];
-      var data = pair[1];
+      var row = pair[1];
 
       var tr = table.append('tr');
-      renderer(tr, data);
+      var label = tr.append('td');
+      var oncoprint_container = tr.append('td');
+      oncoprint_container.datum(row);
+      renderer(oncoprint_container);
     });
-
 
     // container.append('table');
 
