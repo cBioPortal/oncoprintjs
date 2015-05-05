@@ -119,28 +119,12 @@ module.exports = function rendering_engine() {
   // HELPER FUNCTIONS
   //
 
-  function compute_svg_width(rect_width, rect_padding, row_length) {
-    return (rect_width + rect_padding) * row_length;
-  }
-
-  function infer_row_length(container) {
-    var rows = container.datum();
-    if (rows === undefined) throw "Cannot infer row length from a container without rows.";
-
-    var is_well_formed_matrix = _.every(rows, function(row) {
-      return row.length === rows[0].length;
-    });
-
-    if (!is_well_formed_matrix) throw "Uneven rows, cannot infer row length.";
-    return rows[0].length;
-  }
-
   // styles, appends, does all the right stuff to the container
   // so that we can go on to work with the inner <svg>.
   function create_svg_for_container(container) {
     container.style('width', container_width + "px")
       .style('display', 'inline-block')
-      //.style('overflow-x', 'auto')
+    //.style('overflow-x', 'auto')
       .style('overflow-y', 'hidden');
 
     // infer from the data that is already bound to the div.
@@ -150,6 +134,22 @@ module.exports = function rendering_engine() {
     return container.append('svg')
       .attr('width', compute_svg_width(element_width, element_padding, row_length))
       .attr('height', config.row_height * rows.length);
+
+    function compute_svg_width(rect_width, rect_padding, row_length) {
+      return (rect_width + rect_padding) * row_length;
+    }
+
+    function infer_row_length(container) {
+      var rows = container.datum();
+      if (rows === undefined) throw "Cannot infer row length from a container without rows.";
+
+      var is_well_formed_matrix = _.every(rows, function(row) {
+        return row.length === rows[0].length;
+      });
+
+      if (!is_well_formed_matrix) throw "Uneven rows, cannot infer row length.";
+      return rows[0].length;
+    }
   }
 
   function get_svg_from_container(container) {
