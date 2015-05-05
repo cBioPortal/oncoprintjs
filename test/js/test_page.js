@@ -24,22 +24,20 @@ module.exports = function test_script(filenames, div_selector_string) {
   var additional_file = filenames[1];
 
   // genomic data
-  return d3.json(genomic_file, function(data) {
-    var oncoprint = OncoPrint();
-    oncoprint(div_selector_string, data);
-
-    // additional clinical data if it has been specified.
-    var is_inserted = false;
-    // TODO is_inserted is a hack. At some point,
-    // should add a remove row function too and test these together.
+  return d3.json(genomic_file, function(genomic_data) {
     if (additional_file !== undefined) {
-      d3.json(additional_file, function(payload) {
-          d3.select("#insert-gender-data-gbm").on('click', function() {
-            if (!is_inserted) {
-              oncoprint.insert_row(div_selector_string, payload.data, renderers.gender_rule);
-              is_inserted = true;
-            }
-          });
+      d3.json(additional_file, function(clinical_data) {
+        var oncoprint = OncoPrint()
+              .rendering_rules([renderers.gender_rule,
+                                renderers.gene_rule,
+                                renderers.gene_rule,
+                                renderers.gene_rule]);
+
+        var genomic_data_rows = _.chain(genomic_data)
+              .groupBy(function(d) {return d.gene;}).valuek().value();
+
+        var all_rows = [clinical_data.data].concat(genomic_data_rows);
+        oncoprint(div_selector_string, all_rows);
       });
     }
 

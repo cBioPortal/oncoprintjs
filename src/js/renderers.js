@@ -11,49 +11,76 @@ exports.discrete_data_rule = function discrete_data_rule(config) {
 };
 
 exports.gender_rule = function gender_rule(config) {
-  var ret = function(selection) {
-    selection.selectAll('rect')
-    .data(function(d) { return d; })
-    .enter()
-    .append('rect')
-    .attr('x', function(d, i) {
-      return i * (config.rect_width + config.rect_padding);
-    })
-    .attr('fill', function(d) {
-      if (d.attr_val === "MALE")
-        return 'black';
-      if (d.attr_val === "FEMALE")
-        return 'pink';
-      return 'grey';
-    })
-    .attr('height', config.rect_height)
-    .attr('width', config.rect_width);
 
-    update(selection.selectAll('rect'));
-  };
+  var ret = function(row_data, label_container, oncoprint_container) {
 
-  ret.resort = function(selection, sample_order) {
-    selection.selectAll('rect')
-    .transition(function(d, i) { return i; })
-    .attr('x', function(d, i) {
-      return sample_order[d.sample_id || d.sample] *
-        (config.rect_width + config.rect_padding);
-    });
+    var svg = create_svg_for_container(oncoprint_container, config.rect_width,
+                                       config.rect_padding, config.rect_height);
+
+    var rect = svg.selectAll('rect')
+      .data(row_data)
+      .enter()
+      .append('rect')
+      .attr('x', function(d, i) {
+        return i * (config.rect_width + config.rect_padding);
+      })
+      .attr('fill', function(d) {
+        if (d.attr_val === "MALE")
+          return 'black';
+        if (d.attr_val === "FEMALE")
+          return 'pink';
+        return 'grey';
+      })
+      .attr('height', config.rect_height)
+      .attr('width', config.rect_width);
+    
+    update(rect);
   };
 
   return ret;
+  
+  // var ret = function(selection) {
+  //   selection.selectAll('rect')
+  //   .data(function(d) { return d; })
+  //   .enter()
+  //   .append('rect')
+  //   .attr('x', function(d, i) {
+  //     return i * (config.rect_width + config.rect_padding);
+  //   })
+  //   .attr('fill', function(d) {
+  //     if (d.attr_val === "MALE")
+  //       return 'black';
+  //     if (d.attr_val === "FEMALE")
+  //       return 'pink';
+  //     return 'grey';
+  //   })
+  //   .attr('height', config.rect_height)
+  //   .attr('width', config.rect_width);
+
+  //   update(selection.selectAll('rect'));
+  // };
+
+  // ret.resort = function(selection, sample_order) {
+  //   selection.selectAll('rect')
+  //   .transition(function(d, i) { return i; })
+  //   .attr('x', function(d, i) {
+  //     return sample_order[d.sample_id || d.sample] *
+  //       (config.rect_width + config.rect_padding);
+  //   });
+  // };
+
+  // return ret;
 };
 
 exports.gene_rule = function gene_rule(config) {
 
-  var ret = function(row, label, oncoprint_container) {
+  var ret = function(row_data, label_container, oncoprint_container) {
     var svg = create_svg_for_container(oncoprint_container, config.rect_width, config.rect_padding, config.rect_height);
 
     var group = svg.selectAll('g')
-          .data(row)
+          .data(row_data)
           .enter()
-          .append('g')
-    ;
+          .append('g');
 
     cna_visualization(group, config.cna_fills, config.rect_width, config.rect_height);
     align_sample_group_horizontally(group, config.rect_width, config.rect_padding);

@@ -47,7 +47,7 @@ module.exports = function() {
     engine.renderers(rendering_rules);
 
     engine.insert_row(container, sorted_row, rendering_rule);
-  }
+  };
 
   me.resort = function(container_selector_string, sample_id_to_array_index) {
     // TODO this function should live more in the rendering_engine than here.
