@@ -37,82 +37,10 @@ module.exports = function rendering_engine() {
       oncoprint_container.attr('height', config.rect_height * 2);
       renderer(row, label_container, oncoprint_container);
     });
-
-    // container.append('table');
-
-    // container = container.append('table').append('tr');
-    // var label_container = container.append('td');
-    // var oncoprint_container = container.append('td').append('div');
-    // var svg = create_svg_for_container(oncoprint_container);
-
-    // var element_height = 20;
-
-    // // TODO!
-    // label_container.append('svg').append('g').selectAll('text')
-    //   .data(label_function(container.datum()))
-    //   .enter()
-    //   .append('text')
-    //   .attr('text-anchor', function(d) {
-    //     return d.align === 'right' ? 'end' : 'start';
-    //   })
-    //   .attr('x', function(d) { return d.align === 'right' ? 50 : 0; })
-    //   .attr('y', function(d, i) {
-    //     return (element_padding + 20 - 12 / 2) + i * 1.5 * (element_padding + 20 - 12 / 2);
-    //   })
-    //   .attr('font-size', '12px')
-    //   .append('tspan')
-    //   .text(function(d) { return d.text; });
-
-    // var bind_renderers_to_config = _.map(renderers, function(r) {
-    //   return r(config);
-    // });
-
-    // svg.selectAll('g')
-    //   .data(svg.data()[0], function(d) {
-    //     return oncoprint_key_function(d[0]);
-    //   })
-    //   .enter().append('g')
-    //   .attr('transform', function(d,i) {
-    //     return utils.translate(0, i * config.row_height);
-    //   })
-    //   .each(function(d,i) {
-    //     d3.select(this).call(bind_renderers_to_config[i]);
-    //   })
-    //   .attr('class', 'oncoprint-row');
   };
 
   me.insert_row = function(container, row, rendering_rule) {
-    // var internal_data = container.datum();
-
-    // utils.validate_row_against_rows(row, internal_data);
-
-    // var svg = get_svg_from_container(container);
-
-    // // make the svg one row taller
-    // svg.attr('height', parseInt(svg.attr('height')) + config.row_height);
-
-    // // slide the current rows down
-    // svg.selectAll('.oncoprint-row')
-    //   .attr('transform', function(d, i) {
-    //     return utils.translate(0, config.row_height + (i * config.row_height));
-    //   });
-
-    // // update the data which is bound to the container
-    // internal_data.unshift(row);
-    // container.datum(internal_data);
-
-    // // use d3 to detect which row is new and use the rendering function to render.
-    // svg.selectAll('.oncoprint-row')
-    //   .data(internal_data, function(d) {
-    //     return oncoprint_key_function(d[0]);
-    //   })
-    //   .enter()
-    //   .append('g')
-    //   .attr('class', 'oncoprint-row')
-    //   .attr('transform', utils.translate(0,0))
-    //   .each(function(d,i) {
-    //     d3.select(this).call(rendering_rule(config));
-    //   });
+    // TODO
   };
 
   //
