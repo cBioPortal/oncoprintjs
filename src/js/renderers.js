@@ -37,6 +37,16 @@ exports.gender_rule = function gender_rule(config) {
     update(rect);
   };
 
+  ret.resort = function(row_data, container, sample_order) {
+    container.selectAll('rect')
+      .transition(function(d, i) { return i; })
+      .attr('x', function(d, i) {
+        return sample_order[d.sample_id || d.sample] *
+          (config.rect_width + config.rect_padding);
+      });
+  };
+
+
   return ret;
   
   // var ret = function(selection) {
@@ -58,15 +68,6 @@ exports.gender_rule = function gender_rule(config) {
   //   .attr('width', config.rect_width);
 
   //   update(selection.selectAll('rect'));
-  // };
-
-  // ret.resort = function(selection, sample_order) {
-  //   selection.selectAll('rect')
-  //   .transition(function(d, i) { return i; })
-  //   .attr('x', function(d, i) {
-  //     return sample_order[d.sample_id || d.sample] *
-  //       (config.rect_width + config.rect_padding);
-  //   });
   // };
 
   // return ret;
