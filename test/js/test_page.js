@@ -54,6 +54,5 @@ module.exports = function test_script(filenames, div_selector_string) {
 
       });
     }
-
   });
 };
