@@ -67,6 +67,12 @@ module.exports = function() {
     utils.assert(trs[0].length === rendering_rules.length,
                  "Rows don't matchup with rendering rules.");
 
+    trs.each(function(row_data, index) {
+      var rr = rendering_rules[index](get_config());
+      var tr = d3.select(this);
+      rr.resort(row_data, tr, sample_id_to_array_index);
+    });
+
     // var row_groups = container.selectAll('.oncoprint-row');
     // row_groups = row_groups[0].map(d3.select);
     // utils.assert(row_groups.length === rendering_rules.length,
