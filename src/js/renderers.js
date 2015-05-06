@@ -13,7 +13,6 @@ exports.discrete_data_rule = function discrete_data_rule(config) {
 exports.gender_rule = function gender_rule(config) {
 
   var ret = function(row_data, label_container, oncoprint_container) {
-
     var svg = create_svg_for_container(oncoprint_container, config.rect_width,
                                        config.rect_padding, config.rect_height);
 
@@ -37,7 +36,7 @@ exports.gender_rule = function gender_rule(config) {
     update(rect);
   };
 
-  ret.resort = function(row_data, container, sample_order) {
+  ret.resort = function(container, sample_order) {
     container.selectAll('rect')
       .transition(function(d, i) { return i; })
       .attr('x', function(d, i) {
@@ -46,37 +45,13 @@ exports.gender_rule = function gender_rule(config) {
       });
   };
 
-
   return ret;
-  
-  // var ret = function(selection) {
-  //   selection.selectAll('rect')
-  //   .data(function(d) { return d; })
-  //   .enter()
-  //   .append('rect')
-  //   .attr('x', function(d, i) {
-  //     return i * (config.rect_width + config.rect_padding);
-  //   })
-  //   .attr('fill', function(d) {
-  //     if (d.attr_val === "MALE")
-  //       return 'black';
-  //     if (d.attr_val === "FEMALE")
-  //       return 'pink';
-  //     return 'grey';
-  //   })
-  //   .attr('height', config.rect_height)
-  //   .attr('width', config.rect_width);
-
-  //   update(selection.selectAll('rect'));
-  // };
-
-  // return ret;
 };
 
 exports.gene_rule = function gene_rule(config) {
-
   var ret = function(row_data, label_container, oncoprint_container) {
-    var svg = create_svg_for_container(oncoprint_container, config.rect_width, config.rect_padding, config.rect_height);
+    var svg = create_svg_for_container(oncoprint_container, config.rect_width,
+                                       config.rect_padding, config.rect_height);
 
     var group = svg.selectAll('g')
           .data(row_data)
@@ -90,27 +65,17 @@ exports.gene_rule = function gene_rule(config) {
     update(group);
   };
 
+  ret.resort = function(container, sample_order) {
+    container.selectAll('g')
+      .transition(function(d, i) { return i; })
+      .attr('transform', function(d, i) {
+        return utils.translate(sample_order[d.sample_id || d.sample]
+                               * (config.rect_width + config.rect_padding), 0);
+      });
+  };
+
+
   return ret;
-  
-  // var ret = function(selection) {
-  //   var sample_group = bind_sample_group(selection);
-  //   align_sample_group_horizontally(sample_group, config.rect_width, config.rect_padding);
-  //   cna_visualization(sample_group, config.cna_fills, config.rect_width, config.rect_height);
-  //   mutation_visualization(sample_group, config.rect_height / 3, config.rect_width, config.mutation_fill);
-
-  //   update(sample_group);
-  // };
-
-  // ret.resort = function(selection, sample_order) {
-  //   selection.selectAll('g')
-  //   .transition(function(d, i) { return i; })
-  //   .attr('transform', function(d, i) {
-  //     return utils.translate(sample_order[d.sample_id || d.sample]
-  //                            * (config.rect_width + config.rect_padding), 0);
-  //   });
-  // };
-
-  // return ret;
 };
 
 //

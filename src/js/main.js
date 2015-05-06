@@ -70,20 +70,8 @@ module.exports = function() {
     trs.each(function(row_data, index) {
       var rr = rendering_rules[index](get_config());
       var tr = d3.select(this);
-      rr.resort(row_data, tr, sample_id_to_array_index);
+      rr.resort(tr, sample_id_to_array_index);
     });
-
-    // var row_groups = container.selectAll('.oncoprint-row');
-    // row_groups = row_groups[0].map(d3.select);
-    // utils.assert(row_groups.length === rendering_rules.length,
-    //              "Rows don't matchup with rendering rules.");
-    // row_groups = row_groups.reverse();
-
-    // _.each(_.zip(row_groups, rendering_rules), function(row_group_and_rr) {
-    //   var row_group = row_group_and_rr[0];
-    //   var rr = row_group_and_rr[1];
-    //   rr(get_config()).resort(row_group, sample_id_to_array_index);
-    // });
   };
 
   //
