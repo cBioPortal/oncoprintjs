@@ -1,87 +1,141 @@
+/*
+ * Copyright (c) 2015 Memorial Sloan-Kettering Cancer Center.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY, WITHOUT EVEN THE IMPLIED WARRANTY OF MERCHANTABILITY OR FITNESS
+ * FOR A PARTICULAR PURPOSE. The software and documentation provided hereunder
+ * is on an "as is" basis, and Memorial Sloan-Kettering Cancer Center has no
+ * obligations to provide maintenance, support, updates, enhancements or
+ * modifications. In no event shall Memorial Sloan-Kettering Cancer Center be
+ * liable to any party for direct, indirect, special, incidental or
+ * consequential damages, including lost profits, arising out of the use of this
+ * software and its documentation, even if Memorial Sloan-Kettering Cancer
+ * Center has been advised of the possibility of such damage.
+ */
+
+/*
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 var _ = require("underscore");
 
 var exports = module.exports = {};
 
 exports.invert_array = function invert_array(arr) {
-  return arr.reduce(function(curr, next, index) {
-    curr[next] = index;
-    return curr;
-  }, {});
+	return arr.reduce(function(curr, next, index) {
+		curr[next] = index;
+		return curr;
+	}, {});
 };
 
-exports.is_sample_genetically_altered = function is_sample_genetically_altered(datum) {
-  return datum.cna !== undefined
-  || datum.mutation !== undefined
-  || datum.rna !== undefined
-  || datum.protein !== undefined;
+exports.makeD3SVGElement = function(tag) {
+	return d3.select(document.createElementNS('http://www.w3.org/2000/svg', tag));
 };
 
-exports.sort_row_by_rows = function(row, rows) {
-  // TODO test this
-  var ordering = exports.invert_array(
-    rows[0].map(function(d) {
-      return d.sample || d.sample_id;
-    }));
-
-  return _.sortBy(row, function(d) {
-    return ordering[d.sample || d.sample_id];
-  });
+exports.appendD3SVGElement = function(elt, target) {
+	return target.select(function() {
+		return this.appendChild(elt.node().cloneNode(true));
+	});
 };
 
-exports.translate = function translate(x,y) {
-  return "translate(" + x + "," + y + ")";
+exports.spaceSVGElementsHorizontally = function(group, padding) {
+	var x = 0;
+	var elts = exports.d3SelectChildren(group, '*').each(function() {
+		if (this.tagName === 'defs') {
+			// don't adjust spacing for a defs element
+			return;
+		}
+		var transform = d3.select(this).attr('transform');
+		var y = transform && transform.indexOf("translate") > -1 && parseFloat(transform.split(",")[1], 10);
+		y = y || 0;
+		d3.select(this).attr('transform', exports.translate(x, y));
+		x += this.getBBox().width;
+		x += padding;
+	});
+	return group;
 };
 
-exports.validate_rows = function(rows) {
-  // TODO
+exports.d3SelectChildren = function(parent, selector) {
+	return parent.selectAll(selector).filter(function() {
+		return this.parentNode === parent.node();
+	});
 };
 
-exports.validate_row_against_rows = function validate_row_against_rows(row, rows) {
-  if (rows.length === 0) {
-    throw "Rows are empty";
-  }
-
-  // make sure array lengths match
-  var lengths = rows.map(function(row) {
-    return row.length;
-  });
-
-  var matrix_width = lengths[0];
-
-  assert(matrix_width === row.length,
-         "Row lengths don't match: " + row.length + " and " + matrix_width);
-
-  // TODO, jeese this is a lot of sorting and other computation
-  // just to validate the data. Is there a better way?
-
-  // make sure sample_ids match
-  var matrix_sample_ids = rows[0].map(pluck_sample_id);
-  assert(matrix_sample_ids.length !== 0, "Cannot find sample identifier for rows.");
-  matrix_sample_ids = _.sortBy(matrix_sample_ids, _.identity);
-
-  var row_sample_ids = row.map(pluck_sample_id);
-  assert(row_sample_ids.length !== 0, "Cannot find sample identifier for row.");
-  row_sample_ids = _.sortBy(row_sample_ids, _.identity);
-
-  var intersection_stringified = JSON.stringify(
-    _.sortBy(_.intersection(matrix_sample_ids, row_sample_ids),
-             _.identity));
-
-  assert(JSON.stringify(row_sample_ids) === intersection_stringified,
-         "Sample ids do not match between new row and given rows.")
-
-  assert(JSON.stringify(matrix_sample_ids) === intersection_stringified,
-         "Sample ids do not match between new row and given rows.")
-
-  return true;
+exports.warn = function(str, context) {
+	console.log("Oncoprint error in "+context+": "+str);
 };
 
-function assert(bool, msg) {
-  if (bool) return;
-  throw msg;
-}
-exports.assert = assert;
+exports.stableSort = function(arr, cmp) {
+	// cmp returns something in [-1,0,1]
 
-function pluck_sample_id(datum) {
-  return datum.sample || datum.sample_id;
+	cmp = [].concat(cmp);
+	var index_cmp = function(a,b) {
+		if (a[1] < b[1]) {
+			return -1;
+		} else if (a[1] > b[1]) {
+			return 1;
+		} else {
+			return 0;
+		}
+	};
+	cmp = cmp.concat(index_cmp); // stable
+
+	var ordered_cmp = function(a,b) {
+		var res = 0;
+		var cmp_ind = 0;
+		while (res === 0 && cmp_ind < cmp.length) {
+			res = (cmp[cmp_ind])(a[0],b[0]);
+			cmp_ind += 1;
+		}
+		return res;
+	};
+	var zipped = [];
+	_.each(arr, function(val, ind) {
+		zipped.push([val, ind]);
+	})
+	zipped.sort(ordered_cmp);
+	return _.map(zipped, function(x) { return x[0];});
+};
+
+exports.lin_interp = function(t, a, b) {
+	if (a[0] === '#') {
+		var r = [parseInt(a.substring(1,3), 16), parseInt(b.substring(1,3), 16)];
+		var g = [parseInt(a.substring(3,5), 16), parseInt(b.substring(3,5), 16)];
+		var b = [parseInt(a.substring(5,7), 16), parseInt(b.substring(5,7), 16)];
+		var R = Math.round(r[0]*(1-t) + r[1]*t).toString(16);
+		var G = Math.round(g[0]*(1-t) + g[1]*t).toString(16);
+		var B = Math.round(b[0]*(1-t) + b[1]*t).toString(16);
+
+		R = R.length < 2 ? '0'+R : R;
+		G = G.length < 2 ? '0'+G : G;
+		B = B.length < 2 ? '0'+B : B;
+
+		return '#' + R + G + B;
+	} else if (isNaN(a) && a.indexOf('%') > -1) {
+		var A = parseFloat(a, 10);
+		var B = parseFloat(b, 10);
+		return (A*(1-t) + B*t)+'%';
+	} else {
+		return a*(1-t) + b*t;
+	}
+};
+
+exports.translate = function(x,y) {
+	return "translate(" + x + "," + y + ")";
+};
+
+exports.assert = function(bool, msg) {
+	if (!bool) {
+		throw msg;
+	}
 }
