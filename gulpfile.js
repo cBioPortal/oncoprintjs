@@ -34,7 +34,7 @@ gulp.task('test', function() {
   .pipe(notify("Done with building code for testing."))
 
   // Unit tests
-  gulp.start('spec');
+  /*gulp.start('spec');*/
 
   // Copy over the HTML.
   gulp.src('test/index.html')
@@ -42,6 +42,10 @@ gulp.task('test', function() {
 
   // Copy over the data.
   gulp.src('test/data/**')
+  .pipe(gulp.dest('dist/test/'));
+
+  // Copy over the css
+  gulp.src('src/css/**')
   .pipe(gulp.dest('dist/test/'));
 });
 
@@ -54,6 +58,14 @@ gulp.task('prod', function() {
   .pipe(notify("Done with generating production code."));
 });
 
+gulp.task('refact', function() {
+  browserify('./src/js/oncoprint.js',
+      {standalone: 'oncoprint'}).bundle()
+  .pipe(source('oncoprint-bundle.js'))
+  .pipe(streamify(uglify()))
+  .pipe(gulp.dest('dist/refact/'))
+  .pipe(notify('Done with generating refactor code.'))
+});
 // Clean
 gulp.task('clean', function(cb) {
     del(['dist'], cb)
@@ -66,5 +78,5 @@ gulp.task('default', ['clean'], function() {
 
 // Watch
 gulp.task('watch', function() {
-  gulp.watch(['src/js/**/*.js', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test']);
+  gulp.watch(['src/js/**/*.js', 'src/css/**/*.css', 'test/*.html', 'test/js/**/*.js', 'test/spec/*.js'], ['test']);
 });

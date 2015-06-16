@@ -1,59 +1,125 @@
-var _ = require("underscore");
+var _ = require('underscore');
+var $ = require('jquery');
+var d3 = require('d3');
 
-var OncoPrint = require('../../src/js/main');
-var renderers = require("../../src/js/renderers");
-var utils = require("../../src/js/utils");
+var Oncoprint = require('../../src/js/Oncoprint');
+var cell_padding = 3;
+var whitespace_on = true;
 
-var config = { rect_height: 20,
-              rect_padding: 3,
-              rect_width: 10,
-              row_height: 25,
-              mutation_fill: 'green',
-              width: 750,
-              cna_fills: {
-              null: 'grey',
-              undefined: 'grey',
-              AMPLIFIED: 'red',
-              HOMODELETED: 'blue'
-             }
-};
+var onc = Oncoprint.create('#onc', {cell_padding: cell_padding});
 
-module.exports = function test_script(filenames, div_selector_string) {
-  // filenames has length 2.
-  var genomic_file = filenames[0];
-  var additional_file = filenames[1];
+$('#shuffle_btn').click(function() {
+	onc.sortOnTrack(gender_track_id, function(d1, d2) {
+		var map = {'MALE':0, 'FEMALE':1};
+		return map[d1.attr_val] - map[d2.attr_val];
+	});
+});
 
-  // genomic data
-  return d3.json(genomic_file, function(data) {
-    var oncoprint = OncoPrint();
-    oncoprint(div_selector_string, data);
+$('#toggle_whitespace').click(function() {
+	whitespace_on = !whitespace_on;
+	if (whitespace_on) {
+		onc.setCellPadding(cell_padding);
+	} else {
+		onc.setCellPadding(0);
+	}
+});
+ $('#to_svg_btn').click(function() {
+ 	onc.toSVG(d3.select('#svg_container'));
+ });
 
-    // additional clinical data if it has been specified.
-    var is_inserted = false;
-    // TODO is_inserted is a hack. At some point,
-    // should add a remove row function too and test these together.
-    if (additional_file !== undefined) {
-      d3.json(additional_file, function(payload) {
-          d3.select("#insert-gender-data-gbm").on('click', function() {
-            if (!is_inserted) {
-              oncoprint.insert_row(div_selector_string, payload.data, renderers.gender_rule);
-              is_inserted = true;
-            }
-          });
-      });
-    }
+var gender_data;
+var gender_track_id;
+var gender_data_promise = $.getJSON('./gbm/gender-gbm.json');
 
-    // shuffle order button
-    if (genomic_file.indexOf("gbm") !== -1)
-      d3.select('#shuffle-gbm').on('click', function() {
-        // get and shuffle order
-        var container = d3.select(div_selector_string);
-        var sampleids = container.datum()[0].map(function(d) { return d.sample_id || d.sample; });
-        var shuffled_sampleids = d3.shuffle(sampleids);
+var mutation_data;
+var mutation_track_id;
+var mutation_data_promise = $.getJSON('./gbm/mutations-gbm.json');
 
-        var sampleid_to_array_index = utils.invert_array(shuffled_sampleids);
-        oncoprint.resort(div_selector_string, sampleid_to_array_index);
-      });
+var alteration_data;
+var alteration_track_id;
+var alteration_data_promise = $.getJSON('./gbm/tp53.json');
 
-  });
-};
+gender_data_promise.then(function(data) {
+	gender_data = data.data;
+});
+$.when(gender_data_promise).then(function() {
+	gender_track_id = onc.addTrack({label: 'Gender'});
+	onc.setRuleSet(gender_track_id, Oncoprint.CATEGORICAL_COLOR, {
+		color: {},
+		getCategory: function(d) {
+			return d.attr_val;
+		}
+	});
+	onc.setTrackData(gender_track_id, gender_data);
+});
+
+mutation_data_promise.then(function(data) {
+	mutation_data = data.data;
+});
+$.when(mutation_data_promise).then(function() {
+	mutation_track_id = onc.addTrack({label: 'Mutations'});
+	onc.setRuleSet(mutation_track_id, Oncoprint.GRADIENT_COLOR, {
+		data_key: 'attr_val',
+		data_range: [0,100],
+		color_range: ['#A9A9A9', '#FF0000']
+	});
+	onc.setTrackData(mutation_track_id, mutation_data);
+
+	var log_mut_track_id = onc.addTrack({label: 'Log Mutations'});
+	onc.setRuleSet(log_mut_track_id, Oncoprint.BAR_CHART, {
+		data_key: 'attr_val',
+		data_range: [0,100],
+		scale: 'log'
+	});
+	onc.setTrackData(log_mut_track_id, mutation_data);
+});
+
+
+alteration_data_promise.then(function(data) {
+	alteration_data = _.map(data, function(x) { if (Math.random() < 0.3) { x.mut_type='MISSENSE'; } return x; });
+});
+$.when(alteration_data_promise).then(function() {
+	alteration_track_id = onc.addTrack({label: 'TP53'});
+	onc.setRuleSet(alteration_track_id, Oncoprint.GENETIC_ALTERATION, {
+		default_color: '#D3D3D3',
+		cna_key: 'cna',
+		cna: {
+			color: {
+				AMPLIFIED: '#FF0000',
+				GAINED: '#FFB6C1',
+				HOMODELETED: '#8FD8D8',
+				HETLOSS: '#8FD8D8',	
+			},
+			label: {
+				AMPLIFIED: 'Amplification',
+				GAINED: 'Gain',
+				HOMODELETED: 'Homozygous Deletion',
+				HETLOSS: 'Heterozygous Deletion'
+			}
+
+		},
+		mut_type_key: 'mut_type',
+		mut: {
+			color: {
+				MISSENSE: 'green'
+			},
+			label: {
+				MISSENSE: 'Missense Mutation'
+			}
+		}
+	});
+	onc.setTrackData(alteration_track_id, alteration_data);
+
+	var second_alt_track = onc.addTrack({Label: 'TP53 duplicate'});
+	onc.useSameRuleSet(second_alt_track, alteration_track_id);
+	onc.setTrackData(second_alt_track, alteration_data);
+});
+
+$('#change_color_scheme').click(function() {
+	onc.setRuleSet(gender_track_id, Oncoprint.CATEGORICAL_COLOR, {
+		color: {MALE: '#000000', FEMALE: '#999999'},
+		getCategory: function(d) {
+			return d.attr_val;
+		}
+	});
+});
