@@ -20,6 +20,7 @@ var OncoprintLabelView = (function () {
 	this.label_middles_view_space = {};
 	this.labels = {};
 	this.label_colors = {};
+	this.track_link_urls = {};
 	this.track_descriptions = {};
 	this.tracks = [];
 	this.minimum_track_height = Number.POSITIVE_INFINITY;
@@ -58,12 +59,15 @@ var OncoprintLabelView = (function () {
 		    if (hovered_track !== null) {
 			var $tooltip_div = $('<div>');
 			var offset = view.$canvas.offset();   
-			if (isNecessaryToShortenLabel(view, view.labels[hovered_track])) {
-			    $tooltip_div.append($('<b>'+view.labels[hovered_track]+'</b><br>'));
+			if (isNecessaryToShortenLabel(view, view.labels[hovered_track])
+				|| view.track_link_urls[hovered_track]) {
+			    $tooltip_div.append(formatTooltipHeader(
+				    view.labels[hovered_track],
+				    view.track_link_urls[hovered_track]));
 			}
-			var track_description = view.track_descriptions[hovered_track].replace("<", "&lt;").replace(">", "&gt;");
+			var track_description = view.track_descriptions[hovered_track];
 			if (track_description.length > 0) {
-			    $tooltip_div.append(track_description + "<br>");
+			    $tooltip_div.append($('<div>').text(track_description));
 			}
 			if (model.isTrackInClusteredGroup(hovered_track)) {
                 view.$canvas.css('cursor', 'not-allowed');
@@ -86,7 +90,7 @@ var OncoprintLabelView = (function () {
 		    var previous_track_id = getLabelAboveMouseSpace(view, track_group, evt.offsetY, view.dragged_label_track_id);
 		    stopDragging(view, previous_track_id);
 		}
-		view.tooltip.hide();
+		view.tooltip.hideIfNotAlreadyGoingTo(150);
 	    });
 	})(this);
 	
@@ -147,6 +151,18 @@ var OncoprintLabelView = (function () {
 	} else {
 	    return label;
 	}
+    };
+    var formatTooltipHeader = function (label, link_url) {
+	var header_contents;
+	if (link_url) {
+	    header_contents = (
+		    $('<a target="_blank" rel="noopener noreferrer">')
+		    .attr('href', link_url)
+		    .text(label));
+	} else {
+	    header_contents = document.createTextNode(label);
+	}
+	return $('<b style="display: block;">').append(header_contents);
     };
     var renderAllLabels = function(view) {
 	if (view.rendering_suppressed) {
@@ -287,6 +303,7 @@ var OncoprintLabelView = (function () {
 	for (var i=0; i<track_ids.length; i++) {
 	    this.labels[track_ids[i]] = model.getTrackLabel(track_ids[i]);
 	    this.label_colors[track_ids[i]] = model.getTrackLabelColor(track_ids[i]);
+	    this.track_link_urls[track_ids[i]] = model.getTrackLinkUrl(track_ids[i]);
 	}
 	updateFromModel(this, model);
 	resizeAndClear(this, model);
