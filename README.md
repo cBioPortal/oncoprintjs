@@ -6,12 +6,14 @@ First, clone the repo:
 
 	git clone https://github.com/cBioPortal/oncoprintjs.git
 
-Install the necessary NPM packages defined in `package.json`, create the output folder, and `gulp` the files:
+Install the necessary NPM packages defined in `package.json`, create the output folder, `gulp` the files, and put images where they can be found by the server:
 
 	cd oncoprintjs
 	npm install
 	mkdir -p dist
+	mkdir -p dist/img
 	gulp
+	cp dist/*.svg dist/img
 
 You should now have a folder `dist/` with the oncoprint files in it, including `oncoprint-bundle.js`. This is the original library file.
 
