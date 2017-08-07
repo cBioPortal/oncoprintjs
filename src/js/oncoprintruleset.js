@@ -70,7 +70,7 @@ function makeUniqueColorGetter(init_used_colors) {
 	}
 	used_colors[next_color] = true;
 	index += 1;
-	
+
 	return next_color;
     };
 };
@@ -124,7 +124,7 @@ var colorToHex = function(str) {
 	}
 	return '#' + r + g + b;
     }
-    
+
     var rgb_match = str.match(/^[\s]*rgb\([\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*\)[\s]*$/);
     if (rgb_match && rgb_match.length === 4) {
 	r = parseInt(rgb_match[1]).toString(16);
@@ -141,7 +141,7 @@ var colorToHex = function(str) {
 	}
 	return '#' + r + g + b;
     }
-    
+
     return str;
 };
 
@@ -404,14 +404,14 @@ var CategoricalRuleSet = (function () {
 	 * - categoryToColor
 	 */
 	LookupRuleSet.call(this, params);
-	
+
 	this.addRule(NA_STRING, true, {
 	    shapes: makeNAShapes(params.na_z || 1000),
 	    legend_label: NA_LABEL,
 	    exclude_from_legend: false,
 	    legend_config: {'type': 'rule', 'target': {'na': true}}
 	});
-	
+
 	this.category_key = params.category_key;
 	this.category_to_color = ifndef(params.category_to_color, {});
 	this.getUnusedColor = makeUniqueColorGetter(objectValues(this.category_to_color).map(colorToHex));
@@ -449,7 +449,7 @@ var CategoricalRuleSet = (function () {
 	    var category = data[i][this.category_key];
 	    if (!this.category_to_color.hasOwnProperty(category)) {
 		var color = this.getUnusedColor(this);
-		
+
 		this.category_to_color[category] = color;
 		addCategoryRule(this, category, color);
 	    }
@@ -469,35 +469,47 @@ var LinearInterpRuleSet = (function () {
 	 * - value_range
 	 */
 	ConditionRuleSet.call(this, params);
+
 	this.value_key = params.value_key;
 	this.value_range = params.value_range;
 	this.log_scale = params.log_scale; // boolean
-	this.inferred_value_range;
+
+	this.rangeTypes = {
+		'ALL': 'ALL',                   // all values positive, negative and zero
+		'NON_NEGATIVE': 'NON_NEGATIVE', // value range all positive values inclusive zero (0)
+		'NON_POSITIVE': 'NON_POSITIVE'  // value range all negative values inclusive zero (0)
+	};
 
 	this.makeInterpFn = function () {
 	    var range = this.getEffectiveValueRange();
+	    var rangeType = this.getValueRangeType();
+	    var rangeTypes = this.rangeTypes;
 
 	    if (this.log_scale) {
-		var shift_to_make_pos = Math.abs(range[0]) + 1;
-		var log_range = Math.log(range[1] + shift_to_make_pos) - Math.log(range[0] + shift_to_make_pos);
-		var log_range_lower = Math.log(range[0] + shift_to_make_pos);
-		return function (val) {
-		    val = parseFloat(val);
-		    return (Math.log(val + shift_to_make_pos) - log_range_lower) / log_range;
-		};
+			var shift_to_make_pos = Math.abs(range[0]) + 1;
+			var log_range = Math.log(range[1] + shift_to_make_pos) - Math.log(range[0] + shift_to_make_pos);
+			var log_range_lower = Math.log(range[0] + shift_to_make_pos);
+			return function(val) {
+				val = parseFloat(val);
+				return (Math.log(val + shift_to_make_pos) - log_range_lower)/log_range;
+			};
 	    } else {
-		var range_spread = range[1] - range[0];
-		var range_lower = range[0];
-		return function (val) {
-		    val = parseFloat(val);
-		    if (val <= range[0]) {
-			return 0;
-		    } else if (val >= range[1]) {
-			return 1;
-		    } else {
-			return (val - range_lower) / range_spread;
-		    }
-		};
+            return function (val) {
+                var range_spread = range[1] - range[0],
+					range_lower = range[0],
+					range_higher = range[1];
+
+                if (rangeType === rangeTypes.NON_POSITIVE) {
+                    // when data only contains non positive values
+                    return (val - range_higher) / range_spread;
+				} else if (rangeType === rangeTypes.NON_NEGATIVE) {
+                    // when data only contains non negative values
+                    return (val - range_lower) / range_spread;
+				} else if (rangeType === rangeTypes.ALL) {
+                    range_spread = Math.abs(range[0]) > range[1] ? Math.abs(range[0]) : range[1];
+                    return val / range_spread;
+				}
+            };
 	    }
 	};
     }
@@ -517,6 +529,17 @@ var LinearInterpRuleSet = (function () {
 	    ret[1] += ret[1] / 2;
 	}
 	return ret;
+    };
+
+    LinearInterpRuleSet.prototype.getValueRangeType = function () {
+    	var range = this.getEffectiveValueRange();
+        if (range[0] < 0 && range[1] <=0) {
+        	return this.rangeTypes.NON_POSITIVE;
+        } else if (range[0] >= 0 && range[1] > 0) {
+            return this.rangeTypes.NON_NEGATIVE;
+        } else {
+            return this.rangeTypes.ALL;
+        }
     };
 
     LinearInterpRuleSet.prototype.apply = function (data, cell_width, cell_height, out_active_rules) {
@@ -568,7 +591,7 @@ var GradientRuleSet = (function () {
 	if (this.colors.length === 0) {
 	    this.colors.push([0,0,0,1],[255,0,0,1]);
 	}
-	
+
 	this.value_stop_points = params.value_stop_points;
 
 	this.gradient_rule;
@@ -613,7 +636,7 @@ var GradientRuleSet = (function () {
 		var end_color = colors[end_interval_index];
 		return "rgba(" + linInterpColors(interval_t, begin_color, end_color).join(",") + ")";
 	    }
-	    
+
 	};
     }
 
@@ -625,7 +648,7 @@ var GradientRuleSet = (function () {
 	var colorFn = this.makeColorFn(this.colors, interpFn);
 	var value_key = this.value_key;
 	var null_color = this.null_color;
-	
+
 	this.gradient_rule = this.addRule(function (d) {
 	    return d[NA_STRING] !== true;
 	},
@@ -650,40 +673,75 @@ var GradientRuleSet = (function () {
 
 var BarRuleSet = (function () {
     function BarRuleSet(params) {
-	LinearInterpRuleSet.call(this, params);
-	this.bar_rule;
-	this.fill = params.fill || 'rgba(156,123,135,1)';
+		LinearInterpRuleSet.call(this, params);
+		this.fill = params.fill || 'rgba(0,128,0,1)'; // green
+		this.negative_fill = params.negative_fill || 'rgba(255,0,0,1)'; //red
     }
+
     BarRuleSet.prototype = Object.create(LinearInterpRuleSet.prototype);
 
     BarRuleSet.prototype.updateLinearRules = function () {
-	if (typeof this.bar_rule !== "undefined") {
-	    this.removeRule(this.bar_rule);
-	}
-	var interpFn = this.makeInterpFn();
-	var value_key = this.value_key;
-	this.bar_rule = this.addRule(function (d) {
-	    return d[NA_STRING] !== true;
-	},
-		{shapes: [{
-			    type: 'rectangle',
-			    y: function (d) {
-				var t = interpFn(d[value_key]);
-				return (1 - t) * 100 + "%";
-			    },
-			    height: function (d) {
-				var t = interpFn(d[value_key]);
-				return t * 100 + "%";
-			    },
-			    fill: this.fill,
-			}],
-		    exclude_from_legend: false,
-		    legend_config: {'type': 'number', 
-				    'range': this.getEffectiveValueRange(), 
-				    'color': this.fill,
-				    'interpFn': interpFn}
-		});
+        if (typeof this.bar_rule !== "undefined") {
+            this.removeRule(this.bar_rule);
+        }
+        var interpFn = this.makeInterpFn();
+        var value_key = this.value_key;
+        var positive_color = this.fill;
+        var negative_color = this.negative_fill;
+        var yPosFn = this.getYPosPercentagesFn();
+        var cellHeightFn = this.getCellHeightPercentagesFn();
+
+        this.bar_rule = this.addRule(function (d) {
+                return d[NA_STRING] !== true;
+            },
+            {shapes: [{
+                type: 'rectangle',
+                y: function (d) {
+                    var t = interpFn(d[value_key]);
+                    return yPosFn(t);
+                },
+                height: function (d) {
+                    var t = interpFn(d[value_key]);
+                    return cellHeightFn(t);
+                },
+                fill: function (d) {
+					return d[value_key] < 0 ? negative_color : positive_color;
+                }
+            }],
+                exclude_from_legend: false,
+                legend_config: {
+            		'type': 'number',
+                    'range': this.getEffectiveValueRange(),
+					'range_type': this.getValueRangeType(),
+                    'positive_color': positive_color,
+                    'negative_color': negative_color,
+                    'interpFn': interpFn}
+            });
     };
+
+    BarRuleSet.prototype.getYPosPercentagesFn = function () {
+    	return function (t) {
+            if (this.getValueRangeType() === this.rangeTypes.NON_POSITIVE) {
+                return 0 + "%";
+            } else if (this.getValueRangeType() === this.rangeTypes.NON_NEGATIVE) {
+                return (1 - t) * 100 + "%";
+            } else if (this.getValueRangeType() === this.rangeTypes.ALL) {
+                return 50 + "%";
+            }
+		}.bind(this);
+	};
+
+    BarRuleSet.prototype.getCellHeightPercentagesFn = function () {
+    	return function (t) {
+            if (this.getValueRangeType() === this.rangeTypes.NON_POSITIVE) {
+                return -t * 100 + "%";
+            } else if (this.getValueRangeType() === this.rangeTypes.NON_NEGATIVE) {
+                return t * 100 + "%";
+            } else if (this.getValueRangeType() === this.rangeTypes.ALL) {
+                return -t * 50 + "%";
+            }
+		}.bind(this);
+	};
 
     return BarRuleSet;
 })();
@@ -700,12 +758,12 @@ var StackedBarRuleSet = (function() {
 	var fills = params.fills || [];
 	var categories = params.categories || [];
 	var getUnusedColor = makeUniqueColorGetter(fills);
-	
+
 	// Initialize with default values
 	while (fills.length < categories.length) {
 	    fills.push(getUnusedColor());
 	}
-	
+
 	var self = this;
 	for (var i=0; i < categories.length; i++) {
 	    (function(I) {
