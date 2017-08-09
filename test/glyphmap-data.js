@@ -1,1026 +1,1036 @@
-var hm_data = [
+var ga_data = [
     {
         "gene": "GENE0",
+        "desc": "Annotation for GENE0",
         "data": [
             {
-                "vaf": 1.5210648764527586,
                 "sample": "TCGA-00"
             },
             {
-                "vaf": 0.4242120301869339,
+                "disp_mrna": "up",
+                "disp_prot": "up",
                 "sample": "TCGA-01"
             },
             {
-                "vaf": 1.1419531633207796,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-02"
             },
             {
-                "vaf": 0.6806715828549048,
+                "disp_mut": "promoter",
                 "sample": "TCGA-03"
             },
             {
-                "vaf": 1.6915387510701865,
+                "disp_mut": "inframe",
                 "sample": "TCGA-04"
             },
             {
-                "vaf": 1.694749143656006,
                 "sample": "TCGA-05"
             },
             {
-                "vaf": 0.2744026215364157,
                 "sample": "TCGA-06"
             },
             {
-                "vaf": -0.3833639553950554,
-                "sample": "TCGA-07"
+                "disp_cna": "homdel",
+                "sample": "TCGA-07",
+                "disp_mrna": "up"
             },
             {
-                "vaf": -0.5829383973350819,
                 "sample": "TCGA-08"
             },
             {
-                "vaf": 1.6103793791072052,
                 "sample": "TCGA-09"
             },
             {
-                "vaf": -0.1888592577840289,
-                "sample": "TCGA-10"
+                "disp_cna": "amp",
+                "sample": "TCGA-10",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.49318364570131246,
+                "disp_mrna": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-11"
             },
             {
-                "vaf": -2.133701559668439,
+                "disp_cna": "homdel",
+                "disp_mut": "promoter",
                 "sample": "TCGA-12"
             },
             {
-                "vaf": -0.9222561940237373,
+                "disp_mut": "promoter",
                 "sample": "TCGA-13"
             },
             {
-                "vaf": -3.1268258087567435,
+                "disp_mut": "promoter",
                 "sample": "TCGA-14"
             },
             {
-                "vaf": -2.7306777528648247,
+                "disp_mrna": "up",
                 "sample": "TCGA-15"
             },
             {
-                "vaf": -2.3848798091812755,
+                "disp_mut": "trunc",
                 "sample": "TCGA-16"
             },
             {
-                "vaf": -1.905648410682926,
+                "disp_mrna": "down",
                 "sample": "TCGA-17"
             },
             {
-                "vaf": -2.042171451290579,
                 "sample": "TCGA-18"
             },
             {
-                "vaf": -2.2868871923899077,
+                "disp_prot": "up",
                 "sample": "TCGA-19"
             },
             {
-                "vaf": -2.0616264020956474,
+                "disp_prot": "down",
                 "sample": "TCGA-20"
             },
             {
-                "vaf": -2.1073052762911746,
+                "disp_mrna": "down",
                 "sample": "TCGA-21"
             },
             {
-                "vaf": -2.719604388551793,
-                "sample": "TCGA-22"
+                "disp_cna": "hetloss",
+                "disp_mut": "trunc",
+                "sample": "TCGA-22",
+                "disp_mrna": "up"
             },
             {
-                "vaf": -2.812992988554077,
                 "sample": "TCGA-23"
             },
             {
-                "vaf": -1.7254836422760604,
                 "sample": "TCGA-24"
             },
             {
-                "vaf": -2.890915082995528,
+                "disp_mrna": "up",
                 "sample": "TCGA-25"
             },
             {
-                "vaf": -3.1573552591908536,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-26"
             },
             {
-                "vaf": -2.3122922511256934,
                 "sample": "TCGA-27"
             },
             {
-                "vaf": 1.5327792143584575,
+                "disp_mut": "trunc",
                 "sample": "TCGA-28"
             },
             {
-                "vaf": 1.469358769900285,
                 "sample": "TCGA-29"
             },
             {
-                "vaf": 0.1549474256969163,
                 "sample": "TCGA-30"
             },
             {
-                "vaf": 0.37816251960217356,
                 "sample": "TCGA-31"
             },
             {
-                "vaf": -0.8877857476301128,
+                "disp_cna": "amp",
+                "disp_mut": "inframe",
                 "sample": "TCGA-32"
             },
             {
-                "vaf": -1.980796468223927,
+                "disp_mut": "trunc",
                 "sample": "TCGA-33"
             },
             {
-                "vaf": -0.3479121493261526,
                 "sample": "TCGA-34"
             },
             {
-                "vaf": 0.15634896910398005,
+                "disp_mut": "promoter",
                 "sample": "TCGA-35"
             },
             {
-                "vaf": 1.2302906807277207,
+                "disp_cna": "gain",
+                "disp_prot": "down",
                 "sample": "TCGA-36"
             },
             {
-                "vaf": 1.2023798487844113,
+                "disp_cna": "gain",
+                "disp_mut": "inframe",
                 "sample": "TCGA-37"
             },
             {
-                "vaf": -0.3873268174079523,
+                "disp_mut": "inframe",
                 "sample": "TCGA-38"
             },
             {
-                "vaf": -0.30230275057533557,
                 "sample": "TCGA-39"
             },
             {
-                "vaf": -1.0485529650670926,
+                "disp_prot": "down",
                 "sample": "TCGA-40"
             },
             {
-                "vaf": -1.4200179371789752,
+                "disp_prot": "up",
                 "sample": "TCGA-41"
             },
             {
-                "vaf": -1.7062701906250126,
+                "disp_mrna": "down",
+                "disp_prot": "down",
                 "sample": "TCGA-42"
             },
             {
-                "vaf": 1.9507753952317897,
+                "disp_prot": "down",
                 "sample": "TCGA-43"
             },
             {
-                "vaf": -0.5096521817516535,
+                "disp_cna": "gain",
                 "sample": "TCGA-44"
             },
             {
-                "vaf": 0.0,
+                "disp_cna": "amp",
                 "sample": "TCGA-45"
             },
             {
-                "vaf": 0.0,
-                "sample": "TCGA-46"
+                "disp_cna": "amp",
+                "disp_prot": "up",
+                "disp_mut": "trunc",
+                "sample": "TCGA-46",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.0,
+                "disp_mut": "promoter",
                 "sample": "TCGA-47"
             },
             {
-                "vaf": 0.0,
+                "disp_cna": "amp",
                 "sample": "TCGA-48"
             },
             {
-                "vaf": 0.0,
+                "disp_prot": "down",
                 "sample": "TCGA-49"
             }
         ]
     },
     {
         "gene": "GENE1",
+        "desc": "Annotation for GENE1",
         "data": [
             {
-                "vaf": 0.4036859615494919,
                 "sample": "TCGA-00"
             },
             {
-                "vaf": 0.9474327037304537,
                 "sample": "TCGA-01"
             },
             {
-                "vaf": -0.9362798058465069,
+                "disp_mut": "inframe",
                 "sample": "TCGA-02"
             },
             {
-                "vaf": 1.1887785967938285,
+                "disp_mrna": "down",
+                "disp_prot": "up",
+                "disp_mut": "trunc",
                 "sample": "TCGA-03"
             },
             {
-                "vaf": 1.5238910238342056,
+                "disp_mut": "missense",
                 "sample": "TCGA-04"
             },
             {
-                "vaf": 1.0884220870446615,
                 "sample": "TCGA-05"
             },
             {
-                "vaf": 0.6891138283015283,
+                "disp_prot": "up",
+                "disp_mut": "missense",
                 "sample": "TCGA-06"
             },
             {
-                "vaf": 1.0974001662687833,
                 "sample": "TCGA-07"
             },
             {
-                "vaf": 1.39904634564013,
                 "sample": "TCGA-08"
             },
             {
-                "vaf": -1.7725927564266502,
                 "sample": "TCGA-09"
             },
             {
-                "vaf": 2.955912308250694,
+                "disp_cna": "homdel",
+                "disp_mut": "missense",
                 "sample": "TCGA-10"
             },
             {
-                "vaf": 1.3900933226879264,
+                "disp_prot": "up",
                 "sample": "TCGA-11"
             },
             {
-                "vaf": -2.157667016163816,
+                "disp_mrna": "up",
                 "sample": "TCGA-12"
             },
             {
-                "vaf": 0.2567234972982093,
+                "disp_cna": "gain",
+                "disp_mut": "promoter",
                 "sample": "TCGA-13"
             },
             {
-                "vaf": -2.7047002758562337,
+                "disp_cna": "diploid",
                 "sample": "TCGA-14"
             },
             {
-                "vaf": -1.0567392750305054,
+                "disp_cna": "gain",
+                "disp_mut": "promoter",
                 "sample": "TCGA-15"
             },
             {
-                "vaf": -1.252811665795368,
                 "sample": "TCGA-16"
             },
             {
-                "vaf": -3.188944955203736,
                 "sample": "TCGA-17"
             },
             {
-                "vaf": -1.2267470225974004,
-                "sample": "TCGA-18"
+                "disp_cna": "diploid",
+                "disp_mut": "trunc",
+                "sample": "TCGA-18",
+                "disp_mrna": "up"
             },
             {
-                "vaf": -3.1838806401933177,
+                "disp_mrna": "up",
+                "disp_prot": "up",
                 "sample": "TCGA-19"
             },
             {
-                "vaf": -4.65917223799674,
+                "disp_prot": "down",
+                "disp_mut": "missense",
                 "sample": "TCGA-20"
             },
             {
-                "vaf": -1.3936804756406191,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-21"
             },
             {
-                "vaf": -3.7558905834377194,
+                "disp_mut": "inframe",
                 "sample": "TCGA-22"
             },
             {
-                "vaf": -1.5490655381940852,
+                "disp_cna": "amp",
                 "sample": "TCGA-23"
             },
             {
-                "vaf": -2.684010897737217,
                 "sample": "TCGA-24"
             },
             {
-                "vaf": -0.3404492038101279,
+                "disp_mrna": "down",
                 "sample": "TCGA-25"
             },
             {
-                "vaf": -0.9314906006839909,
+                "disp_mrna": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-26"
             },
             {
-                "vaf": -2.4533858038513876,
+                "disp_mut": "inframe",
                 "sample": "TCGA-27"
             },
             {
-                "vaf": -0.31155253212737266,
+                "disp_cna": "homdel",
                 "sample": "TCGA-28"
             },
             {
-                "vaf": 0.05616534222974544,
+                "disp_cna": "gain",
                 "sample": "TCGA-29"
             },
             {
-                "vaf": -1.1651498407833565,
                 "sample": "TCGA-30"
             },
             {
-                "vaf": 0.9008264869541871,
+                "disp_mut": "promoter",
                 "sample": "TCGA-31"
             },
             {
-                "vaf": 0.46566243973045984,
+                "disp_prot": "down",
                 "sample": "TCGA-32"
             },
             {
-                "vaf": -1.5362436862772237,
                 "sample": "TCGA-33"
             },
             {
-                "vaf": 1.4882521937955997,
                 "sample": "TCGA-34"
             },
             {
-                "vaf": 1.8958891760305832,
                 "sample": "TCGA-35"
             },
             {
-                "vaf": 1.1787795711596507,
+                "disp_cna": "amp",
+                "disp_prot": "up",
                 "sample": "TCGA-36"
             },
             {
-                "vaf": -0.17992483581235091,
-                "sample": "TCGA-37"
+                "disp_cna": "amp",
+                "disp_prot": "down",
+                "sample": "TCGA-37",
+                "disp_mrna": "down"
             },
             {
-                "vaf": -1.0707526215105425,
                 "sample": "TCGA-38"
             },
             {
-                "vaf": 1.0544517269311366,
                 "sample": "TCGA-39"
             },
             {
-                "vaf": -0.40317694697317963,
                 "sample": "TCGA-40"
             },
             {
-                "vaf": 1.2224450703824274,
-                "sample": "TCGA-41"
+                "disp_cna": "hetloss",
+                "disp_prot": "up",
+                "disp_mut": "missense",
+                "sample": "TCGA-41",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.2082749780768603,
+                "disp_mut": "trunc",
                 "sample": "TCGA-42"
             },
             {
-                "vaf": 0.9766390364837128,
+                "disp_cna": "homdel",
+                "disp_mut": "promoter",
                 "sample": "TCGA-43"
             },
             {
-                "vaf": 0.3563663971744019,
                 "sample": "TCGA-44"
             },
             {
-                "vaf": 0.0,
-                "sample": "TCGA-45"
+                "disp_cna": "diploid",
+                "disp_mut": "inframe",
+                "sample": "TCGA-45",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-46"
             },
             {
-                "vaf": 0.0,
+                "disp_mut": "inframe",
                 "sample": "TCGA-47"
             },
             {
-                "vaf": 0.0,
+                "disp_mrna": "down",
                 "sample": "TCGA-48"
             },
             {
-                "vaf": 0.0,
+                "disp_cna": "diploid",
+                "disp_prot": "up",
                 "sample": "TCGA-49"
             }
         ]
     },
     {
         "gene": "GENE2",
+        "desc": "Annotation for GENE2",
         "data": [
             {
-                "vaf": 0.34759141761297996,
+                "disp_cna": "homdel",
                 "sample": "TCGA-00"
             },
             {
-                "vaf": 0.6090466248123989,
                 "sample": "TCGA-01"
             },
             {
-                "vaf": 1.4937417773491886,
                 "sample": "TCGA-02"
             },
             {
-                "vaf": 0.8838960609656334,
+                "disp_cna": "homdel",
+                "disp_prot": "up",
+                "disp_mut": "promoter",
                 "sample": "TCGA-03"
             },
             {
-                "vaf": -1.0306844677814944,
+                "disp_prot": "up",
+                "disp_mut": "promoter",
                 "sample": "TCGA-04"
             },
             {
-                "vaf": 3.0644928613593194,
+                "disp_prot": "up",
+                "disp_mut": "missense",
                 "sample": "TCGA-05"
             },
             {
-                "vaf": 0.8894593427675274,
+                "disp_mrna": "up",
                 "sample": "TCGA-06"
             },
             {
-                "vaf": 2.0201727117157997,
+                "disp_cna": "gain",
                 "sample": "TCGA-07"
             },
             {
-                "vaf": 0.30795015221560884,
+                "disp_mut": "promoter",
                 "sample": "TCGA-08"
             },
             {
-                "vaf": 2.536377054245798,
+                "disp_prot": "down",
                 "sample": "TCGA-09"
             },
             {
-                "vaf": 1.2863436888922797,
+                "disp_cna": "gain",
+                "disp_mut": "missense",
                 "sample": "TCGA-10"
             },
             {
-                "vaf": 1.6088438344754508,
+                "disp_mrna": "up",
+                "disp_prot": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-11"
             },
             {
-                "vaf": -0.8612256850547025,
+                "disp_mrna": "up",
                 "sample": "TCGA-12"
             },
             {
-                "vaf": 1.9100649530990337,
                 "sample": "TCGA-13"
             },
             {
-                "vaf": -0.2680033709513804,
+                "disp_cna": "gain",
+                "disp_mut": "missense",
                 "sample": "TCGA-14"
             },
             {
-                "vaf": 0.8024563957963952,
                 "sample": "TCGA-15"
             },
             {
-                "vaf": 0.947251967773748,
+                "disp_prot": "up",
+                "disp_mut": "trunc",
                 "sample": "TCGA-16"
             },
             {
-                "vaf": -0.1550100930908342,
+                "disp_mrna": "up",
                 "sample": "TCGA-17"
             },
             {
-                "vaf": 0.6140793703460803,
-                "sample": "TCGA-18"
+                "disp_cna": "amp",
+                "sample": "TCGA-18",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.9222066715665268,
                 "sample": "TCGA-19"
             },
             {
-                "vaf": 0.37642553115562943,
+                "disp_cna": "diploid",
+                "disp_prot": "down",
                 "sample": "TCGA-20"
             },
             {
-                "vaf": -1.0994007905841945,
+                "disp_prot": "down",
                 "sample": "TCGA-21"
             },
             {
-                "vaf": 0.298238174206056,
+                "disp_mrna": "down",
+                "disp_mut": "missense",
                 "sample": "TCGA-22"
             },
             {
-                "vaf": 1.3263858966870303,
+                "disp_mut": "missense",
                 "sample": "TCGA-23"
             },
             {
-                "vaf": -0.6945678597313655,
+                "disp_prot": "up",
                 "sample": "TCGA-24"
             },
             {
-                "vaf": -0.14963454032767076,
+                "disp_prot": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-25"
             },
             {
-                "vaf": -0.43515355172163744,
+                "disp_cna": "gain",
+                "disp_mut": "missense",
                 "sample": "TCGA-26"
             },
             {
-                "vaf": 1.8492637284793418,
+                "disp_mrna": "down",
                 "sample": "TCGA-27"
             },
             {
-                "vaf": 2.3121623889713177,
+                "disp_mrna": "up",
+                "disp_prot": "up",
                 "sample": "TCGA-28"
             },
             {
-                "vaf": 1.7859225969058794,
                 "sample": "TCGA-29"
             },
             {
-                "vaf": 2.559077367707409,
                 "sample": "TCGA-30"
             },
             {
-                "vaf": 2.719644504815491,
-                "sample": "TCGA-31"
+                "disp_cna": "homdel",
+                "disp_mut": "promoter",
+                "sample": "TCGA-31",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 2.6353064556083146,
+                "disp_prot": "down",
                 "sample": "TCGA-32"
             },
             {
-                "vaf": 3.156703855272364,
+                "disp_cna": "homdel",
                 "sample": "TCGA-33"
             },
             {
-                "vaf": 3.5785214977288784,
+                "disp_prot": "up",
+                "disp_mut": "promoter",
                 "sample": "TCGA-34"
             },
             {
-                "vaf": 0.6764332949464997,
+                "disp_mut": "trunc",
                 "sample": "TCGA-35"
             },
             {
-                "vaf": 0.5765908166149409,
                 "sample": "TCGA-36"
             },
             {
-                "vaf": -0.20829875557799488,
                 "sample": "TCGA-37"
             },
             {
-                "vaf": 0.3960067126616453,
+                "disp_mrna": "down",
+                "disp_mut": "missense",
                 "sample": "TCGA-38"
             },
             {
-                "vaf": -1.0930615087305058,
+                "disp_mrna": "up",
                 "sample": "TCGA-39"
             },
             {
-                "vaf": -1.4912575927056055,
                 "sample": "TCGA-40"
             },
             {
-                "vaf": 0.4393917012645369,
+                "disp_mut": "inframe",
                 "sample": "TCGA-41"
             },
             {
-                "vaf": 0.16667349537252904,
+                "disp_mut": "trunc",
                 "sample": "TCGA-42"
             },
             {
-                "vaf": 0.6350314368921064,
                 "sample": "TCGA-43"
             },
             {
-                "vaf": 2.383144774863942,
+                "disp_prot": "down",
                 "sample": "TCGA-44"
             },
             {
-                "vaf": 0.0,
-                "sample": "TCGA-45"
+                "disp_cna": "diploid",
+                "sample": "TCGA-45",
+                "disp_mrna": "down"
             },
             {
-                "vaf": 0.0,
+                "disp_cna": "amp",
                 "sample": "TCGA-46"
             },
             {
-                "vaf": 0.0,
+                "disp_mrna": "down",
                 "sample": "TCGA-47"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-48"
             },
             {
-                "vaf": 0.0,
-                "sample": "TCGA-49"
+                "disp_cna": "amp",
+                "disp_mut": "inframe",
+                "sample": "TCGA-49",
+                "disp_mrna": "up"
             }
         ]
     },
     {
         "gene": "GENE3",
+        "desc": "Annotation for GENE3",
         "data": [
             {
-                "vaf": -1.5452533661469547,
+                "disp_prot": "down",
+                "disp_mut": "trunc",
                 "sample": "TCGA-00"
             },
             {
-                "vaf": 0.7111452896827009,
+                "disp_cna": "diploid",
                 "sample": "TCGA-01"
             },
             {
-                "vaf": 0.1898181645347884,
                 "sample": "TCGA-02"
             },
             {
-                "vaf": 0.8018462295649984,
+                "disp_prot": "up",
                 "sample": "TCGA-03"
             },
             {
-                "vaf": -1.128087559641579,
                 "sample": "TCGA-04"
             },
             {
-                "vaf": -0.9810271184607877,
                 "sample": "TCGA-05"
             },
             {
-                "vaf": 1.8039166976839418,
                 "sample": "TCGA-06"
             },
             {
-                "vaf": -1.5600158227215473,
+                "disp_mrna": "down",
                 "sample": "TCGA-07"
             },
             {
-                "vaf": -0.6359497006783208,
                 "sample": "TCGA-08"
             },
             {
-                "vaf": 0.6368913626026953,
                 "sample": "TCGA-09"
             },
             {
-                "vaf": -0.4022750322851444,
-                "sample": "TCGA-10"
+                "disp_cna": "amp",
+                "disp_prot": "up",
+                "disp_mut": "missense",
+                "sample": "TCGA-10",
+                "disp_mrna": "up"
             },
             {
-                "vaf": 0.0829536797532936,
                 "sample": "TCGA-11"
             },
             {
-                "vaf": 0.9494208069257608,
-                "sample": "TCGA-12"
+                "disp_cna": "diploid",
+                "disp_prot": "down",
+                "sample": "TCGA-12",
+                "disp_mrna": "down"
             },
             {
-                "vaf": 0.0875512413851909,
+                "disp_cna": "gain",
                 "sample": "TCGA-13"
             },
             {
-                "vaf": -1.225435518830168,
+                "disp_mut": "missense",
                 "sample": "TCGA-14"
             },
             {
-                "vaf": 0.8443629764015471,
+                "disp_cna": "homdel",
+                "disp_mut": "missense",
                 "sample": "TCGA-15"
             },
             {
-                "vaf": -1.0002153473895647,
                 "sample": "TCGA-16"
             },
             {
-                "vaf": -1.5447710967776116,
+                "disp_cna": "amp",
                 "sample": "TCGA-17"
             },
             {
-                "vaf": 1.1880297923523018,
+                "disp_mut": "trunc",
                 "sample": "TCGA-18"
             },
             {
-                "vaf": 0.3169426119248496,
                 "sample": "TCGA-19"
             },
             {
-                "vaf": 0.920858823780819,
                 "sample": "TCGA-20"
             },
             {
-                "vaf": 0.3187276529430212,
+                "disp_cna": "homdel",
                 "sample": "TCGA-21"
             },
             {
-                "vaf": 0.8568306119026912,
+                "disp_mrna": "up",
                 "sample": "TCGA-22"
             },
             {
-                "vaf": -0.6510255933001469,
+                "disp_mut": "inframe",
                 "sample": "TCGA-23"
             },
             {
-                "vaf": -1.0342428417844647,
+                "disp_mut": "trunc",
                 "sample": "TCGA-24"
             },
             {
-                "vaf": 0.681594518281627,
                 "sample": "TCGA-25"
             },
             {
-                "vaf": -0.8034096641738411,
                 "sample": "TCGA-26"
             },
             {
-                "vaf": -0.6895497777502005,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-27"
             },
             {
-                "vaf": 3.349654456993174,
+                "disp_prot": "up",
+                "disp_mut": "trunc",
                 "sample": "TCGA-28"
             },
             {
-                "vaf": 2.235856076093557,
-                "sample": "TCGA-29"
+                "disp_cna": "homdel",
+                "sample": "TCGA-29",
+                "disp_mrna": "down"
             },
             {
-                "vaf": 1.5622085261984215,
                 "sample": "TCGA-30"
             },
             {
-                "vaf": 4.364531848102471,
+                "disp_cna": "homdel",
+                "disp_mut": "promoter",
                 "sample": "TCGA-31"
             },
             {
-                "vaf": 2.3105508154500622,
                 "sample": "TCGA-32"
             },
             {
-                "vaf": 2.3477064000649808,
                 "sample": "TCGA-33"
             },
             {
-                "vaf": 2.478810687698889,
+                "disp_cna": "gain",
+                "disp_prot": "up",
                 "sample": "TCGA-34"
             },
             {
-                "vaf": -1.6020576556067476,
                 "sample": "TCGA-35"
             },
             {
-                "vaf": -1.1043833394284506,
+                "disp_mrna": "up",
+                "disp_prot": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-36"
             },
             {
-                "vaf": 0.052165079260974405,
+                "disp_mrna": "up",
+                "disp_mut": "trunc",
                 "sample": "TCGA-37"
             },
             {
-                "vaf": -0.7395629963913133,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-38"
             },
             {
-                "vaf": 1.5430145954067358,
+                "disp_mut": "inframe",
                 "sample": "TCGA-39"
             },
             {
-                "vaf": -1.2928569097234486,
                 "sample": "TCGA-40"
             },
             {
-                "vaf": 0.26705086934918293,
+                "disp_mrna": "up",
                 "sample": "TCGA-41"
             },
             {
-                "vaf": -0.0392828182274956,
+                "disp_cna": "amp",
                 "sample": "TCGA-42"
             },
             {
-                "vaf": -1.1680934977411974,
                 "sample": "TCGA-43"
             },
             {
-                "vaf": 0.5232766605317537,
+                "disp_mut": "promoter",
                 "sample": "TCGA-44"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-45"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-46"
             },
             {
-                "vaf": 0.0,
+                "disp_prot": "down",
+                "disp_mut": "promoter",
                 "sample": "TCGA-47"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-48"
             },
             {
-                "vaf": 0.0,
+                "disp_prot": "up",
+                "disp_mut": "promoter",
                 "sample": "TCGA-49"
             }
         ]
     },
     {
         "gene": "GENE4",
+        "desc": "Annotation for GENE4",
         "data": [
             {
-                "vaf": -0.8994490292628752,
+                "disp_cna": "diploid",
                 "sample": "TCGA-00"
             },
             {
-                "vaf": -0.12994411215248125,
                 "sample": "TCGA-01"
             },
             {
-                "vaf": -1.8065268517353166,
                 "sample": "TCGA-02"
             },
             {
-                "vaf": 1.158130679618188,
+                "disp_cna": "amp",
+                "disp_mut": "trunc",
                 "sample": "TCGA-03"
             },
             {
-                "vaf": -0.6181640451285697,
+                "disp_mut": "inframe",
                 "sample": "TCGA-04"
             },
             {
-                "vaf": -1.1801782039968503,
                 "sample": "TCGA-05"
             },
             {
-                "vaf": 0.16638308203191432,
+                "disp_cna": "amp",
                 "sample": "TCGA-06"
             },
             {
-                "vaf": -0.9607197873885533,
                 "sample": "TCGA-07"
             },
             {
-                "vaf": -1.8342584714027534,
                 "sample": "TCGA-08"
             },
             {
-                "vaf": -1.8467175057975553,
+                "disp_prot": "up",
                 "sample": "TCGA-09"
             },
             {
-                "vaf": 0.1937731526901325,
+                "disp_mrna": "down",
                 "sample": "TCGA-10"
             },
             {
-                "vaf": -0.6595734381462669,
+                "disp_cna": "gain",
                 "sample": "TCGA-11"
             },
             {
-                "vaf": 0.7863279621089762,
                 "sample": "TCGA-12"
             },
             {
-                "vaf": -0.46641909673594306,
+                "disp_cna": "amp",
                 "sample": "TCGA-13"
             },
             {
-                "vaf": -0.9444462559182504,
                 "sample": "TCGA-14"
             },
             {
-                "vaf": -0.41004969320254847,
+                "disp_prot": "down",
                 "sample": "TCGA-15"
             },
             {
-                "vaf": -0.017020413861440594,
+                "disp_cna": "homdel",
                 "sample": "TCGA-16"
             },
             {
-                "vaf": 0.3791517355550818,
+                "disp_mut": "promoter",
                 "sample": "TCGA-17"
             },
             {
-                "vaf": 2.259308950690852,
+                "disp_cna": "homdel",
                 "sample": "TCGA-18"
             },
             {
-                "vaf": -0.04225715166064269,
+                "disp_prot": "up",
                 "sample": "TCGA-19"
             },
             {
-                "vaf": -0.955945000492777,
+                "disp_cna": "hetloss",
                 "sample": "TCGA-20"
             },
             {
-                "vaf": -0.34598177569938643,
                 "sample": "TCGA-21"
             },
             {
-                "vaf": -0.4635959746460942,
+                "disp_mrna": "down",
+                "disp_prot": "down",
                 "sample": "TCGA-22"
             },
             {
-                "vaf": 0.4814814737734622,
+                "disp_mrna": "up",
                 "sample": "TCGA-23"
             },
             {
-                "vaf": -1.5407970144446248,
+                "disp_prot": "down",
                 "sample": "TCGA-24"
             },
             {
-                "vaf": 0.06326199420033171,
                 "sample": "TCGA-25"
             },
             {
-                "vaf": 0.1565065379653756,
+                "disp_cna": "hetloss",
+                "disp_mut": "promoter",
                 "sample": "TCGA-26"
             },
             {
-                "vaf": 0.23218103620027578,
                 "sample": "TCGA-27"
             },
             {
-                "vaf": 1.1569304498433515,
+                "disp_mrna": "up",
+                "disp_prot": "up",
                 "sample": "TCGA-28"
             },
             {
-                "vaf": 2.5220259959595133,
                 "sample": "TCGA-29"
             },
             {
-                "vaf": 2.5203441859920526,
                 "sample": "TCGA-30"
             },
             {
-                "vaf": 3.6203582983435125,
+                "disp_prot": "up",
                 "sample": "TCGA-31"
             },
             {
-                "vaf": 3.698457149107336,
-                "sample": "TCGA-32"
+                "disp_cna": "gain",
+                "sample": "TCGA-32",
+                "disp_mrna": "down"
             },
             {
-                "vaf": 3.0037708890862693,
+                "disp_cna": "gain",
                 "sample": "TCGA-33"
             },
             {
-                "vaf": 3.9318483741143035,
+                "disp_mrna": "down",
+                "disp_prot": "up",
                 "sample": "TCGA-34"
             },
             {
-                "vaf": 0.7811981017099934,
+                "disp_cna": "amp",
                 "sample": "TCGA-35"
             },
             {
-                "vaf": 1.4944845444913688,
+                "disp_mut": "missense",
                 "sample": "TCGA-36"
             },
             {
-                "vaf": -2.0699850250135325,
                 "sample": "TCGA-37"
             },
             {
-                "vaf": 0.42625873077810095,
+                "disp_prot": "up",
                 "sample": "TCGA-38"
             },
             {
-                "vaf": 0.6769080350302455,
                 "sample": "TCGA-39"
             },
             {
-                "vaf": -0.637437025552229,
                 "sample": "TCGA-40"
             },
             {
-                "vaf": -0.39727181432879766,
+                "disp_cna": "gain",
                 "sample": "TCGA-41"
             },
             {
-                "vaf": -0.13288057758695562,
-                "sample": "TCGA-42"
+                "disp_cna": "homdel",
+                "sample": "TCGA-42",
+                "disp_mrna": "down"
             },
             {
-                "vaf": -0.2977908794017283,
+                "disp_mrna": "down",
+                "disp_prot": "up",
                 "sample": "TCGA-43"
             },
             {
-                "vaf": -0.3090129690471222,
+                "disp_mut": "promoter",
                 "sample": "TCGA-44"
             },
             {
-                "vaf": 0.0,
+                "disp_prot": "up",
                 "sample": "TCGA-45"
             },
             {
-                "vaf": 0.0,
                 "sample": "TCGA-46"
             },
             {
-                "vaf": 0.0,
+                "disp_mrna": "down",
+                "disp_prot": "up",
+                "disp_mut": "inframe",
                 "sample": "TCGA-47"
             },
             {
-                "vaf": 0.0,
+                "disp_cna": "diploid",
+                "disp_mut": "missense",
                 "sample": "TCGA-48"
             },
             {
-                "vaf": 0.0,
-                "sample": "TCGA-49"
+                "disp_cna": "homdel",
+                "disp_prot": "up",
+                "sample": "TCGA-49",
+                "disp_mrna": "up"
             }
         ]
     }

@@ -1,4 +1,4 @@
-$( document ).ready(function() {
+$(document).ready(function() {
 
 var oncoprint = new window.Oncoprint("#oncoprint-heatmap", 800);
 oncoprint.suppressRendering();
@@ -21,7 +21,7 @@ for (var i = 0; i < hm_data.length; i++) {
     'track_padding': 5,
     'label': hm_data[i].gene,
     'sortCmpFn': function(d1, d2) {return 0;},
-    'target_group': 0,
+    'target_group': 1,
     'removable': true,
   };
   var new_hm_id = oncoprint.addTracks([track_params])[0];

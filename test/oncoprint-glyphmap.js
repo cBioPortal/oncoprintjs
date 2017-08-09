@@ -3,27 +3,17 @@ $(document).ready(function() {
 var oncoprint = new window.Oncoprint("#oncoprint-glyphmap", 800);
 oncoprint.suppressRendering();
 
-var ga_data = [
-  {gene: 'GENE0',
-   desc: 'This is GENE0',
-   data: [
-     {sample: 'TCGA-00', disp_mut: 'promoter'},
-     {sample: 'TCGA-01', disp_cna: 'amp'},
-     {sample: 'TCGA-02'}
-   ]
-  }
-];
-
 function geneticComparator() {
   var cna_key = 'disp_cna';
   var cna_order = {'amp': 0, 'homdel': 1, 'gain': 2, 'hetloss': 3, 'diploid': 4, undefined: 5};
   var mut_type_key = 'disp_mut';
   var mut_order = {'trunc': 0, 'inframe': 1, 'promoter': 2, 'missense': 3, undefined: 4};
   var mrna_key = 'disp_mrna';
-	var mrna_order = {'up': 0, 'down': 1, undefined: 2};
+  var prot_key = 'disp_prot';
+	var reg_order = {'up': 0, 'down': 1, undefined: 2};
   return function (d1, d2) {
-    var keys = [cna_key, mut_type_key, mrna_key];
-    var orders = [cna_order, mut_order, mrna_order];
+    var keys = [cna_key, mut_type_key, mrna_key, prot_key];
+    var orders = [cna_order, mut_order, reg_order, reg_order];
     var diff = 0;
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
@@ -66,7 +56,7 @@ for (var i = 0; i < ga_data.length; i++) {
   oncoprint.setTrackData(ga_data[i].track_id, ga_data[i].data, 'sample');
   oncoprint.setTrackInfo(ga_data[i].track_id, "");
   oncoprint.setTrackTooltipFn(ga_data[i].track_id, function(data) {
-    return "";
+    return "<b>Sample: " + data.sample + "</b>";
   });
 }
 
