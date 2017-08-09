@@ -2,6 +2,7 @@ var express = require('express');
 
 var server = express();
 server.use(express.static(__dirname + '/dist'));
+server.use(express.static(__dirname + '/rules'));
 server.use(express.static(__dirname + '/test'));
 
 var port = 3000;
