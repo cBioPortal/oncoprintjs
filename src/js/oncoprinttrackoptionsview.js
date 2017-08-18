@@ -32,7 +32,7 @@ var OncoprintTrackOptionsView = (function () {
 
 	this.interaction_disabled = false;
     }
-    
+
     var renderAllOptions = function(view, model) {
 	if (view.rendering_suppressed) {
 	    return;
@@ -45,7 +45,7 @@ var OncoprintTrackOptionsView = (function () {
 		}
 	    }
 	});
-	
+
 	view.$buttons_ctr.empty();
 	view.$dropdown_ctr.empty();
 	scroll(view, model.getVertScroll());
@@ -124,9 +124,13 @@ var OncoprintTrackOptionsView = (function () {
     var renderTrackOptions = function (view, model, track_id) {
 	var $div, $img, $dropdown;
 	var top = model.getZoomedTrackTops(track_id);
-	$div = $('<div>').appendTo(view.$buttons_ctr).css({'position': 'absolute', 'left': '0px', 'top': top + 'px'});
-	$img = $('<img/>').appendTo($div).attr({'src': 'img/menudots.svg', 'width': view.img_size, 'height': view.img_size}).css({'float': 'left', 'cursor': 'pointer', 'border': '1px solid rgba(125,125,125,0)'});
-	$dropdown = $('<ul>').appendTo(view.$dropdown_ctr).css({'position':'absolute', 'width': 120, 'display': 'none', 'list-style-type': 'none', 'padding-left': '6', 'padding-right': '6', 'float': 'right', 'background-color': 'rgb(255,255,255)',
+  $div = $('<div>').appendTo(view.$buttons_ctr).css({'position': 'absolute', 'left': '0px', 'top': top + 'px'});
+	$img = $(document.createElementNS('http://www.w3.org/2000/svg', 'svg')).appendTo($div).attr({'width': view.img_size, 'height': view.img_size, 'version': '1.1', 'class': 'menudots',
+								'xmlns': 'http://www.w3.org/2000/svg', 'xmlns:xlink': 'http://www.w3.org/1999/xlink', 'x': '0px', 'y': '0px', 'enable-background': 'new -0.031 0 4 16', 'xml:space': 'preserve'});
+	$(document.createElementNS('http://www.w3.org/2000/svg', 'circle')).appendTo($img).attr({'fill': '#B2B3B3', 'cx': '1.969', 'cy': '4', 'r': '1.5'});
+	$(document.createElementNS('http://www.w3.org/2000/svg', 'circle')).appendTo($img).attr({'fill': '#B2B3B3', 'cx': '1.969', 'cy': '8', 'r': '1.5'});
+	$(document.createElementNS('http://www.w3.org/2000/svg', 'circle')).appendTo($img).attr({'fill': '#B2B3B3', 'cx': '1.969', 'cy': '12', 'r': '1.5'});
+	$('.menudots').each(function () { $(this)[0].setAttribute('viewBox', '-0.031 0 4 16') });	$dropdown = $('<ul>').appendTo(view.$dropdown_ctr).css({'position':'absolute', 'width': 120, 'display': 'none', 'list-style-type': 'none', 'padding-left': '6', 'padding-right': '6', 'float': 'right', 'background-color': 'rgb(255,255,255)',
 								'left':'0px', 'top': top + view.img_size + 'px'});
 	view.track_options_$elts[track_id] = {'$div': $div, '$img': $img, '$dropdown': $dropdown};
 
