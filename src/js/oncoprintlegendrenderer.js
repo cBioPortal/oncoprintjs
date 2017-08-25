@@ -119,40 +119,51 @@ var OncoprintLegendView = (function() {
 		root.appendChild(text_node);
 	    }
 	} else if (config.type === 'number') {
-	    var num_decimal_digits = 2;
-	    var display_range = config.range.map(function(x) {
-		var num_digit_multiplier = Math.pow(10, num_decimal_digits);
-		return Math.round(x * num_digit_multiplier) / num_digit_multiplier;
-	    });
-	    root.appendChild(svgfactory.text(display_range[0], 0, 0, 12, 'Arial', 'normal'));
-	    root.appendChild(svgfactory.text(display_range[1], 50, 0, 12, 'Arial', 'normal'));
-	    var mesh = 100;
-	    var points = [];
-	    points.push([5, 20]);
-	    for (var i=0; i<mesh; i++) {
-		var t = i/mesh;
-		var h = config.interpFn((1-t)*config.range[0] + t*config.range[1]);
-		var height = 20*h;
-		points.push([5 + 40*i/mesh, 20-height]);
-	    }
-	    points.push([45, 20]);
-	    root.appendChild(svgfactory.path(points, config.color, config.color));
-	} else if (config.type === 'gradient') {
-	    var num_decimal_digits = 2;
-	    var display_range = config.range.map(function(x) {
-		var num_digit_multiplier = Math.pow(10, num_decimal_digits);
-		return Math.round(x * num_digit_multiplier) / num_digit_multiplier;
-	    });
-	    var gradient = svgfactory.gradient(config.colorFn);
-	    var gradient_id = gradient.getAttribute("id");
-	    target_defs.appendChild(gradient);
-	    root.appendChild(svgfactory.text(display_range[0], 0, 0, 12, 'Arial', 'normal'));
-	    root.appendChild(svgfactory.text(display_range[1], 120, 0, 12, 'Arial', 'normal'));
-	    root.appendChild(svgfactory.rect(30,0,60,20,"url(#"+gradient_id+")"));
+        var num_decimal_digits = 2;
+        var display_range = config.range.map(function (x) {
+            var num_digit_multiplier = Math.pow(10, num_decimal_digits);
+            return Math.round(x * num_digit_multiplier) / num_digit_multiplier;
+        });
+        root.appendChild(svgfactory.text(display_range[0], 0, 0, 12, 'Arial', 'normal'));
+        root.appendChild(svgfactory.text(display_range[1], 50, 0, 12, 'Arial', 'normal'));
+        var mesh = 100;
+        var points = [];
+        var linear_gradient = svgfactory.linearGradient();
+        if (config.range_type === 'NON_POSITIVE') {
+            linear_gradient.appendChild(svgfactory.stop(100, config.negative_color));
+        } else if (config.range_type === 'NON_NEGATIVE') {
+            linear_gradient.appendChild(svgfactory.stop(100, config.positive_color));
+        } else if (config.range_type === 'ALL') {
+        	var offset = Math.abs(display_range[0]) / (Math.abs(display_range[0]) + display_range[1]) * 100;
+            linear_gradient.appendChild(svgfactory.stop(offset, config.negative_color));
+            linear_gradient.appendChild(svgfactory.stop(offset, config.positive_color));
+        }
+        root.appendChild(linear_gradient);
+        points.push([5, 20]);
+        for (var i = 0; i < mesh; i++) {
+            var t = i / mesh;
+            var h = config.interpFn((1 - t) * config.range[0] + t * config.range[1]);
+            var height = 20 * h;
+            points.push([5 + 40 * i / mesh, 20 - height]);
+        }
+        points.push([45, 20]);
+        root.appendChild(svgfactory.path(points, null, null, linear_gradient));
+    } else if (config.type === 'gradient') {
+        var num_decimal_digits = 2;
+        var display_range = config.range.map(function(x) {
+            var num_digit_multiplier = Math.pow(10, num_decimal_digits);
+            return Math.round(x * num_digit_multiplier) / num_digit_multiplier;
+        });
+        var gradient = svgfactory.gradient(config.colorFn);
+        var gradient_id = gradient.getAttribute("id");
+        target_defs.appendChild(gradient);
+        root.appendChild(svgfactory.text(display_range[0], 0, 0, 12, 'Arial', 'normal'));
+        root.appendChild(svgfactory.text(display_range[1], 120, 0, 12, 'Arial', 'normal'));
+        root.appendChild(svgfactory.rect(30,0,60,20,"url(#"+gradient_id+")"));
 	}
 	return root;
     };
-    
+
     OncoprintLegendView.prototype.setWidth = function(w, model) {
 	this.width = w;
 	renderLegend(this, model);
