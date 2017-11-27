@@ -5,7 +5,7 @@
   "main": "./dist/oncoprint.bundle.js",
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "npm run clean && gulp",
+    "build": "npm run clean && webpack",
     "test": "karma start karma.conf.js",
     "test:watch": "npm run test -- --watch"
   },
