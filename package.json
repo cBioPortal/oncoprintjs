@@ -43,6 +43,7 @@
     "gulp-shell": "^0.6.3",
     "jasmine-core": "^2.8.0",
     "karma": "^1.7.1",
+    "karma-commonjs": "^1.0.0",
     "karma-jasmine": "^1.1.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "phantomjs-polyfill": "0.0.2",
