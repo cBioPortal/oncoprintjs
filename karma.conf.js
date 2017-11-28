@@ -17,7 +17,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'dist/oncoprint-bundle.js',
+      'dist/oncoprint.bundle.js',
       'src/test/*.js'
     ],
 
