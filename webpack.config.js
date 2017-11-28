@@ -10,6 +10,6 @@ module.exports = {
         libraryTarget: 'commonjs-module'
     },
     plugins: [
-        new WebpackShellPlugin({onBuildStart:['rm -r dist', 'mkdir dist']})
+        new WebpackShellPlugin({onBuildStart:['touch dist && rm -r dist', 'mkdir dist']})
     ]
 };

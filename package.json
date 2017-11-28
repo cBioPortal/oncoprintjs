@@ -4,7 +4,7 @@
   "types": "./index.d.ts",
   "main": "./dist/oncoprint.bundle.js",
   "scripts": {
-    "clean": "rm -rf dist",
+    "clean": "touch dist && rm -rf dist",
     "build": "npm run clean && webpack",
     "test": "karma start karma.conf.js",
     "test:watch": "npm run test -- --watch"
