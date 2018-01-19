@@ -3,22 +3,26 @@ var ga_data = [
         "gene": "GENE0",
         "desc": "Annotation for GENE0",
         "data": [
-            {
-                "sample": "TCGA-00"
-            },
-            {
-                "disp_mrna": "up",
-                "disp_prot": "up",
-                "sample": "TCGA-01"
-            },
-            {
-                "disp_cna": "hetloss",
-                "sample": "TCGA-02"
-            },
-            {
-                "disp_mut": "promoter",
-                "sample": "TCGA-03"
-            },
+             {
+                 "disp_cna": "hetloss",
+                 "disp_mut": "promoter_rec",
+                 "disp_germ": "true",
+                 "sample": "TCGA-00"
+             },
+             {
+                 "disp_prot": "up",
+                 "sample": "TCGA-01"
+             },
+             {
+                 "disp_cna": "hetloss",
+                 "disp_mut": "missense",
+                 "sample": "TCGA-02"
+             },
+             {
+                 "sample": "TCGA-03",
+                 "disp_germ": "true",
+                 "disp_mut": "trunc"
+             },
             {
                 "disp_mut": "inframe",
                 "sample": "TCGA-04"
