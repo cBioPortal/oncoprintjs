@@ -1,4 +1,5 @@
-var ClusteringWorker = require('worker-loader?inline=true&fallback=false!./workers/clustering-worker.js');
+// var ClusteringWorker = require('worker-loader?inline=true&fallback=false!./workers/clustering-worker.js');
+var ClusteringWorker = require('worker-loader');
 
 /**
  * Executes the clustering of casesAndEntitites in the requested

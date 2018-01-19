@@ -6,7 +6,10 @@
   "scripts": {
     "build": "webpack",
     "test": "karma start karma.conf.js",
-    "test:watch": "npm run test -- --watch"
+    "test:watch": "npm run test -- --watch",
+    "watch": "webpack --watch",
+    "start": "webpack-dev-server --open",
+    "server": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -39,6 +42,7 @@
   "homepage": "https://github.com/cBioPortal/oncoprintjs",
   "devDependencies": {
     "browserify": "^14.0.0",
+    "express": "^4.16.2",
     "gulp": "^3.9.1",
     "gulp-shell": "^0.6.3",
     "jasmine-core": "^2.8.0",
@@ -48,7 +52,9 @@
     "karma-phantomjs-launcher": "^1.0.4",
     "phantomjs-polyfill": "0.0.2",
     "phantomjs-prebuilt": "^2.1.15",
-    "webpack": "^3.0.0",
+    "webpack": "^3.10.0",
+    "webpack-dev-middleware": "^2.0.4",
+    "webpack-dev-server": "^2.11.0",
     "webpack-shell-plugin": "^0.5.0",
     "worker-loader": "^1.1.0",
     "yargs": "^9.0.1"
