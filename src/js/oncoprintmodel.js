@@ -744,16 +744,6 @@ var OncoprintModel = (function () {
 	model.track_removable[track_id] = ifndef(removable, false);
 	model.track_remove_callback[track_id] = ifndef(removeCallback, function() {});
 	
-	if (typeof expansion_of !== 'undefined') {
-	    if (!model.track_expansion_tracks.hasOwnProperty(expansion_of)) {
-		model.track_expansion_tracks[expansion_of] = [];
-	    }
-	    if (model.track_expansion_tracks[expansion_of].indexOf(track_id) !== -1) {
-		throw new Error('Illegal state: duplicate expansion track ID');
-	    }
-	    model.track_expansion_parent[track_id] = expansion_of;
-	    model.track_expansion_tracks[expansion_of].push(track_id);
-	}
 	if (typeof expandCallback !== 'undefined') {
 	    model.track_expand_callback[track_id] = expandCallback;
 	    model.track_expansion_enabled[track_id] = true;
@@ -790,9 +780,24 @@ var OncoprintModel = (function () {
 	if (track_group_header) {
 	    model.track_group_header[target_group] = track_group_header;
 	}
-	model.track_groups[target_group].push(track_id);
-	
-	
+
+	var group_array = model.track_groups[target_group];
+	var target_index = (expansion_of !== undefined
+	    ? group_array.indexOf(model.getLastExpansion(expansion_of)) + 1
+	    : group_array.length
+	);
+	group_array.splice(target_index, 0, track_id);
+
+	if (expansion_of !== undefined) {
+	    if (!model.track_expansion_tracks.hasOwnProperty(expansion_of)) {
+		model.track_expansion_tracks[expansion_of] = [];
+	    }
+	    if (model.track_expansion_tracks[expansion_of].indexOf(track_id) !== -1) {
+		throw new Error('Illegal state: duplicate expansion track ID');
+	    }
+	    model.track_expansion_parent[track_id] = expansion_of;
+	    model.track_expansion_tracks[expansion_of].push(track_id);
+	}
 	
 	model.track_id_to_datum.update(model, track_id);
 	model.track_present_ids.update(model, track_id);

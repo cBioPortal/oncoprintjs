@@ -36,15 +36,11 @@ function makeExpandCallback(gene_id) {
               )
             }
         }
-        var track_order_in_group = oncoprint.model.getTrackGroups()[TRACK_GROUP].slice();
-        var preceding_track_index = track_order_in_group.indexOf(oncoprint.model.getLastExpansion(parent_track_id));
         var new_track_id = oncoprint.addTracks([track_params])[0];
         if (current_expansion_tracks.length > 0) {
           oncoprint.shareRuleSet(current_expansion_tracks[0], new_track_id);
         }
         current_expansion_tracks.push(new_track_id);
-        track_order_in_group.splice(preceding_track_index + 1, 0, new_track_id);
-        oncoprint.setTrackGroupOrder(TRACK_GROUP, track_order_in_group);
         var data_record = hm_data.filter(function (record) {
           return record.gene === gene_id;
         })[0];
