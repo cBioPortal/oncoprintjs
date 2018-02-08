@@ -24,20 +24,29 @@ var extractColor = function(str) {
     };
 };
 
+var makeSVGRectBackground = function () {
+    return makeSVGElement('rect', {width: 6, height: 20, x: 0, y: 0, fill: extractColor('rgba(190, 190, 190, 1)').rgb,
+        'fill-opacity': 1
+    });
+};
+
 var rectangleToSVG = function (params, offset_x, offset_y) {
     var stroke_color = extractColor(params.stroke);
     var fill_color = extractColor(params.fill);
-    return makeSVGElement('rect', {
-	width: params.width,
-	height: params.height,
-	x: parseFloat(params.x) + offset_x,
-	y: parseFloat(params.y) + offset_y,
-	stroke: stroke_color.rgb,
-	'stroke-opacity': stroke_color.opacity,
-	'stroke-width': params['stroke-width'],
-	fill: fill_color.rgb,
-	'fill-opacity': fill_color.opacity
-    });
+    var el = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    el.appendChild(makeSVGRectBackground()); // add grey background
+    el.appendChild(makeSVGElement('rect', {
+        width: params.width,
+        height: params.height,
+        x: parseFloat(params.x) + offset_x,
+        y: parseFloat(params.y) + offset_y,
+        stroke: stroke_color.rgb,
+        'stroke-opacity': stroke_color.opacity,
+        'stroke-width': params['stroke-width'],
+        fill: fill_color.rgb,
+        'fill-opacity': fill_color.opacity
+    }));
+    return el;
 };
 
 var triangleToSVG = function (params, offset_x, offset_y) {
