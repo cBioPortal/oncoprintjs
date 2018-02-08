@@ -1,14 +1,14 @@
 var svgfactory = require('./svgfactory.js');
 var $ = require('jquery');
 
-var nodeIsVisible = function(node) {
+var nodeIsVisible = function (node) {
     var ret = true;
-    while (node.tagName.toLowerCase() !== "html") {
-	if ($(node).css('display') === 'none') {
-	    ret = false;
-	    break;
-	}
-	node = node.parentNode;
+    while (node && node.tagName.toLowerCase() !== "html") {
+        if ($(node).css('display') === 'none') {
+            ret = false;
+            break;
+        }
+        node = node.parentNode;
     }
     return ret;
 };
