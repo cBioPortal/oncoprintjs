@@ -38,6 +38,7 @@
   },
   "homepage": "https://github.com/cBioPortal/oncoprintjs",
   "devDependencies": {
+    "babel-preset-env": "^1.6.1",
     "browserify": "^14.0.0",
     "gulp": "^3.9.1",
     "gulp-shell": "^0.6.3",
