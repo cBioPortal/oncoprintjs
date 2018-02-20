@@ -3,46 +3,26 @@ var ga_data = [
         "gene": "GENE0",
         "desc": "Annotation for GENE0",
         "data": [
-            {
-                "disp_cna": "hetloss",
-                "disp_mut": "missense",
-                "sample": "TCGA-00"
-            },
-            {
-                "disp_prot": "up",
-                "disp_mut": "white-stripe",
-                "sample": "TCGA-01"
-            },
-            {
-                "disp_cna": "hetloss",
-                "disp_mut": "missense",
-                "disp_mut": "promoter",
-                "sample": "TCGA-02"
-            },
-            {
-                "sample": "TCGA-03",
-                "disp_mut": "trunc",
-                "disp_mut": "white-stripe",
-            },
-        ],
-/**
-            {
-                "disp_cna": "hetloss",
-                "sample": "TCGA-00"
-            },
-            {
-                "disp_mrna": "up",
-                "disp_prot": "up",
-                "sample": "TCGA-01"
-            },
-            {
-                "disp_cna": "hetloss",
-                "sample": "TCGA-02"
-            },
-            {
-                "disp_mut": "promoter",
-                "sample": "TCGA-03"
-            },
+             {
+                 "disp_cna": "hetloss",
+                 "disp_mut": "promoter_rec_germ",
+                 "disp_germline": "true",
+                 "sample": "TCGA-00"
+             },
+             {
+                 "disp_prot": "up",
+                 "sample": "TCGA-01"
+             },
+             {
+                 "disp_cna": "hetloss",
+                 "disp_mut": "missense",
+                 "sample": "TCGA-02"
+             },
+             {
+                 "sample": "TCGA-03",
+                 "disp_germline": "true",
+                 "disp_mut": "trunc_germ"
+             },
             {
                 "disp_mut": "inframe",
                 "sample": "TCGA-04"
@@ -145,8 +125,7 @@ var ga_data = [
                 "sample": "TCGA-29"
             },
             {
-                "sample": "TCGA-30",
-                "disp_cna": "hetloss",
+                "sample": "TCGA-30"
             },
             {
                 "sample": "TCGA-31"
@@ -1057,6 +1036,6 @@ var ga_data = [
                 "sample": "TCGA-49",
                 "disp_mrna": "up"
             }
-        ] **/
+        ]
     }
 ];
