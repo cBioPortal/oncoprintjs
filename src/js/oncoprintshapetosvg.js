@@ -34,7 +34,6 @@ var rectangleToSVG = function (params, offset_x, offset_y) {
     var stroke_color = extractColor(params.stroke);
     var fill_color = extractColor(params.fill);
     var el = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    el.appendChild(makeSVGRectBackground()); // add grey background
     el.appendChild(makeSVGElement('rect', {
         width: params.width,
         height: params.height,
