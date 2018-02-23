@@ -1266,8 +1266,15 @@ var OncoprintModel = (function () {
 		var def = new $.Deferred();
 		var cluster_input = {};
 
-    	var track_ids = this.getTrackGroups()[track_group_index];
-    	for (var i=0; i<track_ids.length; i++) {
+	// Use data from tracks on the same level of expansion as the first one
+	// in the track group as input, i.e. the outer level excluding any
+	// expansions
+	var track_group = this.getTrackGroups()[track_group_index];
+	var track_ids = [];
+	if (track_group !== undefined) {
+	    track_ids = _getEffectiveTrackGroup(this, track_group[0]) || [];
+	}
+	for (var i = 0; i < track_ids.length; i++) {
     		var track_id = track_ids[i];
     		var data_id_key = this.getTrackDataIdKey(track_id);
     		var data = this.getTrackData(track_id);
@@ -1283,13 +1290,26 @@ var OncoprintModel = (function () {
 
         $.when(clustering.hclusterColumns(cluster_input), clustering.hclusterTracks(cluster_input)).then(
             function (columnClusterOrder, trackClusterOrder) {
-            	// set clustered order
-				self.setIdOrder(columnClusterOrder.map(function(c) { return c.caseId; }));
-                def.resolve({
-                    track_group_index: track_group_index,
-					track_id_order: trackClusterOrder.map(function(entity){ return parseInt(entity.entityId, 10);})
-				});
-		}).fail(function() {
+		// set clustered column order
+		self.setIdOrder(columnClusterOrder.map(function (c) {return c.caseId;}));
+		// determine clustered row order
+		var clustered_track_id_order = trackClusterOrder.map(function (entity) {
+		    return parseInt(entity.entityId, 10);
+		});
+		// re-insert any expansions below each clustered track
+		var full_track_id_order = [];
+		clustered_track_id_order.forEach(function (track_id) {
+		    full_track_id_order.push(track_id)
+		    Array.prototype.push.apply(
+			full_track_id_order,
+			self.track_expansion_tracks[track_id] || []
+		    );
+		});
+		def.resolve({
+		    track_group_index: track_group_index,
+		    track_id_order: full_track_id_order
+		});
+	    }).fail(function () {
             	def.reject();
 		});
 		return def.promise();
