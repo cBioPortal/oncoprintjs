@@ -1284,10 +1284,14 @@ var OncoprintModel = (function () {
 				cluster_input[id] = cluster_input[id] || {};
 				cluster_input[id][track_id] = value;
 			}
-		}
-		//do hierarchical clustering in background:
-		var self = this;
+	}
+	if (!Object.keys(cluster_input).length) {
+	    // skip clustering if there's nothing to cluster
+	    return;
+	}
 
+	//do hierarchical clustering in background:
+	var self = this;
         $.when(clustering.hclusterColumns(cluster_input), clustering.hclusterTracks(cluster_input)).then(
             function (columnClusterOrder, trackClusterOrder) {
 		// set clustered column order
