@@ -180,7 +180,7 @@ var non_mutation_rule_params = {
         }
     },
     // germline
-    'disp_germline': {
+    'isGermline': {
         // white stripe in the middle
         'true': {
             shapes: [{

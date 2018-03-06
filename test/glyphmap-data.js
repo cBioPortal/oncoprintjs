@@ -6,7 +6,7 @@ var ga_data = [
              {
                  "disp_cna": "hetloss",
                  "disp_mut": "promoter_rec_germ",
-                 "disp_germline": "true",
+                 "isGermline": "true",
                  "sample": "TCGA-00"
              },
              {
@@ -20,7 +20,7 @@ var ga_data = [
              },
              {
                  "sample": "TCGA-03",
-                 "disp_germline": "true",
+                 "isGermline": "true",
                  "disp_mut": "trunc_germ"
              },
             {
