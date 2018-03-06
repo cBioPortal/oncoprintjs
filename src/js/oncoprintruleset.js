@@ -862,7 +862,7 @@ var GeneticAlterationRuleSet = (function () {
                                     'legend_config': {
                                         'type': 'rule',
                                         'target': legend_rule_target,
-                                        'baseLegendShapes': true
+                                        'baseGrayRect': true
                                     }
                                 }));
                                 for (var i = 1; i < equiv_values.length; i++) {
