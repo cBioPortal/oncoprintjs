@@ -156,7 +156,7 @@ var OncoprintLegendView = (function() {
 	    var concrete_shapes = rule.apply(config.target, model.getCellWidth(true), view.base_height);
             if (config.baseGrayRect) {
                 // generate backgrounds
-                root.appendChild(svgfactory.bgrect(6, 20, 'rgb(190,190,190)'));
+                root.appendChild(svgfactory.rect(0, 0, model.getCellWidth(true), view.base_height, 'rgb(190,190,190)'));
             }
             // generate shapes
 	    for (var i=0; i<concrete_shapes.length; i++) {
