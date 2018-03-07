@@ -1263,6 +1263,7 @@ var OncoprintModel = (function () {
 
     OncoprintModel.prototype.clusterTrackGroup = function(track_group_index, clusterValueFn) {
     	// Prepare input
+	var self = this;
 		var def = new $.Deferred();
 		var cluster_input = {};
 
@@ -1287,11 +1288,15 @@ var OncoprintModel = (function () {
 	}
 	if (!Object.keys(cluster_input).length) {
 	    // skip clustering if there's nothing to cluster
-	    return;
+	    return def.resolve().promise();
 	}
 
+	// unset sorting by tracks in this group
+	track_group.forEach(function (track_id) {
+	    self.setTrackSortDirection(track_id, 0, true);
+	});
+
 	//do hierarchical clustering in background:
-	var self = this;
         $.when(clustering.hclusterColumns(cluster_input), clustering.hclusterTracks(cluster_input)).then(
             function (columnClusterOrder, trackClusterOrder) {
 		// set clustered column order
@@ -1431,13 +1436,6 @@ var OncoprintModel = (function () {
     
     OncoprintModel.prototype.setSortConfig = function(params) {
 	this.sort_config = params;
-	if (this.sort_config.type === "cluster") {
-		// if sort config is cluster, do not sort by tracks in that group
-		var trackGroup = this.getTrackGroups()[this.sort_config.track_group_index];
-		for (var i=0; i<trackGroup.length; i++) {
-			this.setTrackSortDirection(trackGroup[i], 0, true);
-		}
-	}
     }
 
     OncoprintModel.prototype.isTrackInClusteredGroup = function(track_id) {
