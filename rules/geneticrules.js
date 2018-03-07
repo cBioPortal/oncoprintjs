@@ -180,7 +180,7 @@ var non_mutation_rule_params = {
         }
     },
     // germline
-    'isGermline': {
+    'disp_germ': {
         // white stripe in the middle
         'true': {
             shapes: [{
@@ -204,7 +204,7 @@ window.geneticrules.genetic_rule_set_same_color_for_all_no_recurrence = {
     'legend_label': 'Genetic Alteration',
     'rule_params': $.extend({}, non_mutation_rule_params, {
         'disp_mut': {
-            'trunc,inframe,missense,promoter,trunc_rec,inframe_rec,missense_rec,promoter_rec,trunc_germ,inframe_germ,missense_germ,promoter_germ,trunc_rec_germ,inframe_rec_germ,missense_rec_germ,promoter_rec_germ': {
+	    'trunc,inframe,missense,promoter,trunc_rec,inframe_rec,missense_rec,promoter_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE,
@@ -225,7 +225,7 @@ window.geneticrules.genetic_rule_set_same_color_for_all_recurrence = {
     'legend_label': 'Genetic Alteration',
     'rule_params': $.extend({}, non_mutation_rule_params, {
         'disp_mut': {
-            'missense_rec,inframe_rec,trunc_rec,missense_rec_germ,inframe_rec_germ,trunc_rec_germ': {
+	    'missense_rec,inframe_rec,trunc_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE,
@@ -238,7 +238,7 @@ window.geneticrules.genetic_rule_set_same_color_for_all_recurrence = {
                 legend_label: 'Mutation (putative driver)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'missense,inframe,trunc,promoter,promoter_rec,missense_germ,inframe_germ,trunc_germ,promoter_germ,promoter_rec_germ': {
+	    'missense,inframe,trunc,promoter,promoter_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE_PASSENGER,
@@ -259,7 +259,7 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
     'legend_label': 'Genetic Alteration',
     'rule_params': $.extend({}, non_mutation_rule_params, {
         'disp_mut': {
-            'promoter,promoter_rec,promoter_germ,promoter_rec_germ': {
+	    'promoter,promoter_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_PROMOTER,
@@ -272,7 +272,7 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
                 legend_label: 'Promoter Mutation',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'trunc,trunc_rec,trunc_germ,trunc_rec_germ': {
+	    'trunc,trunc_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_TRUNC,
@@ -285,7 +285,7 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
                 legend_label: 'Truncating Mutation',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'inframe,inframe_rec,inframe_germ,inframe_rec_germ': {
+	    'inframe,inframe_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_INFRAME,
@@ -298,7 +298,7 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
                 legend_label: 'Inframe Mutation',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'missense,missense_rec,missense_germ,missense_rec_germ': {
+	    'missense,missense_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE,
@@ -319,7 +319,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
     'legend_label': 'Genetic Alteration',
     'rule_params': $.extend({}, non_mutation_rule_params, {
         'disp_mut': {
-            'promoter,promoter_rec,promoter_germ,promoter_rec_germ': {
+	    'promoter,promoter_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_PROMOTER,
@@ -332,7 +332,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Promoter Mutation',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'trunc_rec,trunc_rec_germ': {
+	    'trunc_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_TRUNC,
@@ -345,7 +345,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Truncating Mutation (putative driver)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'trunc,trunc_germ': {
+	    'trunc': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_TRUNC_PASSENGER,
@@ -358,7 +358,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Truncating Mutation (unknown significance)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'inframe_rec,inframe_rec_germ': {
+	    'inframe_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_INFRAME,
@@ -371,7 +371,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Inframe Mutation (putative driver)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'inframe,inframe_germ': {
+	    'inframe': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_INFRAME_PASSENGER,
@@ -384,7 +384,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Inframe Mutation (unknown significance)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'missense_rec,missense_rec_germ': {
+	    'missense_rec': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE,
@@ -397,7 +397,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
                 legend_label: 'Missense Mutation (putative driver)',
                 legend_order: MUTATION_LEGEND_ORDER
             },
-            'missense,missense_germ': {
+	    'missense': {
                 shapes: [{
                     'type': 'rectangle',
                     'fill': MUT_COLOR_MISSENSE_PASSENGER,
