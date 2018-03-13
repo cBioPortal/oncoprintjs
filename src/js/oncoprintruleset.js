@@ -840,29 +840,40 @@ var GeneticAlterationRuleSet = (function () {
 	 * - rule_params
 	 */
 	LookupRuleSet.call(this, params);
-	(function addRules(self) {
-	    var rule_params = params.rule_params;
-	    for (var key in rule_params) {
-		if (rule_params.hasOwnProperty(key)) {
-		    var key_rule_params = rule_params[key];
-		    if (key === '*') {
-			self.addRule(null, null, shallowExtend(rule_params['*'], {'legend_config': {'type': 'rule', 'target': {}}}));
-		    } else {
-			for (var value in key_rule_params) {
-			    if (key_rule_params.hasOwnProperty(value)) {
-				var equiv_values = value.split(",");
-				var legend_rule_target = {};
-				legend_rule_target[equiv_values[0]] = value;
-				var rule_id = self.addRule(key, (equiv_values[0] === '*' ? null : equiv_values[0]), shallowExtend(key_rule_params[value], {'legend_config': {'type': 'rule', 'target': legend_rule_target}}));
-				for (var i = 1; i < equiv_values.length; i++) {
-				    self.linkExistingRule(key, (equiv_values[i] === '*' ? null : equiv_values[i]), rule_id);
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	})(this);
+        (function addRules(self) {
+            var rule_params = params.rule_params;
+            for (var key in rule_params) {
+                if (rule_params.hasOwnProperty(key)) {
+                    var key_rule_params = rule_params[key];
+                    if (key === '*') {
+                        self.addRule(null, null, shallowExtend(rule_params['*'], {
+                            'legend_config': {
+                                'type': 'rule',
+                                'target': {}
+                            }
+                        }));
+                    } else {
+                        for (var value in key_rule_params) {
+                            if (key_rule_params.hasOwnProperty(value)) {
+                                var equiv_values = value.split(",");
+                                var legend_rule_target = {};
+                                legend_rule_target[equiv_values[0]] = value;
+                                var rule_id = self.addRule(key, (equiv_values[0] === '*' ? null : equiv_values[0]), shallowExtend(key_rule_params[value], {
+                                    'legend_config': {
+                                        'type': 'rule',
+                                        'target': legend_rule_target,
+                                        'baseGrayRect': true
+                                    }
+                                }));
+                                for (var i = 1; i < equiv_values.length; i++) {
+                                    self.linkExistingRule(key, (equiv_values[i] === '*' ? null : equiv_values[i]), rule_id);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })(this);
 	this.addRule(NA_STRING, true, {
 	    shapes: makeNAShapes(params.na_z || 1),
 	    legend_label: "Not sequenced",

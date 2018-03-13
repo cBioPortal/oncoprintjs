@@ -1,14 +1,14 @@
 var svgfactory = require('./svgfactory.js');
 var $ = require('jquery');
 
-var nodeIsVisible = function(node) {
+var nodeIsVisible = function (node) {
     var ret = true;
-    while (node.tagName.toLowerCase() !== "html") {
-	if ($(node).css('display') === 'none') {
-	    ret = false;
-	    break;
-	}
-	node = node.parentNode;
+    while (node && node.tagName.toLowerCase() !== "html") {
+        if ($(node).css('display') === 'none') {
+            ret = false;
+            break;
+        }
+        node = node.parentNode;
     }
     return ret;
 };
@@ -20,9 +20,9 @@ var OncoprintLegendView = (function() {
 	this.base_width = base_width;
 	this.base_height = base_height;
 	this.rendering_suppressed = false;
-	
+
 	this.width = $div.width();
-	
+
 	this.rule_set_label_config = {
 	    weight: 'bold',
 	    size: 12,
@@ -33,12 +33,12 @@ var OncoprintLegendView = (function() {
 	    size: 12,
 	    font: 'Arial'
 	};
-	
+
 	this.padding_after_rule_set_label = 10;
 	this.padding_between_rules = 20;
 	this.padding_between_rule_set_rows = 10;
     }
-    
+
     var renderLegend = function(view, model, target_svg, show_all) {
 	if (view.rendering_suppressed) {
 	    return;
@@ -52,10 +52,10 @@ var OncoprintLegendView = (function() {
 	$(target_svg).empty();
 	var defs = svgfactory.defs();
 	target_svg.appendChild(defs);
-	
+
 	var everything_group = svgfactory.group(0,0);
 	target_svg.appendChild(everything_group);
-	
+
 	var rule_sets = model.getRuleSets();
 	var y = 0;
 	var rule_start_x = 200;
@@ -72,10 +72,10 @@ var OncoprintLegendView = (function() {
 		    svgfactory.wrapText(label, rule_start_x);
 		}
 	    })();
-	    
+
 	    var x = rule_start_x + view.padding_after_rule_set_label;
 	    var in_group_y_offset = 0;
-	    
+
 	    var rules = model.getActiveRules(rule_sets[i].rule_set_id);
 	    var labelSort = function(ruleA, ruleB) {
             var labelA = ruleA.rule.legend_label;
@@ -148,14 +148,19 @@ var OncoprintLegendView = (function() {
 	view.$svg[0].setAttribute('width', everything_box.width);
 	view.$svg[0].setAttribute('height', everything_box.height);
     };
-    
+
     var ruleToSVGGroup = function(rule, view, model, target_svg, target_defs) {
 	var root = svgfactory.group(0,0);
 	var config = rule.getLegendConfig();
 	if (config.type === 'rule') {
 	    var concrete_shapes = rule.apply(config.target, model.getCellWidth(true), view.base_height);
+            if (config.baseGrayRect) {
+                // generate backgrounds
+                root.appendChild(svgfactory.rect(0, 0, model.getCellWidth(true), view.base_height, 'rgb(190,190,190)'));
+            }
+            // generate shapes
 	    for (var i=0; i<concrete_shapes.length; i++) {
-		root.appendChild(svgfactory.fromShape(concrete_shapes[i], 0, 0));
+			root.appendChild(svgfactory.fromShape(concrete_shapes[i], 0, 0));
 	    }
 	    if (typeof rule.legend_label !== 'undefined') {
 		var font_size = 12;
@@ -211,7 +216,7 @@ var OncoprintLegendView = (function() {
 	}
 	return root;
     };
-    
+
     OncoprintLegendView.prototype.setWidth = function(w, model) {
 	this.width = w;
 	renderLegend(this, model);
@@ -219,19 +224,19 @@ var OncoprintLegendView = (function() {
     OncoprintLegendView.prototype.removeTrack = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.addTracks = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.setTrackData = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.shareRuleSet = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.setRuleSet = function(model) {
 	renderLegend(this, model);
     }
@@ -243,20 +248,20 @@ var OncoprintLegendView = (function() {
     OncoprintLegendView.prototype.hideTrackLegends = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.showTrackLegends = function(model) {
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.suppressRendering = function() {
 	this.rendering_suppressed = true;
     }
-    
+
     OncoprintLegendView.prototype.releaseRendering = function(model) {
 	this.rendering_suppressed = false;
 	renderLegend(this, model);
     }
-    
+
     OncoprintLegendView.prototype.toSVGGroup = function(model, offset_x, offset_y) {
 	var root = svgfactory.group((offset_x || 0), (offset_y || 0));
 	this.$svg.append(root);
@@ -264,7 +269,7 @@ var OncoprintLegendView = (function() {
 	root.parentNode.removeChild(root);
 	return root;
     }
-    
+
     return OncoprintLegendView;
 })();
 
