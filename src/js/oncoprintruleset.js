@@ -853,7 +853,13 @@ var GeneticAlterationRuleSet = (function () {
 				var equiv_values = value.split(",");
 				var legend_rule_target = {};
 				legend_rule_target[equiv_values[0]] = value;
-				var rule_id = self.addRule(key, (equiv_values[0] === '*' ? null : equiv_values[0]), shallowExtend(key_rule_params[value], {'legend_config': {'type': 'rule', 'target': legend_rule_target}}));
+                                var rule_id = self.addRule(key, (equiv_values[0] === '*' ? null : equiv_values[0]), shallowExtend(key_rule_params[value], {
+                                    'legend_config': {
+                                        'type': 'rule',
+                                        'target': legend_rule_target,
+                                        'baseGrayRect': true
+                                    }
+                                }));
 				for (var i = 1; i < equiv_values.length; i++) {
 				    self.linkExistingRule(key, (equiv_values[i] === '*' ? null : equiv_values[i]), rule_id);
 				}

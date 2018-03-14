@@ -3,7 +3,7 @@ var $ = require('jquery');
 
 var nodeIsVisible = function(node) {
     var ret = true;
-    while (node.tagName.toLowerCase() !== "html") {
+    while (node && node.tagName.toLowerCase() !== "html") {
 	if ($(node).css('display') === 'none') {
 	    ret = false;
 	    break;
@@ -154,6 +154,11 @@ var OncoprintLegendView = (function() {
 	var config = rule.getLegendConfig();
 	if (config.type === 'rule') {
 	    var concrete_shapes = rule.apply(config.target, model.getCellWidth(true), view.base_height);
+            if (config.baseGrayRect) {
+                // generate backgrounds
+                root.appendChild(svgfactory.rect(0, 0, model.getCellWidth(true), view.base_height, 'rgb(190,190,190)'));
+            }
+            // generate shapes
 	    for (var i=0; i<concrete_shapes.length; i++) {
 		root.appendChild(svgfactory.fromShape(concrete_shapes[i], 0, 0));
 	    }

@@ -9,6 +9,7 @@ var MUT_COLOR_TRUNC = '#000000';
 var MUT_COLOR_TRUNC_PASSENGER = '#708090';
 var MUT_COLOR_FUSION = '#8B00C9';
 var MUT_COLOR_PROMOTER = '#FFA942';
+var MUT_COLOR_GERMLINE = '#FFFFFF';
 
 var PROT_COLOR_UP = "#9224A6";
 var PROT_COLOR_DOWN = "#00BCD4";
@@ -156,6 +157,22 @@ var non_mutation_rule_params = {
 		legend_label: 'Fusion'
 	}
     },
+    // germline
+    'disp_germ': {
+        // white stripe in the middle
+        'true': {
+            shapes: [{
+                'type': 'rectangle',
+                'fill': MUT_COLOR_GERMLINE,
+                'x': '0%',
+                'y': '46%',
+                'width': '100%',
+                'height': '8%',
+                'z': 7
+            }],
+            legend_label: 'Germline Mutation'
+        }
+    }
 };
 
 window.geneticrules = {};
