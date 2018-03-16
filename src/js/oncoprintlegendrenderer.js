@@ -154,9 +154,10 @@ var OncoprintLegendView = (function() {
 	var config = rule.getLegendConfig();
 	if (config.type === 'rule') {
 	    var concrete_shapes = rule.apply(config.target, model.getCellWidth(true), view.base_height);
-            if (config.baseGrayRect) {
+            if (rule.legend_base_color) {
                 // generate backgrounds
-                root.appendChild(svgfactory.rect(0, 0, model.getCellWidth(true), view.base_height, 'rgb(190,190,190)'));
+                var baseRect = svgfactory.rect(0, 0, model.getCellWidth(true), view.base_height, rule.legend_base_color);
+                root.appendChild(baseRect);
             }
             // generate shapes
 	    for (var i=0; i<concrete_shapes.length; i++) {
