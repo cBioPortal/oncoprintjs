@@ -1,7 +1,7 @@
 // Feed this in as 
 
 // Default grey
-var DEFAULT_GREY = "#BEBEBE";
+var DEFAULT_GREY = "rgba(190, 190, 190, 1)";
 
 // Mutation colors
 var MUT_COLOR_MISSENSE = '#008000';
@@ -17,12 +17,18 @@ var MUT_COLOR_GERMLINE = '#FFFFFF';
 var PROT_COLOR_UP = "#9224A6";
 var PROT_COLOR_DOWN = "#00BCD4";
 
+// Base mutation rule set parameters
+var baseRuleSetParams = {
+    'type': 'gene',
+    'legend_label': 'Genetic Alteration',
+    'legend_base_color': DEFAULT_GREY
+};
 var non_mutation_rule_params = {
     // Default: gray rectangle
     '*': {
 	shapes: [{
 		'type': 'rectangle',
-		'fill': 'rgba(190, 190, 190, 1)',
+		'fill': DEFAULT_GREY,
 		'z': 1
 	    }],
         legend_label: 'No alterations',
@@ -98,7 +104,6 @@ var non_mutation_rule_params = {
 		    'z': 3,
 		}],
 	    legend_label: 'mRNA Upregulation',
-            legend_base_color: DEFAULT_GREY
 	},
 	// Light blue outline for downregulation
 	'down': {
@@ -114,7 +119,6 @@ var non_mutation_rule_params = {
 		    'z': 3,
 		}],
 	    legend_label: 'mRNA Downregulation',
-            legend_base_color: DEFAULT_GREY
 	},
     },
     // protein expression regulation
@@ -131,7 +135,6 @@ var non_mutation_rule_params = {
 		    'z': 4,
 		}],
 	    legend_label: 'Protein Upregulation',
-            legend_base_color: DEFAULT_GREY
 	},
 	// small bottom rectangle for upregulated
 	'down': {
@@ -145,7 +148,6 @@ var non_mutation_rule_params = {
 		    'z': 4,
 		}],
 	    legend_label: 'Protein Downregulation',
-            legend_base_color: DEFAULT_GREY
 	}
     },
     // fusion
@@ -161,8 +163,7 @@ var non_mutation_rule_params = {
 			'height': '60%',
 			'z': 5
 		    }],
-            legend_label: 'Fusion',
-            legend_base_color: DEFAULT_GREY
+		legend_label: 'Fusion'
 	}
     },
     // germline
@@ -178,16 +179,13 @@ var non_mutation_rule_params = {
                 'height': '8%',
                 'z': 7
             }],
-            legend_label: 'Germline Mutation',
-            legend_base_color: DEFAULT_GREY
+            legend_label: 'Germline Mutation'
         }
     }
 };
 
 window.geneticrules = {};
-window.geneticrules.genetic_rule_set_same_color_for_all_no_recurrence = {
-    'type':'gene',
-    'legend_label': 'Genetic Alteration',
+window.geneticrules.genetic_rule_set_same_color_for_all_no_recurrence = $.extend({}, baseRuleSetParams, {
     'rule_params': $.extend({}, non_mutation_rule_params, {
 	'disp_mut': {
 	    'trunc,inframe,missense,promoter,trunc_rec,inframe_rec,missense_rec,promoter_rec': {
@@ -200,15 +198,12 @@ window.geneticrules.genetic_rule_set_same_color_for_all_no_recurrence = {
 			'height': '33.33%',
 			'z': 6
 		}],
-		legend_label: 'Mutation',
-                legend_base_color: DEFAULT_GREY
+		legend_label: 'Mutation'
 	    }
 	}
     })
-};
-window.geneticrules.genetic_rule_set_same_color_for_all_recurrence = {
-    'type':'gene',
-    'legend_label': 'Genetic Alteration',
+});
+window.geneticrules.genetic_rule_set_same_color_for_all_recurrence = $.extend({}, baseRuleSetParams, {
     'rule_params': $.extend({}, non_mutation_rule_params, {
 	'disp_mut': {
 	    'missense_rec,inframe_rec,trunc_rec': {
@@ -233,15 +228,12 @@ window.geneticrules.genetic_rule_set_same_color_for_all_recurrence = {
 			'height': '33.33%',
 			'z': 6
 		}],
-		legend_label: 'Mutation (putative passenger)',
-                legend_base_color: DEFAULT_GREY
+		legend_label: 'Mutation (putative passenger)'
 	    },
 	},
     })
-};
-window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
-    'type':'gene',
-    'legend_label': 'Genetic Alteration',
+});
+window.geneticrules.genetic_rule_set_different_colors_no_recurrence = $.extend({}, baseRuleSetParams, {
     'rule_params': $.extend({}, non_mutation_rule_params, {
 	'disp_mut': {
 	    'promoter,promoter_rec': {
@@ -254,8 +246,7 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
 			'height': '33.33%',
 			'z': 6,
 		    }],
-		legend_label: 'Promoter Mutation',
-                legend_base_color: DEFAULT_GREY
+		legend_label: 'Promoter Mutation'
 	    },
 	    'trunc,trunc_rec': {
 		shapes: [{
@@ -268,7 +259,6 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Truncating Mutation',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'inframe,inframe_rec': {
 		shapes: [{
@@ -281,7 +271,6 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Inframe Mutation',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'missense,missense_rec': {
 		shapes: [{
@@ -294,14 +283,11 @@ window.geneticrules.genetic_rule_set_different_colors_no_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Missense Mutation',
-                legend_base_color: DEFAULT_GREY
 	    },
 	}
     })
-};
-window.geneticrules.genetic_rule_set_different_colors_recurrence = {
-    'type':'gene',
-    'legend_label': 'Genetic Alteration',
+});
+window.geneticrules.genetic_rule_set_different_colors_recurrence = $.extend({}, baseRuleSetParams, {
     'rule_params': $.extend({}, non_mutation_rule_params, {
 	'disp_mut': {
 	    'promoter,promoter_rec': {
@@ -314,8 +300,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'height': '33.33%',
 			'z': 6,
 		    }],
-		legend_label: 'Promoter Mutation',
-                legend_base_color: DEFAULT_GREY
+		legend_label: 'Promoter Mutation'
 	    },
 	    'trunc_rec': {
 		shapes: [{
@@ -328,7 +313,6 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Truncating Mutation (putative driver)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'trunc': {
 		shapes: [{
@@ -341,7 +325,6 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Truncating Mutation (putative passenger)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'inframe_rec': {
 		shapes: [{
@@ -354,7 +337,6 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Inframe Mutation (putative driver)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'inframe': {
 		shapes: [{
@@ -367,7 +349,6 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Inframe Mutation (putative passenger)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'missense_rec': {
 		shapes: [{
@@ -380,7 +361,6 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Missense Mutation (putative driver)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	    'missense': {
 		shapes: [{
@@ -393,8 +373,7 @@ window.geneticrules.genetic_rule_set_different_colors_recurrence = {
 			'z': 6,
 		    }],
 		legend_label: 'Missense Mutation (putative passenger)',
-                legend_base_color: DEFAULT_GREY
 	    },
 	}
     })
-};
+});

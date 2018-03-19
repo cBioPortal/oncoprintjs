@@ -187,6 +187,7 @@ var RuleSet = (function () {
 	 */
 	this.rule_set_id = getRuleSetId();
 	this.legend_label = params.legend_label;
+	this.legend_base_color = params.legend_base_color;
 	this.exclude_from_legend = params.exclude_from_legend;
 	this.active_rule_ids = {};
 	this.rules_with_id = [];
@@ -853,7 +854,15 @@ var GeneticAlterationRuleSet = (function () {
 				var equiv_values = value.split(",");
 				var legend_rule_target = {};
 				legend_rule_target[equiv_values[0]] = value;
-				var rule_id = self.addRule(key, (equiv_values[0] === '*' ? null : equiv_values[0]), shallowExtend(key_rule_params[value], {'legend_config': {'type': 'rule', 'target': legend_rule_target}}));
+				var rule_id = self.addRule(
+				    key,
+				    (equiv_values[0] === '*' ? null : equiv_values[0]),
+				    shallowExtend(key_rule_params[value],
+					{
+						'legend_config': {'type': 'rule', 'target': legend_rule_target},
+						'legend_base_color': typeof self.legend_base_color === "undefined" ? "" : self.legend_base_color
+					})
+				);
 				for (var i = 1; i < equiv_values.length; i++) {
 				    self.linkExistingRule(key, (equiv_values[i] === '*' ? null : equiv_values[i]), rule_id);
 				}
@@ -868,7 +877,7 @@ var GeneticAlterationRuleSet = (function () {
 	    legend_label: "Not sequenced",
 	    exclude_from_legend: false,
 	    legend_config: {'type': 'rule', 'target': {'na': true}},
-		legend_order: Number.POSITIVE_INFINITY
+	    legend_order: Number.POSITIVE_INFINITY
 	});
     }
     GeneticAlterationRuleSet.prototype = Object.create(LookupRuleSet.prototype);
@@ -890,7 +899,7 @@ var Rule = (function () {
 	    }
 	});
 	this.legend_label = typeof params.legend_label === "undefined" ? "" : params.legend_label;
-	this.legend_base_color = typeof params.legend_base_color === "undefined" ? "" : params.legend_base_color;
+        this.legend_base_color = params.legend_base_color;
 	this.exclude_from_legend = params.exclude_from_legend;
 	this.legend_config = params.legend_config;// {'type':'rule', 'target': {'mut_type':'MISSENSE'}} or {'type':'number', 'color':'rgba(1,2,3,1), 'range':[lower, upper]} or {'type':'gradient', 'color_range':['rgba(...)' or '#...', 'rgba(...)' or '#...'], 'number_range':[lower, upper]}
 	this.legend_order = params.legend_order;
@@ -927,4 +936,4 @@ module.exports = function (params) {
     } else if (params.type === 'gene') {
 	return new GeneticAlterationRuleSet(params);
     }
-}
+};
