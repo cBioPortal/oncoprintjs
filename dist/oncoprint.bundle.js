@@ -14630,6 +14630,14 @@ var Oncoprint = (function () {
 	this.model.setTrackTooltipFn(track_id, tooltipFn);
     }
     
+    Oncoprint.prototype.setTrackLabel = function(track_id, new_label) {
+        if(this.webgl_unavailable || this.destroyed) {
+            return;
+        }
+        this.model.setTrackLabel(track_id, new_label);
+        this.label_view.setTrackLabel(this.model);
+    }
+
     Oncoprint.prototype.sort = function() {
         if(this.webgl_unavailable || this.destroyed) {
             return;
@@ -16137,6 +16145,10 @@ var OncoprintModel = (function () {
 
     OncoprintModel.prototype.getTrackLabel = function (track_id) {
 	return this.track_label[track_id];
+    }
+    
+    OncoprintModel.prototype.setTrackLabel = function (track_id, new_label) {
+	return this.track_label[track_id] = new_label;
     }
     
     OncoprintModel.prototype.getTrackLabelColor = function (track_id) {
@@ -22691,6 +22703,7 @@ var OncoprintLabelView = (function () {
 	view.minimum_track_height = Number.POSITIVE_INFINITY;
 	view.maximum_label_width = 0;
 	for (var i=0; i<view.tracks.length; i++) {
+            view.labels[view.tracks[i]] = model.getTrackLabel(view.tracks[i]);
 	    view.minimum_track_height = Math.min(view.minimum_track_height, model.getTrackHeight(view.tracks[i]));
 	    var shortened_label = shortenLabelIfNecessary(view, view.labels[view.tracks[i]]);
 	    view.maximum_label_width = Math.max(view.maximum_label_width, view.ctx.measureText(shortened_label).width);
@@ -22857,6 +22870,10 @@ var OncoprintLabelView = (function () {
     }
     OncoprintLabelView.prototype.getFontSize = function(no_supersampling_adjustment) {
 	return (no_supersampling_adjustment ? 1 : this.supersampling_ratio) * Math.max(Math.min(this.base_font_size, this.minimum_track_height), 7);
+    }
+    OncoprintLabelView.prototype.setTrackLabel = function(model) {
+        updateFromModel(this, model);
+        renderAllLabels(this, model);
     }
     OncoprintLabelView.prototype.setDragCallback = function(callback) {
 	this.drag_callback = callback;

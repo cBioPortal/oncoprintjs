@@ -1153,6 +1153,10 @@ var OncoprintModel = (function () {
 	return this.track_label[track_id];
     }
     
+    OncoprintModel.prototype.setTrackLabel = function (track_id, new_label) {
+	return this.track_label[track_id] = new_label;
+    }
+    
     OncoprintModel.prototype.getTrackLabelColor = function (track_id) {
 	return this.track_label_color[track_id];
     }
