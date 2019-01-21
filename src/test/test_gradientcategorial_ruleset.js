@@ -15,22 +15,19 @@ describe("GradientCategoricalRuleSet", function() {
         category_key: "category"
     }
 
-    var categoryDatum1 = {
+    var categoryDatum = {
         category: ">8",
-        profile_data: 8,
-        truncation: ">"
+        profile_data: 8
     }
     
     var gradientDatumLargest = {
         category: undefined,
-        profile_data: 8,
-        truncation: ""
+        profile_data: 8
     }
 
     var gradientDatumSmallest = {
         category: undefined,
-        profile_data: 1,
-        truncation: undefined
+        profile_data: 1
     }
 
     var naDatum = {
@@ -55,7 +52,7 @@ describe("GradientCategoricalRuleSet", function() {
 
     it("Formats categorical value", function() {
         var mixRuleSet = new OncoprintRuleSet(mixParams);
-        var elements = mixRuleSet.apply([categoryDatum1], 12, 12);
+        var elements = mixRuleSet.apply([categoryDatum], 12, 12);
         assert.equal(elements.length, 1);
     });
 
