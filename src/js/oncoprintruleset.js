@@ -612,6 +612,7 @@ var GradientRuleSet = (function () {
     function GradientRuleSet(params) {
 	/* params
 	 * - colors || colormap_name
+         * - value_stop_points
 	 * - null_color
 	 */
 	LinearInterpRuleSet.call(this, params);
@@ -947,10 +948,10 @@ var GradientCategoricalRuleSet = (function() {
 	        RuleSet.call(this, params);
 	        this.prototype = Object.create(RuleSet.prototype);
                 // For the GradientCategoricalRuleSet a datum must always have a 
-                // value (for heatmap clustering) and can have a category attribute. 
-                // A datum is 'NA' when not meeting the requirements for the GradientRuleSet.
-                // To achieve correct evaluation, the CategoricalRuleSet is asked not to
-                // contribute an `NA` rule.
+                // value and may have a category attribute. A datum is 'NA'
+                // when not meeting the requirements for the GradientRuleSet.
+                // To achieve correct evaluation, the CategoricalRuleSet is 
+                // asked not to contribute an `NA` rule.
                 this.gradientRuleSet = new GradientRuleSet(params);
                 this.categoricalRuleSet = new CategoricalRuleSet(params, omitNArule);
         }

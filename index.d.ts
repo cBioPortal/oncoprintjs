@@ -56,7 +56,7 @@ declare module "oncoprintjs"
     export interface IGradientRuleSetParams extends IGeneralRuleSetParams {
         type: "gradient"
         // either `colormap_name` or `colors` needs to be present
-        colors?: string[]|number[][]; // hex, rgb, rgba | [r,g,b,a][]
+        colors?: [number, number, number, number][]; // [r,g,b,a][]
         colormap_name?: string; // name of a colormap found in src/js/heatmapcolors.js
         value_stop_points: number[];
         null_color?: string;
@@ -72,7 +72,7 @@ declare module "oncoprintjs"
     export interface IGradientAndCategoricalRuleSetParams extends IGeneralRuleSetParams {
         type: "gradient+categorical";
         // either `colormap_name` or `colors` needs to be present
-        colors?: string[]|number[][]; // hex, rgb, rgba | [r,g,b,a][]
+        colors?: [number, number, number, number][]; // [r,g,b,a][]
         colormap_name?: string; // name of a colormap found in src/js/heatmapcolors.js
         value_stop_points: number[];
         null_color?: string;
