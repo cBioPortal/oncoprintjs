@@ -121,7 +121,6 @@ var makeNAShapes = function(z) {
 };
 var NA_STRING = "na";
 var NA_LABEL = "No data";
-var omitNArule = true;
 
 var colorToHex = function(str) {
     var r;
@@ -951,17 +950,13 @@ var GradientCategoricalRuleSet = (function() {
                 // value and may have a category attribute. A datum is 'NA'
                 // when not meeting the requirements for the GradientRuleSet.
                 // To achieve correct evaluation, the CategoricalRuleSet is 
-                // asked not to contribute an `NA` rule.
+                // asked not to contribute an `NA` rule (via `true` flag).
                 this.gradientRuleSet = new GradientRuleSet(params);
-                this.categoricalRuleSet = new CategoricalRuleSet(params, omitNArule);
+                this.categoricalRuleSet = new CategoricalRuleSet(params, true);
         }
 
         // inherit methods from RuleSet
         GradientCategoricalRuleSet.prototype = Object.create(RuleSet.prototype);
-        Object.defineProperty(GradientCategoricalRuleSet.prototype, 'constructor', { 
-                value: GradientCategoricalRuleSet, 
-                enumerable: false,
-                writable: true });
 
         // RuleSet API
 	GradientCategoricalRuleSet.prototype.apply = function(data, cell_width, cell_height, out_active_rules, data_id_key, important_ids) {
