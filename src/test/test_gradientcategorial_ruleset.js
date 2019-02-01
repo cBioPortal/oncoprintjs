@@ -36,11 +36,6 @@ describe("GradientCategoricalRuleSet", function() {
         truncation: undefined
     }
 
-    it("Is created from params", function() {
-        var mixRuleSet = new OncoprintRuleSet(mixParams);
-        assert.equal(mixRuleSet.constructor.name, "GradientCategoricalRuleSet");
-    });
-
     it("Formats gradient value", function() {
         var mixRuleSet = new OncoprintRuleSet(mixParams);
         var elements = mixRuleSet.apply([gradientDatumLargest, gradientDatumSmallest, naDatum], 12, 12);
