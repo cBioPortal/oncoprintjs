@@ -689,7 +689,7 @@ var GradientRuleSet = (function () {
 		{shapes: [{
 			    type: 'rectangle',
 			    fill: function(d) {
-				if (d[value_key]) {
+				if (!isNaN(d[value_key])) {
 				    var t = interpFn(d[value_key]);
 				    return colorFn(t);
 				} else {
