@@ -1523,9 +1523,13 @@ var OncoprintModel = (function () {
 	this.sort_config = params;
     }
 
-    OncoprintModel.prototype.isTrackMovable = function(track_id) {
+    OncoprintModel.prototype.getTrackMovable = function(track_id) {
     	return this.track_movable[track_id];
 	}
+
+    OncoprintModel.prototype.setTrackMovable = function(track_id, movable) {
+        this.track_movable[track_id] = movable;
+    }
 
     OncoprintModel.prototype.isTrackInClusteredGroup = function(track_id) {
     	return this.sort_config.type === "cluster" &&

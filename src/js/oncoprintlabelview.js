@@ -46,7 +46,7 @@ var OncoprintLabelView = (function () {
 		if (track_id !== null &&
 			(model.getContainingTrackGroup(track_id).length > 1) &&
 			!model.isTrackInClusteredGroup(track_id) &&
-			model.isTrackMovable(track_id)
+			model.getTrackMovable(track_id)
 		) {
 		    startDragging(view, track_id, evt.offsetY);
 		}
@@ -78,7 +78,7 @@ var OncoprintLabelView = (function () {
 			    $tooltip_div.append($('<div>').text(track_description));
 			}
 			// dragging info
-			if (model.isTrackMovable(hovered_track)) {
+			if (model.getTrackMovable(hovered_track)) {
 				if (model.isTrackInClusteredGroup(hovered_track)) {
 					view.$canvas.css('cursor', 'not-allowed');
 					$tooltip_div.append("<b>dragging disabled for clustered tracks</b>");
@@ -384,6 +384,10 @@ var OncoprintLabelView = (function () {
 	this.highlighted_track = track_id;
 	renderAllLabels(this, model);
     }
+
+    OncoprintLabelView.prototype.setTrackMovable = function(model) {
+    	renderAllLabels(this, model);
+	}
     
     OncoprintLabelView.prototype.suppressRendering = function() {
 	this.rendering_suppressed = true;

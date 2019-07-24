@@ -217,6 +217,7 @@ declare module "oncoprintjs"
         setTrackCustomOptions:(track_id:TrackId, custom_options?:CustomTrackOption[])=>void;
         setShowTrackSublabels:(show:boolean)=>void;
         clearMouseOverEffects:()=>void;
+        setTrackMovable:(track_id:TrackId, movable:boolean)=>void;
 
         constructor(ctr_selector:string, width:number);
         destroy:()=>void;

@@ -206,9 +206,9 @@ var OncoprintTrackOptionsView = (function () {
 	    hideMenusExcept(view, track_id);
 	});
 
-	var movingAndSortingDisabled = model.isTrackMovable(track_id) && model.isTrackInClusteredGroup(track_id);
+	var movingAndSortingDisabled = model.getTrackMovable(track_id) && model.isTrackInClusteredGroup(track_id);
 
-	if (model.isTrackMovable(track_id)) {
+	if (model.getTrackMovable(track_id)) {
 		$dropdown.append($makeDropdownOption('Move up', 'normal', movingAndSortingDisabled, function (evt) {
 			evt.stopPropagation();
 			view.moveUpCallback(track_id);
@@ -302,6 +302,7 @@ var OncoprintTrackOptionsView = (function () {
 	if ($dropdown.is(":empty")) {
 		// if no options, then delete elements
 		$div.remove();
+		$dropdown.remove();
 	}
     };
 
@@ -368,6 +369,10 @@ var OncoprintTrackOptionsView = (function () {
     OncoprintTrackOptionsView.prototype.setTrackCustomOptions = function(model) {
     	renderAllOptions(this, model);
 	};
+    OncoprintTrackOptionsView.prototype.setTrackMovable = function(model) {
+    	renderAllOptions(this, model);
+    	renderAllOptions(this, model);
+	}
     return OncoprintTrackOptionsView;
 })();
 
