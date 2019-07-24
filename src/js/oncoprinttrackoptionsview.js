@@ -206,17 +206,18 @@ var OncoprintTrackOptionsView = (function () {
 	    hideMenusExcept(view, track_id);
 	});
 
-	var movable = !model.isTrackInClusteredGroup(track_id);
-	var sortable = movable; // for now movable and sortable are the same
+	var movingAndSortingDisabled = model.isTrackMovable(track_id) && model.isTrackInClusteredGroup(track_id);
 
-	$dropdown.append($makeDropdownOption('Move up', 'normal', !movable, function (evt) {
-	    evt.stopPropagation();
-	    view.moveUpCallback(track_id);
-	}));
-	$dropdown.append($makeDropdownOption('Move down', 'normal', !movable, function (evt) {
-	    evt.stopPropagation();
-	    view.moveDownCallback(track_id);
-	}));
+	if (model.isTrackMovable(track_id)) {
+		$dropdown.append($makeDropdownOption('Move up', 'normal', movingAndSortingDisabled, function (evt) {
+			evt.stopPropagation();
+			view.moveUpCallback(track_id);
+		}));
+		$dropdown.append($makeDropdownOption('Move down', 'normal', movingAndSortingDisabled, function (evt) {
+			evt.stopPropagation();
+			view.moveDownCallback(track_id);
+		}));
+	}
 	if (model.isTrackRemovable(track_id)) {
 	    $dropdown.append($makeDropdownOption('Remove track', 'normal', false, function (evt) {
 		evt.stopPropagation();
@@ -228,7 +229,7 @@ var OncoprintTrackOptionsView = (function () {
 	    var $sort_inc_li;
 	    var $sort_dec_li;
 	    var $dont_sort_li;
-	    $sort_inc_li = $makeDropdownOption('Sort a-Z', (model.getTrackSortDirection(track_id) === 1 ? 'bold' : 'normal'), !sortable, function (evt) {
+	    $sort_inc_li = $makeDropdownOption('Sort a-Z', (model.getTrackSortDirection(track_id) === 1 ? 'bold' : 'normal'), movingAndSortingDisabled, function (evt) {
 		evt.stopPropagation();
 		$sort_inc_li.css('font-weight', 'bold');
 		$sort_dec_li.css('font-weight', 'normal');
@@ -236,7 +237,7 @@ var OncoprintTrackOptionsView = (function () {
 		view.sortChangeCallback(track_id, 1);
 		renderSortArrow($sortarrow, model, track_id);
 	    });
-	    $sort_dec_li = $makeDropdownOption('Sort Z-a', (model.getTrackSortDirection(track_id) === -1 ? 'bold' : 'normal'), !sortable, function (evt) {
+	    $sort_dec_li = $makeDropdownOption('Sort Z-a', (model.getTrackSortDirection(track_id) === -1 ? 'bold' : 'normal'), movingAndSortingDisabled, function (evt) {
 		evt.stopPropagation();
 		$sort_inc_li.css('font-weight', 'normal');
 		$sort_dec_li.css('font-weight', 'bold');
@@ -244,7 +245,7 @@ var OncoprintTrackOptionsView = (function () {
 		view.sortChangeCallback(track_id, -1);
 		renderSortArrow($sortarrow, model, track_id);
 	    });
-	    $dont_sort_li = $makeDropdownOption('Don\'t sort track', (model.getTrackSortDirection(track_id) === 0 ? 'bold' : 'normal'), !sortable, function (evt) {
+	    $dont_sort_li = $makeDropdownOption('Don\'t sort track', (model.getTrackSortDirection(track_id) === 0 ? 'bold' : 'normal'), movingAndSortingDisabled, function (evt) {
 		evt.stopPropagation();
 		$sort_inc_li.css('font-weight', 'normal');
 		$sort_dec_li.css('font-weight', 'normal');
@@ -296,6 +297,11 @@ var OncoprintTrackOptionsView = (function () {
 				}
 			})()
 		}
+	}
+
+	if ($dropdown.is(":empty")) {
+		// if no options, then delete elements
+		$div.remove();
 	}
     };
 

@@ -145,6 +145,7 @@ var OncoprintModel = (function () {
 	this.track_padding = {};
 	this.track_data_id_key = {};
 	this.track_tooltip_fn = {};
+	this.track_movable = {};
 	this.track_removable = {};
 	this.track_remove_callback = {};
 	this.track_sort_cmp_fn = {};
@@ -744,7 +745,7 @@ var OncoprintModel = (function () {
 	    var params = params_list[i];
 	    addTrack(this, params.track_id, params.target_group, params.track_group_header,
 		    params.cell_height, params.track_padding, params.has_column_spacing,
-		    params.data_id_key, params.tooltipFn, params.link_url, params.removable,
+		    params.data_id_key, params.tooltipFn, params.link_url, params.removable, params.movable,
 		    params.removeCallback, params.label, params.sublabel, params.description, params.track_info,
 		    params.sortCmpFn, params.sort_direction_changeable, params.init_sort_direction, params.onSortDirectionChange,
 		    params.data, params.rule_set, params.track_label_color, params.html_label,
@@ -757,7 +758,7 @@ var OncoprintModel = (function () {
   
     var addTrack = function (model, track_id, target_group, track_group_header,
 	    cell_height, track_padding, has_column_spacing,
-	    data_id_key, tooltipFn, link_url, removable,
+	    data_id_key, tooltipFn, link_url, removable, movable,
 	    removeCallback, label, sublabel, description, track_info,
 	    sortCmpFn, sort_direction_changeable, init_sort_direction, onSortDirectionChange,
 	    data, rule_set, track_label_color, html_label,
@@ -778,6 +779,7 @@ var OncoprintModel = (function () {
 	model.track_tooltip_fn[track_id] = ifndef(tooltipFn, function (d) {
 	    return d + '';
 	});
+	model.track_movable[track_id] = ifndef(movable, true);
 	model.track_removable[track_id] = ifndef(removable, false);
 	model.track_remove_callback[track_id] = ifndef(removeCallback, function() {});
 	
@@ -920,6 +922,7 @@ var OncoprintModel = (function () {
 	delete this.track_padding[track_id];
 	delete this.track_data_id_key[track_id];
 	delete this.track_tooltip_fn[track_id];
+	delete this.track_movable[track_id];
 	delete this.track_removable[track_id];
 	delete this.track_remove_callback[track_id];
 	delete this.track_sort_cmp_fn[track_id];
@@ -1519,6 +1522,10 @@ var OncoprintModel = (function () {
     OncoprintModel.prototype.setSortConfig = function(params) {
 	this.sort_config = params;
     }
+
+    OncoprintModel.prototype.isTrackMovable = function(track_id) {
+    	return this.track_movable[track_id];
+	}
 
     OncoprintModel.prototype.isTrackInClusteredGroup = function(track_id) {
     	return this.sort_config.type === "cluster" &&

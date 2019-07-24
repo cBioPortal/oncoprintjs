@@ -129,6 +129,7 @@ declare module "oncoprintjs"
         has_column_spacing?: boolean;
         data_id_key?: keyof D;
         tooltipFn?: TrackTooltipFn<D>;
+        movable?:boolean;
         removable?:boolean;
         removeCallback?:(track_id:TrackId)=>void;
         label?: string;

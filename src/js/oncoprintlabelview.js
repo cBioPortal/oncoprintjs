@@ -43,7 +43,11 @@ var OncoprintLabelView = (function () {
 	    view.$canvas.on("mousedown", function(evt) {
 		view.tooltip.hide();
 		var track_id = isMouseOnLabel(view, evt.offsetY);
-		if (track_id !== null && (model.getContainingTrackGroup(track_id).length > 1) && !model.isTrackInClusteredGroup(track_id)) {
+		if (track_id !== null &&
+			(model.getContainingTrackGroup(track_id).length > 1) &&
+			!model.isTrackInClusteredGroup(track_id) &&
+			model.isTrackMovable(track_id)
+		) {
 		    startDragging(view, track_id, evt.offsetY);
 		}
 	    });
@@ -73,12 +77,15 @@ var OncoprintLabelView = (function () {
 			if (track_description.length > 0) {
 			    $tooltip_div.append($('<div>').text(track_description));
 			}
-			if (model.isTrackInClusteredGroup(hovered_track)) {
-                view.$canvas.css('cursor', 'not-allowed');
-                $tooltip_div.append("<b>dragging disabled for clustered tracks</b>");
-			} else if (model.getContainingTrackGroup(hovered_track).length > 1) {
-			    view.$canvas.css('cursor', 'move');
-			    $tooltip_div.append("<b>hold to drag</b>");
+			// dragging info
+			if (model.isTrackMovable(hovered_track)) {
+				if (model.isTrackInClusteredGroup(hovered_track)) {
+					view.$canvas.css('cursor', 'not-allowed');
+					$tooltip_div.append("<b>dragging disabled for clustered tracks</b>");
+				} else if (model.getContainingTrackGroup(hovered_track).length > 1) {
+					view.$canvas.css('cursor', 'move');
+					$tooltip_div.append("<b>hold to drag</b>");
+				}
 			}
 			if ($tooltip_div.contents().length > 0) {
 				view.tooltip.fadeIn(200, renderedLabelWidth(view, view.labels[hovered_track]) + offset.left, view.cell_tops[hovered_track] + offset.top - view.scroll_y, $tooltip_div);
