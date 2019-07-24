@@ -342,7 +342,11 @@ var OncoprintTrackOptionsView = (function () {
 	scroll(this, model.getVertScroll());
     }
     OncoprintTrackOptionsView.prototype.getWidth = function () {
-	return 18 + this.img_size;
+    	if (this.$buttons_ctr.is(":empty")) {
+    		return 0;
+		} else {
+			return 18 + this.img_size;
+		}
     }
     OncoprintTrackOptionsView.prototype.addTracks = function (model) {
 	renderAllOptions(this, model);
