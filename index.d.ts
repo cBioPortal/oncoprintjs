@@ -60,6 +60,7 @@ declare module "oncoprintjs"
         colormap_name?: string; // name of a colormap found in src/js/heatmapcolors.js
         value_stop_points: number[];
         null_color?: string;
+        null_legend_label?:string;
 
         log_scale?:boolean;
         value_key: string;
