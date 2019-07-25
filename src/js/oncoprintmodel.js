@@ -6,6 +6,8 @@ var clustering = require('./clustering.js');
 var $ = require('jquery');
 var BucketSort = require("./bucketsort.js");
 var doesCellIntersectPixel = require("./utils.js").doesCellIntersectPixel;
+var cloneShallow = require("./utils.js").cloneShallow;
+var _ = require("lodash");
 
 function ifndef(x, val) {
     return (typeof x === "undefined" ? val : x);
@@ -1352,6 +1354,7 @@ var OncoprintModel = (function () {
     }
 
     OncoprintModel.prototype.clusterTrackGroup = function(track_group_index, clusterValueFn) {
+    	var sort_config_at_call = cloneShallow(this.sort_config);
     	// Prepare input
 	var self = this;
 		var def = new $.Deferred();
@@ -1382,13 +1385,17 @@ var OncoprintModel = (function () {
 	}
 
 	// unset sorting by tracks in this group
-	track_group.forEach(function (track_id) {
+	/*track_group.forEach(function (track_id) {
 	    self.setTrackSortDirection(track_id, 0, true);
-	});
+	});*/
 
 	//do hierarchical clustering in background:
         $.when(clustering.hclusterColumns(cluster_input), clustering.hclusterTracks(cluster_input)).then(
             function (columnClusterOrder, trackClusterOrder) {
+            	// cancel if sort config is no longer what it was
+				if (!_.isEqual(self.sort_config, sort_config_at_call)) {
+					return;
+				}
 		// set clustered column order
 		self.setIdOrder(columnClusterOrder.map(function (c) {return c.caseId;}));
 		// determine clustered row order
