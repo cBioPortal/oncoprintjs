@@ -14214,6 +14214,7 @@ var OncoprintModel = (function () {
         this.track_label = {};
         this.track_label_color = {};
         this.track_label_circle_color = {};
+        this.track_label_font_weight = {};
         this.track_sublabel = {};
         this.track_html_label = {};
         this.track_link_url = {};
@@ -14826,6 +14827,7 @@ var OncoprintModel = (function () {
                 params.removeCallback, params.label, params.sublabel, params.description, params.track_info,
                 params.sortCmpFn, params.sort_direction_changeable, params.init_sort_direction, params.onSortDirectionChange,
                 params.data, params.rule_set, params.track_label_color, params.track_label_circle_color, params.html_label,
+                params.track_label_font_weight,
                 params.expansion_of, params.expandCallback, params.expandButtonTextGetter, params.important_ids,
                 params.custom_track_options, params.$track_info_tooltip_elt
             );
@@ -14839,6 +14841,7 @@ var OncoprintModel = (function () {
                              removeCallback, label, sublabel, description, track_info,
                              sortCmpFn, sort_direction_changeable, init_sort_direction, onSortDirectionChange,
                              data, rule_set, track_label_color, track_label_circle_color, html_label,
+                             track_label_font_weight,
                              expansion_of, expandCallback, expandButtonTextGetter,
                              important_ids, custom_track_options, $track_info_tooltip_elt
     ) {
@@ -14848,6 +14851,7 @@ var OncoprintModel = (function () {
         model.track_sublabel[track_id] = ifndef(sublabel, "");
         model.track_label_color[track_id] = ifndef(track_label_color, "black");
         model.track_label_circle_color[track_id] = track_label_circle_color;
+        model.track_label_font_weight[track_id] = track_label_font_weight;
         model.track_link_url[track_id] = ifndef(link_url, null);
         model.track_description[track_id] = ifndef(description, "");
         model.cell_height[track_id] = ifndef(cell_height, 23);
@@ -15013,6 +15017,7 @@ var OncoprintModel = (function () {
         delete this.track_expand_button_getter[track_id];
         delete this.track_expansion_tracks[track_id];
         delete this.track_label_circle_color[track_id];
+        delete this.track_label_font_weight[track_id];
 
         var containing_track_group = _getMajorTrackGroup(this, track_id);
         if (containing_track_group !== null) {
@@ -15278,6 +15283,10 @@ var OncoprintModel = (function () {
 
     OncoprintModel.prototype.getTrackLabelCircleColor = function(track_id) {
         return this.track_label_circle_color[track_id];
+    }
+
+    OncoprintModel.prototype.getTrackLabelFontWeight = function(track_id) {
+        return this.track_label_font_weight[track_id];
     }
 
     OncoprintModel.prototype.getOptionalHtmlTrackLabel = function (track_id) {
@@ -38926,6 +38935,7 @@ var OncoprintLabelView = (function () {
         this.show_sublabels = model.getShowTrackSublabels();
         this.label_colors = {};
         this.label_circle_colors = {};
+        this.label_font_weight = {};
         this.html_labels = {};
         this.track_link_urls = {};
         this.track_descriptions = {};
@@ -39108,7 +39118,7 @@ var OncoprintLabelView = (function () {
                 view.ctx.fill();
             }
 
-            view.ctx.font = 'bold '+font_size +'px Arial';
+            view.ctx.font = (view.label_font_weight[tracks[i]] || 'bold')+' '+font_size +'px Arial';
             view.ctx.fillStyle = 'black';
             if (view.label_colors && view.label_colors[tracks[i]]) {
                 //override color, if set:
@@ -39251,6 +39261,7 @@ var OncoprintLabelView = (function () {
             this.sublabels[track_ids[i]] = model.getTrackSublabel(track_ids[i]);
             this.label_colors[track_ids[i]] = model.getTrackLabelColor(track_ids[i]);
             this.label_circle_colors[track_ids[i]] = model.getTrackLabelCircleColor(track_ids[i]);
+            this.label_font_weight[track_ids[i]] = model.getTrackLabelFontWeight(track_ids[i]);
             this.html_labels[track_ids[i]] = model.getOptionalHtmlTrackLabel(track_ids[i]);
             this.track_link_urls[track_ids[i]] = model.getTrackLinkUrl(track_ids[i]);
         }

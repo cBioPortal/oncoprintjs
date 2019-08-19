@@ -140,6 +140,7 @@ var OncoprintModel = (function () {
         this.track_label = {};
         this.track_label_color = {};
         this.track_label_circle_color = {};
+        this.track_label_font_weight = {};
         this.track_sublabel = {};
         this.track_html_label = {};
         this.track_link_url = {};
@@ -752,6 +753,7 @@ var OncoprintModel = (function () {
                 params.removeCallback, params.label, params.sublabel, params.description, params.track_info,
                 params.sortCmpFn, params.sort_direction_changeable, params.init_sort_direction, params.onSortDirectionChange,
                 params.data, params.rule_set, params.track_label_color, params.track_label_circle_color, params.html_label,
+                params.track_label_font_weight,
                 params.expansion_of, params.expandCallback, params.expandButtonTextGetter, params.important_ids,
                 params.custom_track_options, params.$track_info_tooltip_elt
             );
@@ -765,6 +767,7 @@ var OncoprintModel = (function () {
                              removeCallback, label, sublabel, description, track_info,
                              sortCmpFn, sort_direction_changeable, init_sort_direction, onSortDirectionChange,
                              data, rule_set, track_label_color, track_label_circle_color, html_label,
+                             track_label_font_weight,
                              expansion_of, expandCallback, expandButtonTextGetter,
                              important_ids, custom_track_options, $track_info_tooltip_elt
     ) {
@@ -774,6 +777,7 @@ var OncoprintModel = (function () {
         model.track_sublabel[track_id] = ifndef(sublabel, "");
         model.track_label_color[track_id] = ifndef(track_label_color, "black");
         model.track_label_circle_color[track_id] = track_label_circle_color;
+        model.track_label_font_weight[track_id] = track_label_font_weight;
         model.track_link_url[track_id] = ifndef(link_url, null);
         model.track_description[track_id] = ifndef(description, "");
         model.cell_height[track_id] = ifndef(cell_height, 23);
@@ -939,6 +943,7 @@ var OncoprintModel = (function () {
         delete this.track_expand_button_getter[track_id];
         delete this.track_expansion_tracks[track_id];
         delete this.track_label_circle_color[track_id];
+        delete this.track_label_font_weight[track_id];
 
         var containing_track_group = _getMajorTrackGroup(this, track_id);
         if (containing_track_group !== null) {
@@ -1204,6 +1209,10 @@ var OncoprintModel = (function () {
 
     OncoprintModel.prototype.getTrackLabelCircleColor = function(track_id) {
         return this.track_label_circle_color[track_id];
+    }
+
+    OncoprintModel.prototype.getTrackLabelFontWeight = function(track_id) {
+        return this.track_label_font_weight[track_id];
     }
 
     OncoprintModel.prototype.getOptionalHtmlTrackLabel = function (track_id) {

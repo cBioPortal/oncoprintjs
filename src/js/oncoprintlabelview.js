@@ -23,6 +23,7 @@ var OncoprintLabelView = (function () {
         this.show_sublabels = model.getShowTrackSublabels();
         this.label_colors = {};
         this.label_circle_colors = {};
+        this.label_font_weight = {};
         this.html_labels = {};
         this.track_link_urls = {};
         this.track_descriptions = {};
@@ -205,7 +206,7 @@ var OncoprintLabelView = (function () {
                 view.ctx.fill();
             }
 
-            view.ctx.font = 'bold '+font_size +'px Arial';
+            view.ctx.font = (view.label_font_weight[tracks[i]] || 'bold')+' '+font_size +'px Arial';
             view.ctx.fillStyle = 'black';
             if (view.label_colors && view.label_colors[tracks[i]]) {
                 //override color, if set:
@@ -348,6 +349,7 @@ var OncoprintLabelView = (function () {
             this.sublabels[track_ids[i]] = model.getTrackSublabel(track_ids[i]);
             this.label_colors[track_ids[i]] = model.getTrackLabelColor(track_ids[i]);
             this.label_circle_colors[track_ids[i]] = model.getTrackLabelCircleColor(track_ids[i]);
+            this.label_font_weight[track_ids[i]] = model.getTrackLabelFontWeight(track_ids[i]);
             this.html_labels[track_ids[i]] = model.getOptionalHtmlTrackLabel(track_ids[i]);
             this.track_link_urls[track_ids[i]] = model.getTrackLinkUrl(track_ids[i]);
         }
