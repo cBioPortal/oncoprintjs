@@ -137,6 +137,7 @@ declare module "oncoprintjs"
         sublabel?: string;
         html_label?: string;
         label_color?: string;
+        label_circle_color?: string;
         link_url?: string;
         description?: string;
         track_info?:string;
