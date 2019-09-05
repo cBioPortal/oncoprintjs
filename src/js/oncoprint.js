@@ -642,6 +642,7 @@ var Oncoprint = (function () {
         this.minimap_view.setHorzZoom(this.model, this.cell_view);
 
         executeHorzZoomCallbacks(this);
+        resizeAndOrganizeAfterTimeout(this);
         return this.model.getHorzZoom();
     }
 
