@@ -168,7 +168,12 @@ var Oncoprint = (function () {
                 self.$dummy_scroll_div.scrollLeft(self.model.getZoomedColumnLeft(enclosed_ids[0]));
                 self.id_clipboard = enclosed_ids;
             },
-            self.highlightTrack.bind(self)
+            function(uid, track_id) {
+                doCellMouseOver(self, uid, track_id);
+            },
+            function(uid, track_id) {
+                doCellClick(self, uid, track_id);
+            }
         );
 
         this.minimap_view = new OncoprintMinimapView($minimap_div, $minimap_canvas, $minimap_overlay_canvas, this.model, this.cell_view, 150, 150, function(x,y) {
@@ -291,6 +296,8 @@ var Oncoprint = (function () {
 
         this.horz_zoom_callbacks = [];
         this.minimap_close_callbacks = [];
+        this.cell_mouse_over_callbacks = [];
+        this.cell_click_callbacks = [];
 
         this.id_clipboard = [];
         this.clipboard_change_callbacks = [];
@@ -598,6 +605,23 @@ var Oncoprint = (function () {
     var executeMinimapCloseCallbacks = function(oncoprint) {
         for (var i=0; i<oncoprint.minimap_close_callbacks.length; i++) {
             oncoprint.minimap_close_callbacks[i]();
+        }
+    };
+
+    var doCellMouseOver = function(oncoprint, uid, track_id) {
+        if (uid !== null) {
+            oncoprint.highlightTrack(track_id);
+        } else {
+            oncoprint.highlightTrack(null);
+        }
+        for (var i=0; i<oncoprint.cell_mouse_over_callbacks.length; i++) {
+            oncoprint.cell_mouse_over_callbacks[i](uid, track_id);
+        }
+    };
+
+    var doCellClick = function(oncoprint, uid, track_id) {
+        for (var i=0; i<oncoprint.cell_click_callbacks.length; i++) {
+            oncoprint.cell_click_callbacks[i](uid, track_id);
         }
     };
 
@@ -1058,6 +1082,14 @@ var Oncoprint = (function () {
         this.model.setColumnLabels(labels);
         this.cell_view.setColumnLabels(this.model);
         resizeAndOrganizeAfterTimeout(this);
+    }
+
+    Oncoprint.prototype.onCellMouseOver = function(callback) {
+        this.cell_mouse_over_callbacks.push(callback);
+    }
+
+    Oncoprint.prototype.onCellClick = function(callback) {
+        this.cell_click_callbacks.push(callback);
     }
 
     Oncoprint.prototype.toSVG = function(with_background) {
