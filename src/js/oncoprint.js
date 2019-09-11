@@ -168,26 +168,8 @@ var Oncoprint = (function () {
                 self.$dummy_scroll_div.scrollLeft(self.model.getZoomedColumnLeft(enclosed_ids[0]));
                 self.id_clipboard = enclosed_ids;
             },
-            (function () {
-                var highlight_timeout = null;
-                var highlight_track = null;
-                return function (track_id) {
-                    if (track_id === null) {
-                        highlight_track = null;
-                        self.highlightTrack(null);
-                        clearTimeout(highlight_timeout);
-                    } else {
-                        if (highlight_track !== track_id) {
-                            self.highlightTrack(null);
-                            clearTimeout(highlight_timeout);
-                            highlight_track = track_id;
-                            highlight_timeout = setTimeout(function() {
-                                self.highlightTrack(highlight_track);
-                            }, 250);
-                        }
-                    }
-                };
-            })());
+            self.highlightTrack.bind(self)
+        );
 
         this.minimap_view = new OncoprintMinimapView($minimap_div, $minimap_canvas, $minimap_overlay_canvas, this.model, this.cell_view, 150, 150, function(x,y) {
                 self.setScroll(x,y);
