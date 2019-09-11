@@ -137,8 +137,8 @@ var Oncoprint = (function () {
         $minimap_div.appendTo($ctr);
 
         $cell_canvas.appendTo($cell_div);
-        $column_label_canvas.appendTo($cell_div);
         $cell_overlay_canvas.appendTo($cell_div);
+        $column_label_canvas.appendTo($cell_div);
         $dummy_scroll_div.appendTo($cell_div);
         $dummy_scroll_div.on("mousemove mousedown mouseup", function(evt) {
             $cell_overlay_canvas.trigger(evt);
@@ -1154,6 +1154,14 @@ var Oncoprint = (function () {
             return;
         }
         this.label_view.highlightTrack(track_id, this.model);
+    }
+
+    Oncoprint.prototype.setHighlightedIds = function(ids) {
+        if(this.webgl_unavailable || this.destroyed) {
+            return;
+        }
+        this.model.setHighlightedIds(ids);
+        this.cell_view.setHighlightedIds(this.model);
     }
 
     Oncoprint.prototype.getIdOrder = function(all) {

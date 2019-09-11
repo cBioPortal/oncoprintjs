@@ -229,6 +229,7 @@ declare module "oncoprintjs"
         setTrackMovable:(track_id:TrackId, movable:boolean)=>void;
         setWidth:(width:number)=>void;
         setColumnLabels:(labels:{[uid:string]:string})=>void;
+        setHighlightedIds:(uids:string[])=>void;
 
         constructor(ctr_selector:string, width:number, params?:InitParams);
         destroy:()=>void;
