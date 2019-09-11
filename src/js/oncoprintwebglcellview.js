@@ -201,6 +201,10 @@ var OncoprintWebGLCellView = (function () {
                                 overlayStrokeRect(self, left, model.getCellTops(tracks[i]) - self.scroll_y, model.getCellWidth() + (model.getTrackHasColumnSpacing(tracks[i]) ? 0 : cell_padding), model.getCellHeight(tracks[i]), "rgba(0,0,0,0.5)");
                             }
                         }
+                        var columnLabel = model.getColumnLabels()[overlapping_cells.ids[0]];
+                        if (columnLabel) {
+                            overlayColumnLabelHighlight(self, model, overlapping_cells.ids[0]);;
+                        }
                         var clientRect = self.$overlay_canvas[0].getBoundingClientRect();
                         tooltip.show(250, model.getZoomedColumnLeft(overlapping_cells.ids[0]) + model.getCellWidth() / 2 + clientRect.left - self.scroll_x, model.getCellTops(overlapping_cells.track) + clientRect.top - self.scroll_y, model.getTrackTooltipFn(overlapping_cells.track)(overlapping_data));
                     } else {
@@ -272,6 +276,28 @@ var OncoprintWebGLCellView = (function () {
 
     var getColumnLabelsContext = function(view) {
         view.column_label_ctx = view.$column_label_canvas[0].getContext('2d');
+    };
+
+    var getColumnLabelY = function(view, model) {
+        return (model.getOncoprintHeight() + 10)*view.supersampling_ratio;
+    };
+
+    var overlayColumnLabelHighlight = function(view, model, id) {
+        var label = model.getColumnLabels()[id];
+        if (label) {
+            var highlightHeight = model.getCellWidth()*view.supersampling_ratio;
+            prepareContextForColumnLabelText(view, model, view.overlay_ctx);
+            var highlightWidth = view.overlay_ctx.measureText(label).width+20;
+            var y = getColumnLabelY(view, model);
+            var x = model.getZoomedColumnLeft()[id]*view.supersampling_ratio;
+            view.overlay_ctx.save();
+            view.overlay_ctx.translate(x, y);
+            view.overlay_ctx.rotate(COLUMN_LABEL_ANGLE*(Math.PI/180));
+            view.overlay_ctx.fillStyle = "rgba(255,255,0,0.4)";
+            view.overlay_ctx.fillRect(0,-highlightHeight,highlightWidth, highlightHeight);
+            view.overlay_ctx.restore();
+            // do it in the overlay canvas
+        }
     };
 
     var getWebGLContextAndSetUpMatrices = function(view) {
@@ -465,6 +491,14 @@ var OncoprintWebGLCellView = (function () {
         return model.getCellWidth()/2 + 2;
     };
 
+    var prepareContextForColumnLabelText = function(view, model, ctx) {
+        var font_size = getColumnLabelsFontSize(model);
+        var font_family = "Arial";
+        ctx.font = (view.supersampling_ratio*font_size)+"px "+font_family;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+    };
+
     var renderColumnLabels = function(view, model, ids) {
         // first clear
         view.column_label_ctx.fillStyle = "rgba(0,0,0,0)";
@@ -479,17 +513,13 @@ var OncoprintWebGLCellView = (function () {
             return;
         }
 
-        var y = (model.getOncoprintHeight() + 10)*view.supersampling_ratio;
+        var y = getColumnLabelY(view, model);
         var x_map = model.getZoomedColumnLeft();
         var scroll_x = view.scroll_x;
-        var font_size = getColumnLabelsFontSize(model);
-        var font_family = "Arial";
         var cell_width = model.getCellWidth();
 
         view.column_label_ctx.fillStyle = "rgba(0,0,0,1)";
-        view.column_label_ctx.font = (view.supersampling_ratio*font_size)+"px "+font_family;
-        view.column_label_ctx.textAlign = "left";
-        view.column_label_ctx.textBaseline = "middle";
+        prepareContextForColumnLabelText(view, model, view.column_label_ctx);
         for (var i=0; i<ids.length; i++) {
             if (ids[i] in labels) {
                 var x = (x_map[ids[i]] + cell_width/2 - scroll_x)*view.supersampling_ratio;
