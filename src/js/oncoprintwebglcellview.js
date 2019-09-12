@@ -761,7 +761,6 @@ var OncoprintWebGLCellView = (function () {
 
     OncoprintWebGLCellView.prototype.highlightColumn = function(model, uid, opt_track_id) {
         if (uid === null) {
-            clearOverlay(this);
             return;
         }
         var left = model.getZoomedColumnLeft(uid) - this.scroll_x;
