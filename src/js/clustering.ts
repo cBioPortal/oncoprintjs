@@ -1,4 +1,5 @@
-var ClusteringWorker = require('worker-loader?inline=true&fallback=false!./workers/clustering-worker.js');
+import ClusteringWorker from 'worker-loader?inline=true&fallback=false!./workers/clustering-worker';
+import {CaseItem, CasesAndEntities, ClusteringMessage, EntityItem} from "./workers/clustering-worker";
 
 /**
  * Executes the clustering of casesAndEntitites in the requested
@@ -20,16 +21,17 @@ var ClusteringWorker = require('worker-loader?inline=true&fallback=false!./worke
  * @return a deferred which gets resolved with the clustering result
  *   when the clustering is done.
  */
-var _hcluster = function(casesAndEntitites, dimension) {
+function _hcluster(casesAndEntitites:ClusteringMessage["casesAndEntities"], dimension:ClusteringMessage["dimension"]) {
     var worker = new ClusteringWorker();
-    var message = new Object();
+    var message = new Object() as ClusteringMessage;
+    //@ts-ignore
     var def = new $.Deferred();
-    message.casesAndEntitites = casesAndEntitites;
+    message.casesAndEntities = casesAndEntitites;
     message.dimension = dimension;
     worker.postMessage(message);
     worker.onmessage = function(m) {
-        def.resolve(m.data);
-    }
+        def.resolve(m.data as (CaseItem[])|(EntityItem[]));
+    };
     return def.promise();
 }
 
@@ -39,7 +41,7 @@ var _hcluster = function(casesAndEntitites, dimension) {
  * @return a deferred which gets resolved with the clustering result
  *   when the clustering is done.
  */
-var hclusterColumns = function(casesAndEntitites) {
+export function hclusterColumns(casesAndEntitites:CasesAndEntities):Promise<CaseItem[]> {
     return _hcluster(casesAndEntitites, "CASES");
 }
 
@@ -49,11 +51,6 @@ var hclusterColumns = function(casesAndEntitites) {
  * @return a deferred which gets resolved with the clustering result
  *   when the clustering is done.
  */
-var hclusterTracks = function(casesAndEntitites) {
+export function hclusterTracks(casesAndEntitites:CasesAndEntities):Promise<EntityItem[]> {
     return _hcluster(casesAndEntitites, "ENTITIES");
-}
-
-module.exports = {
-    hclusterColumns: hclusterColumns,
-    hclusterTracks: hclusterTracks
 }

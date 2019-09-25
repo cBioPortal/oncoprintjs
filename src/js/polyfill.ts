@@ -29,7 +29,4 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-module.exports = (function setPolyfills() {
-    Math.log2 = Math.log2 || function(x) { return Math.log(x) / Math.LN2; };
-})();
+(Math as any).log2 = (Math as any).log2 || function(x:number) { return Math.log(x) / Math.LN2; };

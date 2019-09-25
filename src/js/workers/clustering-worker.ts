@@ -21,8 +21,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var clusterfck = require("tayden-clusterfck");
-var jStat = require("jstat");
+// @ts-ignore
+import clusterfck from "tayden-clusterfck";
+// @ts-ignore
+import jStat from "jstat";
+
+type Item = {
+    orderedValueList:number[];
+}
+
+type ProcessedItem = Item & {
+    isAllNaNs:boolean;
+    preProcessedValueList:number[];
+}
+
+export type EntityItem = Item & { entityId: string};
+export type CaseItem = Item & { caseId: string };
+
+export type CasesAndEntities = {
+    [caseId:string]:{
+        [entityId:string]:number
+    }
+};
+
+export type ClusteringMessage = {
+    dimension: "CASES" | "ENTITIES";
+    casesAndEntities:CasesAndEntities;
+};
 
 /**
  * "Routing" logic for this worker, based on given message.
@@ -30,27 +55,27 @@ var jStat = require("jstat");
  * @param m : message object with m.dimension (CASES or ENTITIES) and m.casesAndEntitites
  *      which is the input for the clustering method.
  */
-onmessage = function(m) {
+onmessage = function(m:MessageEvent) {
     console.log('Clustering worker received message');
     var result = null;
-    if (m.data.dimension === "CASES") {
-        result = hclusterCases(m.data.casesAndEntitites);
-    } else if (m.data.dimension === "ENTITIES") {
-        result = hclusterGeneticEntities(m.data.casesAndEntitites);
+    if ((m.data as ClusteringMessage).dimension === "CASES") {
+        result = hclusterCases((m.data as ClusteringMessage).casesAndEntities);
+    } else if ((m.data as ClusteringMessage).dimension === "ENTITIES") {
+        result = hclusterGeneticEntities((m.data as ClusteringMessage).casesAndEntities);
     } else {
         throw new Error("Illegal argument given to clustering-worker.js for m.data.dimension: " + m.data.dimension);
     }
     console.log('Posting clustering result back to main script');
-    postMessage(result);
+    (self as any as Worker).postMessage(result);
 }
 
 /**
  * Returns false if any value is a valid number != 0.0,
  * and true otherwise.
  */
-var isAllNaNs = function(values) {
-    for (var i = 0; i < values.length; i++) {
-        var val = values[i];
+function isAllNaNs(values:any[]) {
+    for (let i = 0; i < values.length; i++) {
+        const val = values[i];
         if (!isNaN(val) && val != null && val != 0.0 ) {
             return false;
         }
@@ -64,7 +89,7 @@ var isAllNaNs = function(values) {
  * of item.orderedValueList.
  *
  */
-var preRankedSpearmanDist = function(item1, item2) {
+function preRankedSpearmanDist(item1:ProcessedItem, item2:ProcessedItem) {
     //rules for NaN values:
     if (item1.isAllNaNs && item2.isAllNaNs) {
         //return distance 0
@@ -95,13 +120,13 @@ var preRankedSpearmanDist = function(item1, item2) {
  * It will pre-calculate ranks and store this in inputItems[x].preProcessedValueList.
  * This pre-calculation significantly improves the performance of the clustering step itself.
  */
-var _prepareForDistanceFunction = function(inputItems) {
+function _prepareForDistanceFunction(inputItems:Item[]) {
     //pre-calculate ranks, and
     // split up into allNaN and notAllNaN
     var allNaN = [];
     var notAllNaN = [];
     for (var i = 0; i < inputItems.length; i++) {
-        var inputItem = inputItems[i];
+        var inputItem = inputItems[i] as ProcessedItem;
         //check if all NaNs:
         inputItem.isAllNaNs = isAllNaNs(inputItem.orderedValueList);
         if (inputItem.isAllNaNs) {
@@ -121,6 +146,8 @@ var _prepareForDistanceFunction = function(inputItems) {
     };
 }
 
+
+
 /**
  * @param casesAndEntitites: Object with sample(or patient)Id and map
  * of geneticEntity/value pairs. Example:
@@ -137,7 +164,7 @@ var _prepareForDistanceFunction = function(inputItems) {
  *
  *   @return the reordered list of sample(or patient) ids, after clustering.
  */
-var hclusterCases = function(casesAndEntitites) {
+function hclusterCases(casesAndEntitites:CasesAndEntities):CaseItem[] {
     var refEntityList = null;
     var inputItems = [];
     //add orderedValueList to all items, so the values are
@@ -145,7 +172,7 @@ var hclusterCases = function(casesAndEntitites) {
     for (var caseId in casesAndEntitites) {
         if (casesAndEntitites.hasOwnProperty(caseId)) {
             var caseObj = casesAndEntitites[caseId];
-            var inputItem = new Object();
+            var inputItem = new Object() as CaseItem;
             inputItem.caseId = caseId;
             inputItem.orderedValueList = [];
             if (refEntityList == null) {
@@ -179,12 +206,12 @@ var hclusterCases = function(casesAndEntitites) {
         return inputItems;
     }
     //else, normal clustering:
-    inputItems = _prepareForDistanceFunction(inputItems);
-    var clusters = clusterfck.hcluster(inputItems.notAllNaN, preRankedSpearmanDist);
-    return clusters.clusters(1)[0].concat(inputItems.allNaN); // add all nan elements to the end post-sorting
+    var processedInputItems = _prepareForDistanceFunction(inputItems);
+    var clusters = clusterfck.hcluster(processedInputItems.notAllNaN, preRankedSpearmanDist);
+    return clusters.clusters(1)[0].concat(processedInputItems.allNaN); // add all nan elements to the end post-sorting
 }
 
-var getRefList = function(caseItem) {
+function getRefList(caseItem:CasesAndEntities[""]) {
     var result = [];
     for (var entityId in caseItem) {
         if (caseItem.hasOwnProperty(entityId)) {
@@ -199,7 +226,7 @@ var getRefList = function(caseItem) {
  *
  * @return the reordered list of entity ids, after clustering.
  */
-var hclusterGeneticEntities = function(casesAndEntitites) {
+function hclusterGeneticEntities(casesAndEntitites:CasesAndEntities):EntityItem[] {
     var refEntityList = null;
     var inputItems = [];
     var refCaseIdList = [];
@@ -218,7 +245,7 @@ var hclusterGeneticEntities = function(casesAndEntitites) {
     //iterate over genes, and get sample values:
     for (var i = 0; i < refEntityList.length; i++) {
         var entityId = refEntityList[i];
-        var inputItem = new Object();
+        var inputItem = new Object() as EntityItem;
         inputItem.entityId = entityId;
         inputItem.orderedValueList = [];
         for (var j = 0; j < refCaseIdList.length; j++) {
@@ -229,7 +256,7 @@ var hclusterGeneticEntities = function(casesAndEntitites) {
         }
         inputItems.push(inputItem);
     }
-    inputItems = _prepareForDistanceFunction(inputItems);
-    var clusters = clusterfck.hcluster(inputItems.notAllNaN, preRankedSpearmanDist);
-    return clusters.clusters(1)[0].concat(inputItems.allNaN); // add all nan elements to the end post-sorting
+    var processedInputItems = _prepareForDistanceFunction(inputItems);
+    var clusters = clusterfck.hcluster(processedInputItems.notAllNaN, preRankedSpearmanDist);
+    return clusters.clusters(1)[0].concat(processedInputItems.allNaN); // add all nan elements to the end post-sorting
 }

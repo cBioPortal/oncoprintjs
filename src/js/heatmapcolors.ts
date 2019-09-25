@@ -1,7 +1,9 @@
 // Colours for the oncoprint heatmap feature
 // viridis comes from matplotlib's default colour set, created by Stéfan van der Walt and Nathaniel Smith
 
-module.exports = {
+import {RGBAColor} from "./oncoprintruleset";
+
+export default {
     viridis: [
         [68.086020,1.242870,84.000825,1.000000],
         [68.470050,2.449275,85.533885,1.000000],
@@ -518,4 +520,4 @@ module.exports = {
         [250.475535,253.497795,160.909335,1.000000],
         [252.032310,254.582820,164.455620,1.000000],
     ]
-}
+} as {[themeName:string]:RGBAColor[]};

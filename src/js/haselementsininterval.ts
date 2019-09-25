@@ -31,16 +31,16 @@
  */
 
 
-module.exports = function(sorted_list, valueFn, lower_inc_val, upper_exc_val) {
+export default function haselementsininterval<T>(sorted_list:T[], valueFn:(t:T)=>number, lower_inc_val:number, upper_exc_val:number):boolean {
     // in: sorted_list, a list sorted in increasing order of valueFn
     //     valueFn, a function that takes an element of sorted_list and returns a number
     //     lower_inc and upper_ex: define a half-open interval [lower_inc, upper_exc)
     // out: boolean, true iff there are any elements whose image under valueFn is in [lower_inc, upper_exc)
 
-    var test_lower_inc = 0;
-    var test_upper_exc = sorted_list.length;
-    var middle, middle_val;
-    var ret = false;
+    let test_lower_inc = 0;
+    let test_upper_exc = sorted_list.length;
+    let middle, middle_val;
+    let ret = false;
     while (true) {
         if (test_lower_inc >= test_upper_exc) {
             break;

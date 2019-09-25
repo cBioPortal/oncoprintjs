@@ -19,35 +19,163 @@
  * line: x1, y1, x2, y2, stroke, stroke-width
  */
 
-var Shape = require('./oncoprintshape.js');
-var extractRGBA = require('./extractrgba.js');
-var heatmapColors = require('./heatmapcolors.js');
-var binarysearch = require('./binarysearch.js');
-var cloneShallow = require('./utils.js').cloneShallow;
+import {ComputedShapeParams, Ellipse, Line, Rectangle, Shape, ShapeParams, Triangle} from "./oncoprintshape";
+import heatmapColors from "./heatmapcolors";
+import binarysearch from "./binarysearch";
+import {Omit, cloneShallow, ifndef, objectValues, shallowExtend} from "./utils";
+import {ActiveRules, ColumnProp, Datum, RuleSetId} from "./oncoprintmodel";
 
-function ifndef(x, val) {
-    return (typeof x === "undefined" ? val : x);
+export type RuleSetParams = ILinearInterpRuleSetParams | ICategoricalRuleSetParams |
+    IGradientRuleSetParams |
+    IBarRuleSetParams |
+    IStackedBarRuleSetParams |
+    IGradientAndCategoricalRuleSetParams |
+    IGeneticAlterationRuleSetParams;
+
+interface IGeneralRuleSetParams {
+    type?:RuleSetType;
+    legend_label?: string;
+    legend_base_color?: string;
+    exclude_from_legend?: boolean;
+    na_z?:number; // z index of na shapes (defaults to 1)
+    na_legend_label?:string; // legend label associated to NA (defaults to 'No data')
 }
 
+interface ILinearInterpRuleSetParams extends IGeneralRuleSetParams {
+    log_scale?:boolean;
+    value_key:string;
+    value_range:[number, number];
+}
+
+// all colors are hex, rgb, or rgba
+export interface ICategoricalRuleSetParams extends IGeneralRuleSetParams {
+    type: RuleSetType.CATEGORICAL;
+    category_key: string; // key into data which gives category
+    category_to_color?: {[category:string]:string};
+}
+
+export interface IGradientRuleSetParams extends ILinearInterpRuleSetParams {
+    type: RuleSetType.GRADIENT;
+    // either `colormap_name` or `colors` needs to be present
+    colors?: RGBAColor[]; // [r,g,b,a][]
+    colormap_name?: string; // name of a colormap found in src/js/heatmapcolors.js
+    value_stop_points: number[];
+    null_color?: string;
+    null_legend_label?:string;
+}
+
+// TODO: it would be more elegant to create multiple inheritance (if possible) since
+// IGradientAndCategoricalRuleSetParams is a IGradientRuleSetParams and
+// ICategoricalRuleSetParams with a different `type` field.
+export interface IGradientAndCategoricalRuleSetParams extends IGeneralRuleSetParams {
+    type: RuleSetType.GRADIENT_AND_CATEGORICAL;
+    // either `colormap_name` or `colors` needs to be present
+    colors?: [number, number, number, number][]; // [r,g,b,a][]
+    colormap_name?: string; // name of a colormap found in src/js/heatmapcolors.js
+    value_stop_points: number[];
+    null_color?: string;
+
+    log_scale?:boolean;
+    value_key: string;
+    value_range: [number, number];
+
+    category_key: string; // key into data which gives category
+    category_to_color?: {[category:string]:string};
+}
+
+export interface IBarRuleSetParams extends ILinearInterpRuleSetParams {
+    type: RuleSetType.BAR;
+    fill?: string;
+    negative_fill?: string;
+}
+
+export interface IStackedBarRuleSetParams extends IGeneralRuleSetParams {
+    type: RuleSetType.STACKED_BAR;
+    value_key: string;
+    categories: string[];
+    fills?: string[];
+}
+
+export interface IGeneticAlterationRuleSetParams extends IGeneralRuleSetParams {
+    type: RuleSetType.GENE;
+    rule_params: GeneticAlterationRuleParams;
+}
+
+export type GeneticAlterationRuleParams = {
+    [datumKey:string]:{
+        [commaSeparatedDatumValues:string]: {
+            shapes: ShapeParams[];
+            legend_label: string;
+            exclude_from_legend?:boolean;
+        }
+    }
+};
+
+
+export type RGBAColor = [number,number,number,number]; //[0,255] x [0,255] x [0,255] x [0,1]
+
+type RuleParams = {
+    shapes:ShapeParams[];
+    legend_label?:string;
+    exclude_from_legend?:boolean;
+    legend_config?:RuleLegendConfig;
+    legend_order?:number;
+    legend_base_color?:string;
+};
+
+type RuleLegendConfig =
+    { type: "rule", target:any } |
+    {
+        type: "number",
+        range:[number, number],
+        range_type:LinearInterpRangeType,
+        positive_color:string,
+        negative_color:string,
+        interpFn:(val:number)=>number
+    } | // range: [lower, upper]
+    {
+        type: "gradient",
+        range:[number,number],
+        colorFn:(val:number)=>string
+    };
+
+
+export enum RuleSetType {
+    CATEGORICAL = "categorical",
+    GRADIENT = "gradient",
+    GRADIENT_AND_CATEGORICAL = "gradient+categorical",
+    BAR = "bar",
+    STACKED_BAR = "stacked_bar",
+    GENE = "gene"
+}
+
+export type RuleId = number;
+
+export type RuleWithId = {
+    id:RuleId;
+    rule:Rule;
+};
+
 function makeIdCounter() {
-    var id = 0;
+    let id = 0;
     return function () {
         id += 1;
         return id;
     };
 }
 
-function intRange(length) {
-    var ret = [];
-    for (var i=0; i<length; i++) {
+function intRange(length:number) {
+    const ret = [];
+    for (let i=0; i<length; i++) {
         ret.push(i);
     }
     return ret;
 }
 
-function makeUniqueColorGetter(init_used_colors) {
+
+function makeUniqueColorGetter(init_used_colors:string[]) {
     init_used_colors = init_used_colors || [];
-    var colors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
+    const colors = ["#3366cc", "#dc3912", "#ff9900", "#109618",
         "#990099", "#0099c6", "#dd4477", "#66aa00",
         "#b82e2e", "#316395", "#994499", "#22aa99",
         "#aaaa11", "#6633cc", "#e67300", "#8b0707",
@@ -55,20 +183,20 @@ function makeUniqueColorGetter(init_used_colors) {
         "#b77322", "#16d620", "#b91383", "#f4359e",
         "#9c5935", "#a9c413", "#2a778d", "#668d1c",
         "#bea413", "#0c5922", "#743411"]; // Source: D3
-    var index = 0;
-    var used_colors = {};
-    for (var i=0; i<init_used_colors.length; i++) {
+    let index = 0;
+    const used_colors:{[color:string]:boolean} = {};
+    for (let i=0; i<init_used_colors.length; i++) {
         used_colors[init_used_colors[i]] = true;
     }
-    return function(color) {
+    return function(color?:string) {
         if (color) {
             // calling with an argument adds it to the used colors record
             used_colors[color] = true;
         } else {
             // calling without an argument returns a new unused color
-            var next_color = colors[index % colors.length];
+            let next_color = colors[index % colors.length];
             while (used_colors[next_color]) {
-                var darker_next_color = darkenHexColor(next_color);
+                const darker_next_color = darkenHexColor(next_color);
                 if (darker_next_color === next_color) {
                     break;
                 }
@@ -80,28 +208,9 @@ function makeUniqueColorGetter(init_used_colors) {
             return next_color;
         }
     };
-};
-
-function shallowExtend(target, source) {
-    var ret = {};
-    for (var key in target) {
-        if (target.hasOwnProperty(key)) {
-            ret[key] = target[key];
-        }
-    }
-    for (var key in source) {
-        if (source.hasOwnProperty(key)) {
-            ret[key] = source[key];
-        }
-    }
-    return ret;
 }
 
-function objectValues(obj) {
-    return Object.keys(obj).map(function(key) { return obj[key]; });
-}
-
-var makeNAShapes = function(z) {
+function makeNAShapes(z:number) {
     return [
         {
             'type': 'rectangle',
@@ -118,15 +227,15 @@ var makeNAShapes = function(z) {
             'z':z
         }
     ];
-};
-var NA_STRING = "na";
-var NA_LABEL = "No data";
+}
+const NA_STRING = "na";
+const NA_LABEL = "No data";
 
-var colorToHex = function(str) {
-    var r;
-    var g;
-    var b;
-    var rgba_match = str.match(/^[\s]*rgba\([\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9.]+)[\s]*\)[\s]*$/);
+function colorToHex(color:string) {
+    let r;
+    let g;
+    let b;
+    const rgba_match = color.match(/^[\s]*rgba\([\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9.]+)[\s]*\)[\s]*$/);
     if (rgba_match && rgba_match.length === 5) {
         r = parseInt(rgba_match[1]).toString(16);
         g = parseInt(rgba_match[2]).toString(16);
@@ -143,7 +252,7 @@ var colorToHex = function(str) {
         return '#' + r + g + b;
     }
 
-    var rgb_match = str.match(/^[\s]*rgb\([\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*\)[\s]*$/);
+    const rgb_match = color.match(/^[\s]*rgb\([\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*,[\s]*([0-9]+)[\s]*\)[\s]*$/);
     if (rgb_match && rgb_match.length === 4) {
         r = parseInt(rgb_match[1]).toString(16);
         g = parseInt(rgb_match[2]).toString(16);
@@ -160,39 +269,47 @@ var colorToHex = function(str) {
         return '#' + r + g + b;
     }
 
-    return str;
-};
+    return color;
+}
 
-var darkenHexColor = function(str) {
-    var r = str[1] + str[2];
-    var g = str[3] + str[4];
-    var b = str[5] + str[6];
-    var darkenHexChannel = function(c) {
-        c = parseInt(c, 16);
-        c *= 0.95;
-        c = Math.round(c);
-        c = c.toString(16);
-        if (c.length === 1) {
-            c = '0' + c;
-        }
-        return c;
-    };
+function darkenHexChannel(c:string) {
+    let numC = parseInt(c, 16);
+    numC *= 0.95;
+    numC = Math.round(numC);
+    c = numC.toString(16);
+    if (c.length === 1) {
+        c = '0' + c;
+    }
+    return c;
+}
+
+function darkenHexColor(color:string) {
+    let r = color[1] + color[2];
+    let g = color[3] + color[4];
+    let b = color[5] + color[6];
     r = darkenHexChannel(r);
     g = darkenHexChannel(g);
     b = darkenHexChannel(b);
     return '#' + r + g + b;
-};
+}
 
-var RuleSet = (function () {
-    var getRuleSetId = makeIdCounter();
-    var getRuleId = makeIdCounter();
+export class RuleSet {
+    static getRuleSetId = makeIdCounter();
+    static getRuleId = makeIdCounter();
 
-    function RuleSet(params) {
+    public rule_set_id:RuleSetId;
+    public legend_label?:string;
+    protected legend_base_color?:string;
+    public exclude_from_legend?:boolean;
+    protected active_rule_ids:ActiveRules;
+    protected rules_with_id:RuleWithId[];
+
+    constructor(params:Omit<RuleSetParams, "type">) {
         /* params:
          * - legend_label
          * - exclude_from_legend
          */
-        this.rule_set_id = getRuleSetId();
+        this.rule_set_id = RuleSet.getRuleSetId();
         this.legend_label = params.legend_label;
         this.legend_base_color = params.legend_base_color;
         this.exclude_from_legend = params.exclude_from_legend;
@@ -201,32 +318,32 @@ var RuleSet = (function () {
 
     }
 
-    RuleSet.prototype.getLegendLabel = function () {
+    public getLegendLabel() {
         return this.legend_label;
     }
 
-    RuleSet.prototype.getRuleSetId = function () {
+    public getRuleSetId() {
         return this.rule_set_id;
     }
 
-    RuleSet.prototype.addRules = function (list_of_params) {
-        var self = this;
+    public addRules(list_of_params:RuleParams[]) {
+        const self = this;
         return list_of_params.map(function (params) {
-            return self.addRule(params);
+            return self._addRule(params);
         });
     }
 
-    RuleSet.prototype.addRule = function (params, rule_id) {
+    public _addRule(params:RuleParams, rule_id?:RuleId) {
         if (typeof rule_id === "undefined") {
-            rule_id = getRuleId();
+            rule_id = RuleSet.getRuleId();
         }
         this.rules_with_id.push({id: rule_id, rule: new Rule(params)});
         return rule_id;
     }
 
-    RuleSet.prototype.removeRule = function (rule_id) {
+    public removeRule(rule_id:RuleId) {
         var index = -1;
-        for (var i = 0; i < this.rules_with_id.length; i++) {
+        for (let i = 0; i < this.rules_with_id.length; i++) {
             if (this.rules_with_id[i].id === rule_id) {
                 index = i;
                 break;
@@ -238,9 +355,9 @@ var RuleSet = (function () {
         delete this.active_rule_ids[rule_id];
     }
 
-    RuleSet.prototype.getRuleWithId = function (rule_id) {
-        var ret = null;
-        for (var i = 0; i < this.rules_with_id.length; i++) {
+    public getRuleWithId(rule_id:RuleId) {
+        let ret = null;
+        for (let i = 0; i < this.rules_with_id.length; i++) {
             if (this.rules_with_id[i].id === rule_id) {
                 ret = this.rules_with_id[i];
                 break;
@@ -249,27 +366,36 @@ var RuleSet = (function () {
         return ret;
     }
 
-    RuleSet.prototype.isExcludedFromLegend = function () {
+    public isExcludedFromLegend() {
         return this.exclude_from_legend;
     }
 
-    RuleSet.prototype.getRecentlyUsedRules = function () {
-        var self = this;
+    public getRule(rule_id:RuleId):Rule {
+        return this.getRuleWithId(rule_id).rule;
+    }
+
+    public getRecentlyUsedRules() {
+        const self = this;
         return Object.keys(this.active_rule_ids).map(
             function (rule_id) {
-                return self.getRule(rule_id);
+                return self.getRule(parseInt(rule_id, 10));
             });
     }
 
-    RuleSet.prototype.applyRulesToDatum = function (rules_with_id, datum, cell_width, cell_height) {
-        var shapes = [];
-        var rules_len = rules_with_id.length;
-        for (var j = 0; j < rules_len; j++) {
+    public applyRulesToDatum(rules_with_id:RuleWithId[], datum:Datum, cell_width:number, cell_height:number) {
+        let shapes:ComputedShapeParams[] = [];
+        const rules_len = rules_with_id.length;
+        for (let j = 0; j < rules_len; j++) {
             shapes = shapes.concat(rules_with_id[j].rule.apply(datum, cell_width, cell_height));
         }
         return shapes;
     }
-    RuleSet.prototype.apply = function (data, cell_width, cell_height, out_active_rules, data_id_key, important_ids) {
+
+    public getRulesWithId(datum?:Datum):RuleWithId[] {
+        throw "Not implemented on base class";
+    }
+
+    public apply(data:Datum[], cell_width:number, cell_height:number, out_active_rules:ActiveRules|undefined, data_id_key:string&keyof Datum, important_ids?:ColumnProp<boolean>) {
         // Returns a list of lists of concrete shapes, in the same order as data
         // optional parameter important_ids determines which ids count towards active rules (optional parameter data_id_key
         //		is used for this too)
@@ -279,7 +405,7 @@ var RuleSet = (function () {
             var should_mark_active = !important_ids || !!important_ids[datum[data_id_key]];
             var rules = this.getRulesWithId(datum);
             if (typeof out_active_rules !== 'undefined' && should_mark_active) {
-                for (var j = 0; j < rules.length; j++) {
+                for (let j = 0; j < rules.length; j++) {
                     out_active_rules[rules[j].id] = true;
                 }
             }
@@ -287,29 +413,22 @@ var RuleSet = (function () {
         }
         return ret;
     }
+}
 
-    return RuleSet;
-})();
+class LookupRuleSet extends RuleSet {
+    private lookup_map_by_key_and_value:{[key:string]:{[value:string]:RuleWithId}} = {};
+    private lookup_map_by_key:{[key:string]:RuleWithId} = {};
+    private universal_rules:RuleWithId[] = [];
+    private rule_id_to_conditions:{[ruleId:number]:{ key:string, value:string }[] } = {};
 
-var LookupRuleSet = (function () {
-    function LookupRuleSet(params) {
-        RuleSet.call(this, params);
-        this.lookup_map_by_key_and_value = {};
-        this.lookup_map_by_key = {};
-        this.universal_rules = [];
-
-        this.rule_id_to_conditions = {};
-    }
-    LookupRuleSet.prototype = Object.create(RuleSet.prototype);
-
-    LookupRuleSet.prototype.getRulesWithId = function (datum) {
+    public getRulesWithId(datum?:Datum) {
         if (typeof datum === 'undefined') {
             return this.rules_with_id;
         }
-        var ret = [];
+        let ret:RuleWithId[] = [];
         ret = ret.concat(this.universal_rules);
         for (var key in datum) {
-            if (typeof datum[key] !== 'undefined') {
+            if (typeof datum[key] !== 'undefined' && datum.hasOwnProperty(key)) {
                 var key_rule = this.lookup_map_by_key[key];
                 if (typeof key_rule !== 'undefined') {
                     ret.push(key_rule);
@@ -323,35 +442,35 @@ var LookupRuleSet = (function () {
         return ret;
     }
 
-    var indexRuleForLookup = function (rule_set, condition_key, condition_value, rule_with_id) {
+    private indexRuleForLookup(condition_key:string, condition_value:string, rule_with_id:RuleWithId) {
         if (condition_key === null) {
-            rule_set.universal_rules.push(rule_with_id);
+            this.universal_rules.push(rule_with_id);
         } else {
             if (condition_value === null) {
-                rule_set.lookup_map_by_key[condition_key] = rule_with_id;
+                this.lookup_map_by_key[condition_key] = rule_with_id;
             } else {
-                rule_set.lookup_map_by_key_and_value[condition_key] = rule_set.lookup_map_by_key_and_value[condition_key] || {};
-                rule_set.lookup_map_by_key_and_value[condition_key][condition_value] = rule_with_id;
+                this.lookup_map_by_key_and_value[condition_key] = this.lookup_map_by_key_and_value[condition_key] || {};
+                this.lookup_map_by_key_and_value[condition_key][condition_value] = rule_with_id;
             }
         }
-        rule_set.rule_id_to_conditions[rule_with_id.id] = rule_set.rule_id_to_conditions[rule_with_id.id] || [];
-        rule_set.rule_id_to_conditions[rule_with_id.id].push({key: condition_key, value: condition_value});
+        this.rule_id_to_conditions[rule_with_id.id] = this.rule_id_to_conditions[rule_with_id.id] || [];
+        this.rule_id_to_conditions[rule_with_id.id].push({key: condition_key, value: condition_value});
     };
 
-    LookupRuleSet.prototype.addRule = function (condition_key, condition_value, params) {
-        var rule_id = RuleSet.prototype.addRule.call(this, params);
+    public addRule(condition_key:string, condition_value:any, params:RuleParams) {
+        const rule_id = this._addRule(params);
 
-        indexRuleForLookup(this, condition_key, condition_value, this.getRuleWithId(rule_id));
+        this.indexRuleForLookup(condition_key, condition_value, this.getRuleWithId(rule_id));
 
         return rule_id;
     }
 
-    LookupRuleSet.prototype.linkExistingRule = function (condition_key, condition_value, existing_rule_id) {
-        indexRuleForLookup(this, condition_key, condition_value, this.getRuleWithId(existing_rule_id));
+    public linkExistingRule(condition_key:string, condition_value:string, existing_rule_id:RuleId) {
+        this.indexRuleForLookup(condition_key, condition_value, this.getRuleWithId(existing_rule_id));
     }
 
-    LookupRuleSet.prototype.removeRule = function (rule_id) {
-        RuleSet.prototype.removeRule.call(this, rule_id);
+    public removeRule(rule_id:RuleId) {
+        super.removeRule(rule_id);
 
         while (this.rule_id_to_conditions[rule_id].length > 0) {
             var condition = this.rule_id_to_conditions[rule_id].pop();
@@ -376,13 +495,14 @@ var LookupRuleSet = (function () {
         }
         delete this.rule_id_to_conditions[rule_id];
     }
-    return LookupRuleSet;
-})();
+}
 
-var ConditionRuleSet = (function () {
-    function ConditionRuleSet(params, omitNArule) {
-        RuleSet.call(this, params);
-        this.rule_id_to_condition = {};
+type ConditionRuleSetCondition = (d:Datum)=>boolean;
+class ConditionRuleSet extends RuleSet {
+    private rule_id_to_condition:{[ruleId:number]:ConditionRuleSetCondition} = {};
+
+    constructor(params:RuleSetParams, omitNArule?:boolean) {
+        super(params);
 
         if (!omitNArule) {
             this.addRule(function (d) {
@@ -397,14 +517,13 @@ var ConditionRuleSet = (function () {
                 });
         }
     }
-    ConditionRuleSet.prototype = Object.create(RuleSet.prototype);
 
-    ConditionRuleSet.prototype.getRulesWithId = function (datum) {
+    public getRulesWithId(datum?:Datum) {
         if (typeof datum === 'undefined') {
             return this.rules_with_id;
         }
-        var ret = [];
-        for (var i = 0; i < this.rules_with_id.length; i++) {
+        const ret = [];
+        for (let i = 0; i < this.rules_with_id.length; i++) {
             if (this.rule_id_to_condition[this.rules_with_id[i].id](datum)) {
                 ret.push(this.rules_with_id[i]);
             }
@@ -412,28 +531,24 @@ var ConditionRuleSet = (function () {
         return ret;
     }
 
-    ConditionRuleSet.prototype.addRule = function (condition, params, rule_id) {
-        rule_id = RuleSet.prototype.addRule.call(this, params, rule_id);
+    public addRule(condition:ConditionRuleSetCondition, params:RuleParams, rule_id?:RuleId) {
+        rule_id = this._addRule(params, rule_id);
         this.rule_id_to_condition[rule_id] = condition;
         return rule_id;
     }
 
-    ConditionRuleSet.prototype.removeRule = function (rule_id) {
-        RuleSet.prototype.removeRule.call(this, rule_id);
+    public removeRule(rule_id:RuleId) {
+        super.removeRule(rule_id);
         delete this.rule_id_to_condition[rule_id];
     }
+}
 
-    return ConditionRuleSet;
-})();
-
-var CategoricalRuleSet = (function () {
-    function CategoricalRuleSet(params, omitNArule) {
-        /* params
-         * - category_key
-         * - categoryToColor
-         */
-        LookupRuleSet.call(this, params);
-
+class CategoricalRuleSet extends LookupRuleSet {
+    public readonly category_key:string;
+    private readonly category_to_color:{[category:string]:string};
+    private readonly getUnusedColor:(color?:string)=>string;
+    constructor(params:Omit<ICategoricalRuleSetParams, "type">, omitNArule?:boolean) {
+        super(params);
         if (!omitNArule) {
             this.addRule(NA_STRING, true, {
                 shapes: makeNAShapes(params.na_z || 1000),
@@ -447,20 +562,17 @@ var CategoricalRuleSet = (function () {
         this.category_key = params.category_key;
         this.category_to_color = cloneShallow(ifndef(params.category_to_color, {}));
         this.getUnusedColor = makeUniqueColorGetter(objectValues(this.category_to_color).map(colorToHex));
-        for (var category in this.category_to_color) {
-            if (this.category_to_color.hasOwnProperty(category)) {
-                var color = this.category_to_color[category];
-                addCategoryRule(this, category, color);
-                this.getUnusedColor(color);
-            }
+        for (const category of Object.keys(this.category_to_color)) {
+            const color = this.category_to_color[category];
+            this.addCategoryRule(category, color);
+            this.getUnusedColor(color);
         }
     }
-    CategoricalRuleSet.prototype = Object.create(LookupRuleSet.prototype);
 
-    var addCategoryRule = function (ruleset, category, color) {
-        var legend_rule_target = {};
-        legend_rule_target[ruleset.category_key] = category;
-        var rule_params = {
+    private addCategoryRule(category:string, color:string) {
+        const legend_rule_target:any = {};
+        legend_rule_target[this.category_key] = category;
+        const rule_params:RuleParams = {
             shapes: [{
                 type: 'rectangle',
                 fill: color,
@@ -469,59 +581,60 @@ var CategoricalRuleSet = (function () {
             exclude_from_legend: false,
             legend_config: {'type': 'rule', 'target': legend_rule_target}
         };
-        ruleset.addRule(ruleset.category_key, category, rule_params);
-    };
+        this.addRule(this.category_key, category, rule_params);
+    }
 
-    CategoricalRuleSet.prototype.apply = function (data, cell_width, cell_height, out_active_rules, data_id_key, important_ids) {
+    public apply(data:Datum, cell_width:number, cell_height:number, out_active_rules:ActiveRules|undefined, data_id_key:string&keyof Datum, important_ids?:ColumnProp<boolean>) {
         // First ensure there is a color for all categories
-        for (var i = 0, data_len = data.length; i < data_len; i++) {
+        for (let i = 0, data_len = data.length; i < data_len; i++) {
             if (data[i][NA_STRING]) {
                 continue;
             }
-            var category = data[i][this.category_key];
+            const category = data[i][this.category_key];
             if (!this.category_to_color.hasOwnProperty(category)) {
-                var color = this.getUnusedColor();
+                const color = this.getUnusedColor();
 
                 this.category_to_color[category] = color;
-                addCategoryRule(this, category, color);
+                this.addCategoryRule(category, color);
             }
         }
         // Then propagate the call up
-        return LookupRuleSet.prototype.apply.call(this, data, cell_width, cell_height, out_active_rules, data_id_key, important_ids);
-    };
+        return super.apply(data, cell_width, cell_height, out_active_rules, data_id_key, important_ids);
+    }
+}
 
-    return CategoricalRuleSet;
-})();
+export enum LinearInterpRangeType {
+    ALL = 'ALL',                   // all values positive, negative and zero
+    NON_NEGATIVE = 'NON_NEGATIVE', // value range all positive values inclusive zero (0)
+    NON_POSITIVE = 'NON_POSITIVE'  // value range all negative values inclusive zero (0)
+}
 
-var LinearInterpRuleSet = (function () {
-    function LinearInterpRuleSet(params) {
-        /* params
-         * - log_scale
-         * - value_key
-         * - value_range
-         */
-        ConditionRuleSet.call(this, params);
+class LinearInterpRuleSet extends ConditionRuleSet {
+
+    protected value_key:string;
+    protected value_range:[number, number];
+    protected log_scale?:boolean;
+    protected type:string;
+    protected makeInterpFn:()=>((valToConvert:number)=>number);
+    protected inferred_value_range:[number, number];
+
+    constructor(params:ILinearInterpRuleSetParams) {
+        super(params);
         this.value_key = params.value_key;
         this.value_range = params.value_range;
         this.log_scale = params.log_scale; // boolean
         this.type = params.type;
-        this.rangeTypes = {
-            'ALL': 'ALL',                   // all values positive, negative and zero
-            'NON_NEGATIVE': 'NON_NEGATIVE', // value range all positive values inclusive zero (0)
-            'NON_POSITIVE': 'NON_POSITIVE'  // value range all negative values inclusive zero (0)
-        };
 
         this.makeInterpFn = function () {
-            var range = this.getEffectiveValueRange();
-            var rangeType = this.getValueRangeType();
-            var plotType = this.type;
-            var rangeTypes = this.rangeTypes;
+            const range = this.getEffectiveValueRange();
+            const rangeType = this.getValueRangeType();
+            const plotType = this.type;
             if (this.log_scale) {
                 var shift_to_make_pos = Math.abs(range[0]) + 1;
                 var log_range = Math.log(range[1] + shift_to_make_pos) - Math.log(range[0] + shift_to_make_pos);
                 var log_range_lower = Math.log(range[0] + shift_to_make_pos);
                 return function (val) {
-                    val = parseFloat(val);
+                    val = parseFloat(val as any);
                     return (Math.log(val + shift_to_make_pos) - log_range_lower) / log_range;
                 };
             } else {
@@ -530,13 +643,13 @@ var LinearInterpRuleSet = (function () {
                         range_lower = range[0],
                         range_higher = range[1];
                     if (plotType === 'bar') {
-                        if (rangeType === rangeTypes.NON_POSITIVE) {
+                        if (rangeType === LinearInterpRangeType.NON_POSITIVE) {
                             // when data only contains non positive values
                             return (val - range_higher) / range_spread;
-                        } else if (rangeType === rangeTypes.NON_NEGATIVE) {
+                        } else if (rangeType === LinearInterpRangeType.NON_NEGATIVE) {
                             // when data only contains non negative values
                             return (val - range_lower) / range_spread;
-                        } else if (rangeType === rangeTypes.ALL) {
+                        } else if (rangeType === LinearInterpRangeType.ALL) {
                             range_spread = Math.abs(range[0]) > range[1] ? Math.abs(range[0]) : range[1];
                             return val / range_spread;
                         }
@@ -547,10 +660,9 @@ var LinearInterpRuleSet = (function () {
             }
         };
     }
-    LinearInterpRuleSet.prototype = Object.create(ConditionRuleSet.prototype);
 
-    LinearInterpRuleSet.prototype.getEffectiveValueRange = function () {
-        var ret = (this.value_range && this.value_range.slice()) || [undefined, undefined];
+    protected getEffectiveValueRange():[number,number] {
+        const ret = (this.value_range && this.value_range.slice()) || [undefined, undefined];
         if (typeof ret[0] === "undefined") {
             ret[0] = this.inferred_value_range[0];
         }
@@ -562,25 +674,25 @@ var LinearInterpRuleSet = (function () {
             ret[0] -= ret[0] / 2;
             ret[1] += ret[1] / 2;
         }
-        return ret;
-    };
-    LinearInterpRuleSet.prototype.getValueRangeType = function () {
+        return ret as [number,number];
+    }
+    protected getValueRangeType() {
         var range = this.getEffectiveValueRange();
         if (range[0] < 0 && range[1] <=0) {
-            return this.rangeTypes.NON_POSITIVE;
+            return LinearInterpRangeType.NON_POSITIVE;
         } else if (range[0] >= 0 && range[1] > 0) {
-            return this.rangeTypes.NON_NEGATIVE;
+            return LinearInterpRangeType.NON_NEGATIVE;
         } else {
-            return this.rangeTypes.ALL;
+            return LinearInterpRangeType.ALL;
         }
-    };
+    }
 
-    LinearInterpRuleSet.prototype.apply = function (data, cell_width, cell_height, out_active_rules, data_id_key, important_ids) {
+    public apply(data:Datum, cell_width:number, cell_height:number, out_active_rules:ActiveRules|undefined, data_id_key:string&keyof Datum, important_ids?:ColumnProp<boolean>) {
         // First find value range
-        var value_min = Number.POSITIVE_INFINITY;
-        var value_max = Number.NEGATIVE_INFINITY;
+        let value_min = Number.POSITIVE_INFINITY;
+        let value_max = Number.NEGATIVE_INFINITY;
         for (var i = 0, datalen = data.length; i < datalen; i++) {
-            var d = data[i];
+            const d = data[i];
             if (isNaN(d[this.value_key])) {
                 continue;
             }
@@ -597,27 +709,22 @@ var LinearInterpRuleSet = (function () {
         this.updateLinearRules();
 
         // Then propagate the call up
-        return ConditionRuleSet.prototype.apply.call(this, data, cell_width, cell_height, out_active_rules, data_id_key, important_ids);
-    };
+        return super.apply(data, cell_width, cell_height, out_active_rules, data_id_key, important_ids);
+    }
 
-    LinearInterpRuleSet.prototype.updateLinearRules = function () {
+    protected updateLinearRules() {
         throw "Not implemented in abstract class";
-    };
+    }
+}
 
-    return LinearInterpRuleSet;
-})();
+class GradientRuleSet extends LinearInterpRuleSet {
+    private colors:RGBAColor[] = [];
+    private value_stop_points: number[];
+    private null_color?:string;
+    private gradient_rule:RuleId;
 
-var GradientRuleSet = (function () {
-    function GradientRuleSet(params) {
-        /* params
-         * - colors || colormap_name
-             * - value_stop_points
-         * - null_color
-         * - null_legend_label
-         */
-        LinearInterpRuleSet.call(this, params);
-
-        this.colors = [];
+    constructor(params:Omit<IGradientRuleSetParams, "type">) {
+        super(params);
         if (params.colors) {
             this.colors = params.colors || [];
         } else if (params.colormap_name) {
@@ -644,30 +751,26 @@ var GradientRuleSet = (function () {
             legend_config: {'type':'rule', 'target':{ [value_key]:null } }
         });
     }
-    GradientRuleSet.prototype = Object.create(LinearInterpRuleSet.prototype);
 
-    // interpScaleColors,
-    // were adapted from politiken-journalism's scale-color-perceptual repo on Github
-    var linInterpColors = function(t, begin_color, end_color) {
+    static linInterpColors(t:number, begin_color:RGBAColor, end_color:RGBAColor) {
         // 0 <= t <= 1
-        // begin_color and end_color are 4-element arrays in ([0,255])x([0,255])x([0,255])x([0,1])
         return [
             Math.round(begin_color[0]*(1-t) + end_color[0]*t),
             Math.round(begin_color[1]*(1-t) + end_color[1]*t),
             Math.round(begin_color[2]*(1-t) + end_color[2]*t),
             begin_color[3]*(1-t) + end_color[3]*t
         ];
-    };
+    }
 
-    GradientRuleSet.prototype.makeColorFn = function(colors, interpFn) {
-        var value_stop_points = this.value_stop_points;
-        var stop_points;
+    private makeColorFn(colors:RGBAColor[], interpFn:(valToConvert:number)=>number) {
+        const value_stop_points = this.value_stop_points;
+        let stop_points:number[];
         if (value_stop_points) {
             stop_points = value_stop_points.map(interpFn);
         } else {
             stop_points = intRange(colors.length).map(function(x) { return x/(colors.length -1); });
         }
-        return function(t) {
+        return function(t:number) {
             // 0 <= t <= 1
             var begin_interval_index = binarysearch(stop_points, t, function(x) { return x; }, true);
             if (begin_interval_index === -1) {
@@ -681,22 +784,22 @@ var GradientRuleSet = (function () {
                 var interval_t = (t - stop_points[begin_interval_index]) / spread;
                 var begin_color = colors[begin_interval_index];
                 var end_color = colors[end_interval_index];
-                return "rgba(" + linInterpColors(interval_t, begin_color, end_color).join(",") + ")";
+                return "rgba(" + GradientRuleSet.linInterpColors(interval_t, begin_color, end_color).join(",") + ")";
             }
 
         };
     }
 
-    GradientRuleSet.prototype.updateLinearRules = function () {
-        var rule_id;
+    protected updateLinearRules() {
+        let rule_id;
         if (typeof this.gradient_rule !== "undefined") {
             rule_id = this.gradient_rule;
             this.removeRule(this.gradient_rule);
         }
-        var interpFn = this.makeInterpFn();
-        var colorFn = this.makeColorFn(this.colors, interpFn);
-        var value_key = this.value_key;
-        var null_color = this.null_color;
+        const interpFn = this.makeInterpFn();
+        const colorFn = this.makeColorFn(this.colors, interpFn);
+        const value_key = this.value_key;
+        const null_color = this.null_color;
 
         this.gradient_rule = this.addRule(function (d) {
                 return d[NA_STRING] !== true && d[value_key] !== null;
@@ -709,34 +812,35 @@ var GradientRuleSet = (function () {
                     }
                 }],
                 exclude_from_legend: false,
-                legend_config: {'type': 'gradient', 'range': this.getEffectiveValueRange(), 'colorFn':colorFn}
+                legend_config: {'type': "gradient" as "gradient", 'range': this.getEffectiveValueRange(), 'colorFn':colorFn}
             },
             rule_id);
-    };
+    }
+}
 
-    return GradientRuleSet;
-})();
+class BarRuleSet extends LinearInterpRuleSet {
+    private fill:string;
+    private negative_fill:string;
+    private bar_rule?:RuleId;
 
-var BarRuleSet = (function () {
-    function BarRuleSet(params) {
-        LinearInterpRuleSet.call(this, params);
+    constructor(params:IBarRuleSetParams) {
+        super(params);
         this.fill = params.fill || 'rgba(0,128,0,1)'; // green
         this.negative_fill = params.negative_fill || 'rgba(255,0,0,1)'; //red
     }
-    BarRuleSet.prototype = Object.create(LinearInterpRuleSet.prototype);
 
-    BarRuleSet.prototype.updateLinearRules = function () {
-        var rule_id;
+    protected updateLinearRules() {
+        let rule_id;
         if (typeof this.bar_rule !== "undefined") {
             rule_id = this.bar_rule;
             this.removeRule(this.bar_rule);
         }
-        var interpFn = this.makeInterpFn();
-        var value_key = this.value_key;
-        var positive_color = this.fill;
-        var negative_color = this.negative_fill;
-        var yPosFn = this.getYPosPercentagesFn();
-        var cellHeightFn = this.getCellHeightPercentagesFn();
+        const interpFn = this.makeInterpFn();
+        const value_key = this.value_key;
+        const positive_color = this.fill;
+        const negative_color = this.negative_fill;
+        const yPosFn = this.getYPosPercentagesFn();
+        const cellHeightFn = this.getCellHeightPercentagesFn();
         this.bar_rule = this.addRule(function (d) {
                 return d[NA_STRING] !== true;
             },
@@ -756,74 +860,69 @@ var BarRuleSet = (function () {
                 }],
                 exclude_from_legend: false,
                 legend_config: {
-                    'type': 'number',
+                    'type': 'number' as 'number',
                     'range': this.getEffectiveValueRange(),
                     'range_type': this.getValueRangeType(),
                     'positive_color': positive_color,
                     'negative_color': negative_color,
-                    'interpFn': interpFn}
+                    'interpFn': interpFn
+                }
             },
             rule_id);
-    };
-    BarRuleSet.prototype.getYPosPercentagesFn = function () {
-        var ret;
+    }
+
+    public getYPosPercentagesFn() {
+        let ret;
         switch (this.getValueRangeType()) {
-            case this.rangeTypes.NON_POSITIVE:
-                ret = (function(t) { return "0%"; });
+            case LinearInterpRangeType.NON_POSITIVE:
+                ret = (function(t:number) { return "0%"; });
                 break;
-            case this.rangeTypes.NON_NEGATIVE:
-                ret = (function(t) { return (1 - t) * 100 + "%"; });
+            case LinearInterpRangeType.NON_NEGATIVE:
+                ret = (function(t:number) { return (1 - t) * 100 + "%"; });
                 break;
-            case this.rangeTypes.ALL:
-                ret = (function(t) { return Math.min(1-t, 1)*50 + "%"; });
+            case LinearInterpRangeType.ALL:
+                ret = (function(t:number) { return Math.min(1-t, 1)*50 + "%"; });
                 break;
         }
         return ret;
-    };
+    }
 
-    BarRuleSet.prototype.getCellHeightPercentagesFn = function () {
-        var ret;
+    public getCellHeightPercentagesFn() {
+        let ret;
         switch (this.getValueRangeType()) {
-            case this.rangeTypes.NON_POSITIVE:
-                ret = (function(t) { return -t * 100 + "%"; });
+            case LinearInterpRangeType.NON_POSITIVE:
+                ret = (function(t:number) { return -t * 100 + "%"; });
                 break;
-            case this.rangeTypes.NON_NEGATIVE:
-                ret = (function(t) { return t * 100 + "%"; });
+            case LinearInterpRangeType.NON_NEGATIVE:
+                ret = (function(t:number) { return t * 100 + "%"; });
                 break;
-            case this.rangeTypes.ALL:
-                ret = (function(t) { return Math.abs(t) * 50 + "%"; });
+            case LinearInterpRangeType.ALL:
+                ret = (function(t:number) { return Math.abs(t) * 50 + "%"; });
                 break;
         }
         return ret;
-    };
+    }
+}
 
-    return BarRuleSet;
-})();
-
-var StackedBarRuleSet = (function() {
-    function StackedBarRuleSet(params) {
-        /* params
-         * - categories
-         * - value_key
-         * - fills
-         */
-        ConditionRuleSet.call(this, params);
-        var value_key = params.value_key;
-        var fills = params.fills || [];
-        var categories = params.categories || [];
-        var getUnusedColor = makeUniqueColorGetter(fills);
+class StackedBarRuleSet extends ConditionRuleSet {
+    constructor(params:IStackedBarRuleSetParams) {
+        super(params);
+        const value_key = params.value_key;
+        const fills = params.fills || [];
+        const categories = params.categories || [];
+        const getUnusedColor = makeUniqueColorGetter(fills);
 
         // Initialize with default values
         while (fills.length < categories.length) {
             fills.push(getUnusedColor());
         }
 
-        var self = this;
-        for (var i=0; i < categories.length; i++) {
+        const self = this;
+        for (let i=0; i < categories.length; i++) {
             (function(I) {
-                var legend_target = {};
+                const legend_target:any = {};
                 legend_target[value_key] = {};
-                for (var j=0; j<categories.length; j++) {
+                for (let j=0; j<categories.length; j++) {
                     legend_target[value_key][categories[j]] = 0;
                 }
                 legend_target[value_key][categories[I]] = 1;
@@ -860,29 +959,25 @@ var StackedBarRuleSet = (function() {
             })(i);
         }
     }
-    StackedBarRuleSet.prototype = Object.create(ConditionRuleSet.prototype);
-    return StackedBarRuleSet;
-})();
-var GeneticAlterationRuleSet = (function () {
-    function GeneticAlterationRuleSet(params) {
-        /* params:
-         * - rule_params
-         */
-        LookupRuleSet.call(this, params);
+}
+
+class GeneticAlterationRuleSet extends LookupRuleSet {
+    constructor(params:IGeneticAlterationRuleSetParams) {
+        super(params);
         (function addRules(self) {
-            var rule_params = params.rule_params;
-            for (var key in rule_params) {
+            const rule_params = params.rule_params;
+            for (const key in rule_params) {
                 if (rule_params.hasOwnProperty(key)) {
-                    var key_rule_params = rule_params[key];
+                    const key_rule_params = rule_params[key];
                     if (key === '*') {
                         self.addRule(null, null, shallowExtend(rule_params['*'], {'legend_config': {'type': 'rule', 'target': {}}}));
                     } else {
-                        for (var value in key_rule_params) {
+                        for (const value in key_rule_params) {
                             if (key_rule_params.hasOwnProperty(value)) {
-                                var equiv_values = value.split(",");
-                                var legend_rule_target = {};
+                                const equiv_values = value.split(",");
+                                const legend_rule_target:any = {};
                                 legend_rule_target[equiv_values[0]] = value;
-                                var rule_id = self.addRule(
+                                const rule_id = self.addRule(
                                     key,
                                     (equiv_values[0] === '*' ? null : equiv_values[0]),
                                     shallowExtend(key_rule_params[value],
@@ -891,7 +986,7 @@ var GeneticAlterationRuleSet = (function () {
                                             'legend_base_color': typeof self.legend_base_color === "undefined" ? "" : self.legend_base_color
                                         })
                                 );
-                                for (var i = 1; i < equiv_values.length; i++) {
+                                for (let i = 1; i < equiv_values.length; i++) {
                                     self.linkExistingRule(key, (equiv_values[i] === '*' ? null : equiv_values[i]), rule_id);
                                 }
                             }
@@ -908,55 +1003,58 @@ var GeneticAlterationRuleSet = (function () {
             legend_order: Number.POSITIVE_INFINITY
         });
     }
-    GeneticAlterationRuleSet.prototype = Object.create(LookupRuleSet.prototype);
+}
 
-    return GeneticAlterationRuleSet;
-})();
+export class Rule {
+    private shapes:Shape[];
+    public legend_label:string;
+    public legend_base_color?:string;
+    public exclude_from_legend?:boolean;
+    private legend_config?:RuleLegendConfig;
+    public legend_order?:number;
 
-var Rule = (function () {
-    function Rule(params) {
+    constructor(params:RuleParams) {
         this.shapes = params.shapes.map(function (shape) {
             if (shape.type === 'rectangle') {
-                return new Shape.Rectangle(shape);
+                return new Rectangle(shape);
             } else if (shape.type === 'triangle') {
-                return new Shape.Triangle(shape);
+                return new Triangle(shape);
             } else if (shape.type === 'ellipse') {
-                return new Shape.Ellipse(shape);
+                return new Ellipse(shape);
             } else if (shape.type === 'line') {
-                return new Shape.Line(shape);
+                return new Line(shape);
             }
         });
         this.legend_label = typeof params.legend_label === "undefined" ? "" : params.legend_label;
         this.legend_base_color = params.legend_base_color;
         this.exclude_from_legend = params.exclude_from_legend;
-        this.legend_config = params.legend_config;// {'type':'rule', 'target': {'mut_type':'MISSENSE'}} or {'type':'number', 'color':'rgba(1,2,3,1), 'range':[lower, upper]} or {'type':'gradient', 'color_range':['rgba(...)' or '#...', 'rgba(...)' or '#...'], 'number_range':[lower, upper]}
+        this.legend_config = params.legend_config;
         this.legend_order = params.legend_order;
     }
-    Rule.prototype.getLegendConfig = function () {
+    public getLegendConfig() {
         return this.legend_config;
     }
-    Rule.prototype.apply = function (d, cell_width, cell_height) {
+
+    public apply(d:Datum, cell_width:number, cell_height:number) {
         // Gets concrete shapes (i.e. computed
         // real values from percentages)
-        var concrete_shapes = [];
-        for (var i = 0, shapes_len = this.shapes.length; i < shapes_len; i++) {
+        const concrete_shapes = [];
+        for (let i = 0, shapes_len = this.shapes.length; i < shapes_len; i++) {
             concrete_shapes.push(this.shapes[i].getComputedParams(d, cell_width, cell_height));
         }
         return concrete_shapes;
     }
 
-    Rule.prototype.isExcludedFromLegend = function () {
+    public isExcludedFromLegend() {
         return this.exclude_from_legend;
     }
+}
 
-    return Rule;
-})();
-
-var GradientCategoricalRuleSet = (function() {
-
-    function GradientCategoricalRuleSet(params) {
-        RuleSet.call(this, params);
-        this.prototype = Object.create(RuleSet.prototype);
+class GradientCategoricalRuleSet extends RuleSet {
+    private gradientRuleSet:GradientRuleSet;
+    private categoricalRuleSet:CategoricalRuleSet;
+    constructor(params:IGradientAndCategoricalRuleSetParams) {
+        super(params);
         // For the GradientCategoricalRuleSet a datum must always have a
         // value and may have a category attribute. A datum is 'NA'
         // when not meeting the requirements for the GradientRuleSet.
@@ -966,17 +1064,14 @@ var GradientCategoricalRuleSet = (function() {
         this.categoricalRuleSet = new CategoricalRuleSet(params, true);
     }
 
-    // inherit methods from RuleSet
-    GradientCategoricalRuleSet.prototype = Object.create(RuleSet.prototype);
-
     // RuleSet API
-    GradientCategoricalRuleSet.prototype.apply = function(data, cell_width, cell_height, out_active_rules, data_id_key, important_ids) {
+    public apply(data:Datum, cell_width:number, cell_height:number, out_active_rules:ActiveRules|undefined, data_id_key:string&keyof Datum, important_ids?:ColumnProp<boolean>) {
 
-        var shapes = [];
+        const shapes = [];
         // check the type of datum (categorical or continuous) and delegate
         // fetching of shapes to the appropriate RuleSet class
-        for (var i = 0; i < data.length; i++) {
-            var datum = data[i];
+        for (let i = 0; i < data.length; i++) {
+            const datum = data[i];
             if ( this.isCategorical(datum) ) {
                 shapes.push( this.categoricalRuleSet.apply([datum], cell_width, cell_height, out_active_rules, data_id_key, important_ids)[0] );
             } else {
@@ -987,35 +1082,43 @@ var GradientCategoricalRuleSet = (function() {
     }
 
     // RuleSet API
-    GradientCategoricalRuleSet.prototype.getRulesWithId = function(datum) {
-        var categoricalRules = this.categoricalRuleSet.getRulesWithId(datum);
-        var gradientRules = this.gradientRuleSet.getRulesWithId(datum);
-        var rules = categoricalRules.concat(gradientRules);
+    public getRulesWithId(datum?:Datum) {
+        const categoricalRules = this.categoricalRuleSet.getRulesWithId(datum);
+        const gradientRules = this.gradientRuleSet.getRulesWithId(datum);
+        const rules = categoricalRules.concat(gradientRules);
         return rules;
     }
 
     // helper function
-    GradientCategoricalRuleSet.prototype.isCategorical = function(datum) {
+    public isCategorical(datum:Datum) {
         // A categorical value is recognized by presence of a category attribute.
         // Note: a categorical datum still requires a continuous value (used for clustering).
         return datum[this.categoricalRuleSet.category_key] !== undefined;
     }
+}
 
-    return GradientCategoricalRuleSet;
-})();
-
-module.exports = function (params) {
-    if (params.type === 'categorical') {
-        return new CategoricalRuleSet(params);
-    } else if (params.type === 'gradient') {
-        return new GradientRuleSet(params);
-    } else if (params.type === 'gradient+categorical') {
-        return new GradientCategoricalRuleSet(params);
-    } else if (params.type === 'bar') {
-        return new BarRuleSet(params);
-    } else if (params.type === 'stacked_bar') {
-        return new StackedBarRuleSet(params);
-    } else if (params.type === 'gene') {
-        return new GeneticAlterationRuleSet(params);
+export default function (params:RuleSetParams) {
+    let ret:RuleSet;
+    switch (params.type) {
+        case RuleSetType.CATEGORICAL:
+            ret = new CategoricalRuleSet(params as ICategoricalRuleSetParams);
+            break;
+        case RuleSetType.GRADIENT:
+            ret = new GradientRuleSet(params as IGradientRuleSetParams);
+            break;
+        case RuleSetType.GRADIENT_AND_CATEGORICAL:
+            ret = new GradientCategoricalRuleSet(params as IGradientAndCategoricalRuleSetParams);
+            break;
+        case RuleSetType.BAR:
+            ret = new BarRuleSet(params as IBarRuleSetParams);
+            break;
+        case RuleSetType.STACKED_BAR:
+            ret = new StackedBarRuleSet(params as IStackedBarRuleSetParams);
+            break;
+        case RuleSetType.GENE:
+        default:
+            ret = new GeneticAlterationRuleSet(params as IGeneticAlterationRuleSetParams);
+            break;
     }
+    return ret;
 };

@@ -1,19 +1,32 @@
-var string_type = typeof "";
+import {extendArray, sgndiff} from "./utils";
 
-function bucketSort(array, getVector, compareEquals) {
+const string_type = typeof "";
+
+export type SortingVector = (number|string)[];
+
+type BucketRange = {
+    lower_index_incl:number;
+    upper_index_excl:number;
+}
+
+type CompareEquals<T> = (a:T, b:T)=>number;
+
+type GetVector<T> = (t:T)=>SortingVector;
+
+export function bucketSort<T>(array:T[], getVector?:(t:T)=>SortingVector, compareEquals?:CompareEquals<T>) {
     // array: an array of data
     // getVector: a function that takes an element of array and returns an int vector. defaults to identity
     // compareEquals: an optional standard sort comparator - if specified it is run on the
     //               results of the final buckets before returning
-    getVector = getVector || function(d) { return d; };
+    getVector = getVector || function(d:SortingVector) { return d; } as any;
 
     var current_sorted_array = array;
     var current_bucket_ranges = [{lower_index_incl: 0, upper_index_excl: array.length}];
 
-    var new_sorted_array, new_bucket_ranges, bucket_range, sorted_result;
+    var new_sorted_array:T[], new_bucket_ranges:BucketRange[], bucket_range, sorted_result;
 
     // find max length vector, to use as template for vector component types, and whose length will be the sort depth
-    var max_length_vector = [];
+    var max_length_vector:SortingVector = [];
     var proposed_vector;
     for (var i=0; i<array.length; i++) {
         proposed_vector = getVector(array[i]);
@@ -55,14 +68,14 @@ function bucketSort(array, getVector, compareEquals) {
         current_sorted_array = new_sorted_array;
     }
     return current_sorted_array;
-};
+}
 
-function stringSort(array, getString) {
+export function stringSort<T>(array:T[], getString?:(t:T)=>string) {
     // array: an array of data
     // getString: a function that takes an element of `array` and returns a string. defaults to identity
 
     // returns strings sorted in "natural order" (i.e. numbers sorted correctly - P2 comes before P10)
-    getString = getString || function(d) { return d; };
+    getString = getString || function(d:string) { return d; } as any;
     // compute string vectors we'll sort with
     var data = array.map(function(d) {
         return {
@@ -76,7 +89,7 @@ function stringSort(array, getString) {
     return sorted.map(function(datum) { return datum.d; });
 }
 
-function stringToVector(string) {
+export function stringToVector(string:string) {
     var vector = [];
     var len = string.length;
     var numberStartIncl = -1;
@@ -110,7 +123,7 @@ function stringToVector(string) {
     return vector;
 }
 
-function compareFull(d1, d2, getVector, compareEquals) {
+export function compareFull<T>(d1:T, d2:T, getVector:GetVector<T>, compareEquals?:CompareEquals<T>) {
     // utility function - comparator that describes sort order given by bucketSort
     var ret = compare(getVector(d1), getVector(d2));
     if (ret === 0 && compareEquals) {
@@ -119,15 +132,15 @@ function compareFull(d1, d2, getVector, compareEquals) {
     return ret;
 }
 
-function compareVectorElements(elt1, elt2) {
+function compareVectorElements(elt1:number|string, elt2:number|string) {
     if (typeof elt1 === string_type) {
-        return compare(stringToVector(elt1), stringToVector(elt2));
+        return compare(stringToVector(elt1 as string), stringToVector(elt2 as string));
     } else {
-        return signOfDifference(elt1, elt2);
+        return sgndiff(elt1 as number, elt2 as number);
     }
 }
 
-function compare(vector1, vector2) {
+export function compare(vector1:SortingVector, vector2:SortingVector) {
     // utility function - comparator that describes vector sort order given by bucketSort
 
     var ret = 0;
@@ -157,17 +170,14 @@ function compare(vector1, vector2) {
     return ret;
 }
 
-function signOfDifference(k1, k2) {
-    return k1 < k2 ? -1 : (k1 > k2 ? 1 : 0);
-}
-
-function extendArray(target, source) {
-    for (var i=0; i<source.length; i++) {
-        target.push(source[i]);
-    }
-}
-
-function bucketSortHelper(array, getVector, sort_range_lower_index_incl, sort_range_upper_index_excl, vector_index, isStringElt) {
+export function bucketSortHelper<T>(
+    array:T[],
+    getVector:GetVector<T>,
+    sort_range_lower_index_incl:number,
+    sort_range_upper_index_excl:number,
+    vector_index:number,
+    isStringElt:boolean
+) {
     // returns { sorted_array: d[], bucket_ranges:{lower_index_incl, upper_index_excl}[]}} },
     //      where sorted_array only contains elements from the specified range of
     //      array[sort_range_lower_index_incl:sort_range_upper_index_excl]
@@ -182,7 +192,7 @@ function bucketSortHelper(array, getVector, sort_range_lower_index_incl, sort_ra
 
     // bucket sort the specified range
     // gather elements into buckets
-    var buckets = {};
+    var buckets:{[vectorElt:string]:T[]} = {};
     var vector, key;
     var sortFirst = [];
     for (var i=sort_range_lower_index_incl; i<sort_range_upper_index_excl; i++) {
@@ -197,19 +207,19 @@ function bucketSortHelper(array, getVector, sort_range_lower_index_incl, sort_ra
         }
     }
     // reduce in sorted order
-    var keys = Object.keys(buckets);
+    var keys:any[] = Object.keys(buckets);
     if (!isStringElt) {
         // sort numbers
         for (var i=0; i<keys.length; i++) {
             keys[i] = parseFloat(keys[i]);
         }
-        keys.sort(signOfDifference);
+        keys.sort(sgndiff);
     } else {
         // sort strings
         keys = stringSort(keys);
     }
 
-    var sorted_array = [];
+    var sorted_array:T[] = [];
     var bucket_ranges = [];
     var lower_index_incl, upper_index_excl;
     // add sortFirst
@@ -231,12 +241,3 @@ function bucketSortHelper(array, getVector, sort_range_lower_index_incl, sort_ra
 
     return { sorted_array: sorted_array, bucket_ranges: bucket_ranges };
 }
-
-module.exports = {
-    bucketSort: bucketSort,
-    stringSort: stringSort,
-    compare: compare,
-    compareFull: compareFull,
-    __bucketSortHelper: bucketSortHelper,
-    __stringToVector:stringToVector
-};

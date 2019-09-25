@@ -1,46 +1,56 @@
-var makeSVGElement = function (tag, attrs) {
-    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (var k in attrs) {
-        if (attrs.hasOwnProperty(k)) {
-            el.setAttribute(k, attrs[k]);
-        }
-    }
-    return el;
-};
+import makeSVGElement from './makesvgelement';
+import extractRGBA from './extractrgba';
+import {ComputedShapeParams} from "./oncoprintshape";
 
-var extractRGBA = require('./extractrgba.js');
-
-var extractColor = function(str) {
+function extractColor(str:string) {
     if (str.indexOf("rgb(") > -1) {
         return {
             'rgb': str,
             'opacity': 1
         };
     }
-    var rgba_arr = extractRGBA(str);
+    const rgba_arr = extractRGBA(str);
     return {
         'rgb': 'rgb('+rgba_arr[0]*255+','+rgba_arr[1]*255+','+rgba_arr[2]*255+')',
         'opacity': rgba_arr[3]
     };
-};
+}
 
-var rectangleToSVG = function (params, offset_x, offset_y) {
+function rectangleToSVG(params:{
+    width:any,
+    height:any,
+    x:any,
+    y:any,
+    stroke:string,
+    "stroke-width":number,
+    fill:string
+}, offset_x:number, offset_y:number) {
     var stroke_color = extractColor(params.stroke);
     var fill_color = extractColor(params.fill);
     return makeSVGElement('rect', {
         width: params.width,
         height: params.height,
-        x: parseFloat(params.x) + offset_x,
-        y: parseFloat(params.y) + offset_y,
+        x: parseFloat(params.x as any) + offset_x,
+        y: parseFloat(params.y as any) + offset_y,
         stroke: stroke_color.rgb,
         'stroke-opacity': stroke_color.opacity,
         'stroke-width': params['stroke-width'],
         fill: fill_color.rgb,
         'fill-opacity': fill_color.opacity
     });
-};
+}
 
-var triangleToSVG = function (params, offset_x, offset_y) {
+function triangleToSVG(params:{
+    x1:any,
+    y1:any,
+    x2:any,
+    y2:any,
+    x3:any,
+    y3:any,
+    stroke:string,
+    "stroke-width":number,
+    fill:string
+}, offset_x:number, offset_y:number) {
     var stroke_color = extractColor(params.stroke);
     var fill_color = extractColor(params.fill);
     return makeSVGElement('polygon', {
@@ -53,9 +63,17 @@ var triangleToSVG = function (params, offset_x, offset_y) {
         fill: fill_color.rgb,
         'fill-opacity': fill_color.opacity
     });
-};
+}
 
-var ellipseToSVG = function (params, offset_x, offset_y) {
+function ellipseToSVG(params:{
+    width:any,
+    height:any,
+    x:any,
+    y:any,
+    stroke:string,
+    "stroke-width":number,
+    fill:string
+}, offset_x:number, offset_y:number) {
     var stroke_color = extractColor(params.stroke);
     var fill_color = extractColor(params.fill);
     return makeSVGElement('ellipse', {
@@ -69,9 +87,16 @@ var ellipseToSVG = function (params, offset_x, offset_y) {
         fill: fill_color.rgb,
         'fill-opacity': fill_color.opacity
     });
-};
+}
 
-var lineToSVG = function (params, offset_x, offset_y) {
+function lineToSVG(params:{
+    x1:any,
+    y1:any,
+    x2:any,
+    y2:any,
+    stroke:string,
+    "stroke-width":number
+}, offset_x:number, offset_y:number) {
     var stroke_color = extractColor(params.stroke);
     return makeSVGElement('line', {
         x1: parseFloat(params.x1) + offset_x,
@@ -82,17 +107,17 @@ var lineToSVG = function (params, offset_x, offset_y) {
         'stroke-opacity': stroke_color.opacity,
         'stroke-width': params['stroke-width'],
     });
-};
+}
 
-module.exports = function(oncoprint_shape_computed_params, offset_x, offset_y) {
+export default function(oncoprint_shape_computed_params:ComputedShapeParams, offset_x:number, offset_y:number) {
     var type = oncoprint_shape_computed_params.type;
     if (type === 'rectangle') {
-        return rectangleToSVG(oncoprint_shape_computed_params, offset_x, offset_y);
+        return rectangleToSVG(oncoprint_shape_computed_params as any, offset_x, offset_y);
     } else if (type === 'triangle') {
-        return triangleToSVG(oncoprint_shape_computed_params, offset_x, offset_y);
+        return triangleToSVG(oncoprint_shape_computed_params as any, offset_x, offset_y);
     } else if (type === 'ellipse') {
-        return ellipseToSVG(oncoprint_shape_computed_params, offset_x, offset_y);
+        return ellipseToSVG(oncoprint_shape_computed_params as any, offset_x, offset_y);
     } else if (type === 'line') {
-        return lineToSVG(oncoprint_shape_computed_params, offset_x, offset_y);
+        return lineToSVG(oncoprint_shape_computed_params as any, offset_x, offset_y);
     }
-};
+}

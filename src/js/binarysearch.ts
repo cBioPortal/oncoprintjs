@@ -1,4 +1,4 @@
-module.exports = function(array, target_key, keyFn, return_closest_lower_if_not_found) {
+export default function binarysearch<T>(array:T[], target_key:number, keyFn:(t:T)=>number, return_closest_lower_if_not_found?:boolean) {
     if (!array.length) {
         return -1; // return -1 for an empty array
     }

@@ -1,15 +1,55 @@
-var $ = require('jquery');
+import $ from "jquery";
+import MouseMoveEvent = JQuery.MouseMoveEvent;
+import MouseDownEvent = JQuery.MouseDownEvent;
 
-var OncoprintZoomSlider = (function() {
-    var VERTICAL = "v";
-    var HORIZONTAL = "h";
+const VERTICAL = "v";
+const HORIZONTAL = "h";
 
-    var clamp = function(x) {
-        return Math.max(Math.min(x, 1), 0);
-    };
+function clamp(x:number) {
+    return Math.max(Math.min(x, 1), 0);
+}
 
-    var initialize = function(component, params) {
-        var $ctr = component.$div;
+export type OncoprintZoomSliderParams = {
+    btn_size: number,
+    horizontal?: boolean,
+    width?:number,
+
+    vertical?:boolean, // either horizontal and width, or vertical and height, must be set
+    height?:number,
+
+    init_val: number,
+    left:number,
+    top:number,
+    onChange:(val:number)=>void
+};
+
+export default class OncoprintZoomSlider {
+    private $div:JQuery;
+    private onChange:OncoprintZoomSliderParams["onChange"];
+    private value:number;
+    private slider_bar_size:number;
+    private orientation:"v"|"h";
+    private $slider:JQuery;
+    private $plus_btn:JQuery;
+    private $minus_btn:JQuery;
+
+    constructor($container:JQuery, params?:Partial<OncoprintZoomSliderParams>) {
+        this.$div = $('<div>').css({'position':'absolute',
+            'top': params.top || 0,
+            'left': params.left || 0}).appendTo($container);
+        params = params || {};
+        params.btn_size = params.btn_size || 13;
+        this.onChange = params.onChange || function() {};
+
+        this.initialize(params as OncoprintZoomSliderParams);
+
+        this.value = params.init_val === undefined ? 0.5 : params.init_val;
+        this.slider_bar_size = (this.orientation === VERTICAL ? params.height : params.width) - 2*params.btn_size;
+        this.updateSliderPos();
+    }
+
+    private initialize(params:OncoprintZoomSliderParams) {
+        var $ctr = this.$div;
         var icon_size = Math.round(params.btn_size * 0.7);
         var icon_padding = Math.round((params.btn_size - icon_size)/2);
         var $slider_bar = $('<div>').css({'position':'absolute',
@@ -59,7 +99,7 @@ var OncoprintZoomSlider = (function() {
             $minus_btn.css({'top': params.height - params.btn_size, 'left': 0});
             $slider_bar.css({'top': params.btn_size, 'left': 0.4 * params.btn_size});
             $slider.css({'left': 0});
-            component.orientation = VERTICAL;
+            this.orientation = VERTICAL;
         } else {
             $slider_bar.css({'min-height': Math.round(params.btn_size / 5),
                 'min-width': params.width - 2 * params.btn_size});
@@ -70,16 +110,18 @@ var OncoprintZoomSlider = (function() {
             $minus_btn.css({'top': 0, 'left': 0});
             $slider_bar.css({'top': 0.4*params.btn_size, 'left': params.btn_size});
             $slider.css({'top': 0});
-            component.orientation = HORIZONTAL;
+            this.orientation = HORIZONTAL;
         }
 
+        const self = this;
+
         $plus_btn.click(function() {
-            component.value /= 0.7;
-            params.onChange(component.value);
+            self.value /= 0.7;
+            params.onChange(self.value);
         });
         $minus_btn.click(function() {
-            component.value *= 0.7;
-            params.onChange(component.value);
+            self.value *= 0.7;
+            params.onChange(self.value);
         });
 
         [$slider, $plus_btn, $minus_btn].map(function($btn) { $btn.hover(function() {
@@ -90,39 +132,39 @@ var OncoprintZoomSlider = (function() {
 
 
 
-        component.$slider = $slider;
-        component.$plus_btn = $plus_btn;
-        component.$minus_btn = $minus_btn;
+        this.$slider = $slider;
+        this.$plus_btn = $plus_btn;
+        this.$minus_btn = $minus_btn;
 
         (function setUpSliderDrag() {
-            var start_mouse;
-            var start_val;
-            var dragging;
-            var handleSliderDrag = function (evt) {
+            let start_mouse:number;
+            let start_val:number;
+            let dragging:boolean;
+            function handleSliderDrag(evt:MouseMoveEvent) {
                 evt.stopPropagation();
                 evt.preventDefault();
-                var delta_mouse;
-                if (component.orientation === VERTICAL) {
+                let delta_mouse;
+                if (self.orientation === VERTICAL) {
                     delta_mouse = start_mouse - evt.pageY; // vertical zoom, positive is up, but CSS positive is down, so we need to invert
                 } else {
                     delta_mouse = evt.pageX - start_mouse;
                 }
-                var delta_val = delta_mouse / component.slider_bar_size;
-                component.setSliderValue(start_val + delta_val);
-            };
-            var stopSliderDrag = function () {
-                if (dragging && start_val !== component.value) {
-                    component.onChange(component.value);
+                const delta_val = delta_mouse / self.slider_bar_size;
+                self.setSliderValue(start_val + delta_val);
+            }
+            function stopSliderDrag() {
+                if (dragging && start_val !== self.value) {
+                    self.onChange(self.value);
                 }
                 dragging = false;
-            };
-            component.$slider.on("mousedown", function (evt) {
-                if (component.orientation === VERTICAL) {
+            }
+            self.$slider.on("mousedown", function (evt:MouseDownEvent) {
+                if (self.orientation === VERTICAL) {
                     start_mouse = evt.pageY;
                 } else {
                     start_mouse = evt.pageX;
                 }
-                start_val = component.value;
+                start_val = self.value;
                 dragging = true;
                 $(document).on("mousemove", handleSliderDrag);
             });
@@ -133,50 +175,30 @@ var OncoprintZoomSlider = (function() {
         })()
     };
 
-    var setSliderPos = function(component, proportion) {
-        var $slider = component.$slider;
-        var bounds = getSliderBounds(component);
-        if (component.orientation === VERTICAL) {
+    private updateSliderPos() {
+        const proportion = this.value;
+        var $slider = this.$slider;
+        var bounds = this.getSliderBounds();
+        if (this.orientation === VERTICAL) {
             $slider.css('top', bounds.bottom*(1-proportion) + bounds.top*proportion);
-        } else if (component.orientation === HORIZONTAL) {
+        } else if (this.orientation === HORIZONTAL) {
             $slider.css('left', bounds.left*(1-proportion) + bounds.right*proportion);
         }
     };
 
-    var getSliderBounds = function(component) {
-        if (component.orientation === VERTICAL) {
-            return {bottom: parseInt(component.$minus_btn.css('top'), 10) - parseInt(component.$slider.css('min-height'), 10),
-                top: parseInt(component.$plus_btn.css('top'), 10) + parseInt(component.$plus_btn.css('min-height'), 10)};
+    private getSliderBounds() {
+        if (this.orientation === VERTICAL) {
+            return {bottom: parseInt(this.$minus_btn.css('top'), 10) - parseInt(this.$slider.css('min-height'), 10),
+                top: parseInt(this.$plus_btn.css('top'), 10) + parseInt(this.$plus_btn.css('min-height'), 10)};
         } else {
-            return {left: parseInt(component.$minus_btn.css('left'), 10) + parseInt(component.$minus_btn.css('min-width'), 10),
-                right: parseInt(component.$plus_btn.css('left'), 10) - parseInt(component.$slider.css('min-width'), 10)};
+            return {left: parseInt(this.$minus_btn.css('left'), 10) + parseInt(this.$minus_btn.css('min-width'), 10),
+                right: parseInt(this.$plus_btn.css('left'), 10) - parseInt(this.$slider.css('min-width'), 10)};
         }
     };
 
-    var updateSliderPos = function(component) {
-        setSliderPos(component, component.value);
-    };
 
-    function OncoprintZoomSlider($container, params) {
-        this.$div = $('<div>').css({'position':'absolute',
-            'top': params.top || 0,
-            'left': params.left || 0}).appendTo($container);
-        params = params || {};
-        params.btn_size = params.btn_size || 13;
-        this.onChange = params.onChange || function() {};
-        initialize(this, params);
-        this.value = params.init_val || 0.5;
-        this.slider_bar_size = (this.orientation === VERTICAL ? params.height : params.width) - 2*params.btn_size;
-        updateSliderPos(this);
-    }
-
-    OncoprintZoomSlider.prototype.setSliderValue = function(proportion, trigger_callback) {
+    public setSliderValue(proportion:number) {
         this.value = clamp(proportion);
-        updateSliderPos(this);
+        this.updateSliderPos();
     }
-
-
-    return OncoprintZoomSlider;
-})();
-
-module.exports = OncoprintZoomSlider;
+}
