@@ -1,4 +1,4 @@
-import ClusteringWorker from 'worker-loader?inline=true&fallback=false!./workers/clustering-worker';
+import ClusteringWorker from './workers/clustering-worker';
 import {CaseItem, CasesAndEntities, ClusteringMessage, EntityItem} from "./workers/clustering-worker";
 
 /**
@@ -29,7 +29,7 @@ function _hcluster(casesAndEntitites:ClusteringMessage["casesAndEntities"], dime
     message.casesAndEntities = casesAndEntitites;
     message.dimension = dimension;
     worker.postMessage(message);
-    worker.onmessage = function(m) {
+    worker.onmessage = function(m:any) {
         def.resolve(m.data as (CaseItem[])|(EntityItem[]));
     };
     return def.promise();

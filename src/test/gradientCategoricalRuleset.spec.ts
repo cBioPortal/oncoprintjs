@@ -1,11 +1,17 @@
-var OncoprintRuleSet = require("../js/oncoprintruleset.js");
-var assert = require("chai").assert;
-var $ = require('jquery');
+import OncoprintRuleSet, {RuleSetParams, RuleSetType} from "../js/oncoprintruleset";
+import {assert} from "chai";
+
+type Datum = {
+    id:string;
+    category:string|undefined;
+    profile_data:number|null;
+    truncation?:any;
+};
 
 describe("GradientCategoricalRuleSet", function() {
 
-    var mixParams = {
-        type: 'gradient+categorical',
+    const mixParams:RuleSetParams = {
+        type: RuleSetType.GRADIENT_AND_CATEGORICAL,
         legend_label: "this is a label",
         value_key: "profile_data",
         value_range: [1,8],
@@ -13,32 +19,36 @@ describe("GradientCategoricalRuleSet", function() {
         colors: [[255,0,0,1],[0,0,0,1],[0,255,0,1]],
         null_color: 'rgba(224,224,224,1)',
         category_key: "category"
-    }
+    };
 
-    var categoryDatum = {
+    const categoryDatum:Datum = {
+        id:"a",
         category: ">8",
         profile_data: 8
-    }
-    
-    var gradientDatumLargest = {
+    };
+
+    const gradientDatumLargest:Datum = {
+        id:"b",
         category: undefined,
         profile_data: 8
-    }
+    };
 
-    var gradientDatumSmallest = {
+    const gradientDatumSmallest:Datum = {
+        id:"c",
         category: undefined,
         profile_data: 1
-    }
+    };
 
-    var naDatum = {
+    const naDatum:Datum = {
+        id:"d",
         category: undefined,
         profile_data: null,
         truncation: undefined
-    }
+    };
 
     it("Formats gradient value", function() {
-        var mixRuleSet = new OncoprintRuleSet(mixParams);
-        var elements = mixRuleSet.apply([gradientDatumLargest, gradientDatumSmallest, naDatum], 12, 12);
+        var mixRuleSet = OncoprintRuleSet(mixParams);
+        var elements = mixRuleSet.apply([gradientDatumLargest, gradientDatumSmallest, naDatum], 12, 12,  undefined, "id");
         assert.equal(elements.length, 3);
         assert.equal(elements[0][0].fill,'rgba(0,255,0,1)');
         assert.equal(elements[1][0].fill,'rgba(255,0,0,1)');
@@ -46,13 +56,13 @@ describe("GradientCategoricalRuleSet", function() {
     });
 
     it("Formats categorical value", function() {
-        var mixRuleSet = new OncoprintRuleSet(mixParams);
-        var elements = mixRuleSet.apply([categoryDatum], 12, 12);
+        var mixRuleSet = OncoprintRuleSet(mixParams);
+        var elements = mixRuleSet.apply([categoryDatum], 12, 12, undefined, "id");
         assert.equal(elements.length, 1);
     });
 
     it("Suppresses duplicate No Data rules", function() {
-        var mixRuleSet = new OncoprintRuleSet(mixParams);
+        var mixRuleSet = OncoprintRuleSet(mixParams);
         var elements = mixRuleSet.getRulesWithId();
         assert.equal(elements.length, 2);
     });

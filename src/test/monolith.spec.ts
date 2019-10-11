@@ -1,8 +1,8 @@
-var Oncoprint = require("../../dist/oncoprint.bundle.js");
-var BucketSort = require("../js/bucketsort.js");
-var binarySearch = require("../js/binarysearch.js");
-var assert = require("chai").assert;
-var doesCellIntersectPixel = require("../js/utils.js").doesCellIntersectPixel;
+import Oncoprint from "../js/oncoprint";
+import * as BucketSort from "../js/bucketsort";
+import binarySearch from "../js/binarysearch";
+import {assert} from "chai";
+import {doesCellIntersectPixel} from "../js/utils";
 
 describe("test", function() {
     it("should have oncoprint object", function() {
@@ -188,7 +188,7 @@ describe("bucketSort", function() {
             );
         });
         it("case: randomized tests", function() {
-            function randInt(magnitude) {
+            function randInt(magnitude:number) {
                 var ret = Math.round(Math.random()*magnitude - Math.random()*magnitude);
                 if (ret === 0) {
                     // to deal w issues w negative zero
@@ -197,7 +197,7 @@ describe("bucketSort", function() {
                 return ret;
             }
 
-            function generateVector(size) {
+            function generateVector(size:number) {
                 var ret = [];
                 var vectorSize = size+Math.round(Math.random()*4);
                 for (var i=0; i<vectorSize; i++) {
@@ -219,7 +219,7 @@ describe("bucketSort", function() {
             }
         });
         it("case: randomized tests, with compareEquals", function() {
-            function randInt(magnitude) {
+            function randInt(magnitude:number) {
                 var ret = Math.round(Math.random()*magnitude - Math.random()*magnitude);
                 if (ret === 0) {
                     // to deal w issues w negative zero
@@ -228,7 +228,7 @@ describe("bucketSort", function() {
                 return ret;
             }
 
-            function generateVector(size) {
+            function generateVector(size:number) {
                 var ret = [];
                 var vectorSize = size+Math.round(Math.random()*4);
                 for (var i=0; i<vectorSize; i++) {
@@ -242,8 +242,8 @@ describe("bucketSort", function() {
             var vector;
             var name;
 
-            var getVector = function(d) { return d.vector; };
-            var compareEquals = function(d1, d2) {return d1.name.localeCompare(d2.name);};
+            var getVector = function(d:any) { return d.vector; };
+            var compareEquals = function(d1:any, d2:any) {return d1.name.localeCompare(d2.name);};
 
             for (var size=0; size<20; size++) {
                 names = [];
@@ -262,12 +262,12 @@ describe("bucketSort", function() {
             }
         });
         it("case: randomized tests, with strings", function() {
-            var names = [];
+            var names:string[] = [];
             for (var i=0; i<100; i++) {
                 names.push("TCGA-"+(i<10 ? "0" : "")+(i<100 ? "0" : "") + i);
             }
 
-            function randInt(magnitude) {
+            function randInt(magnitude:number) {
                 var ret = Math.round(Math.random()*magnitude - Math.random()*magnitude);
                 if (ret === 0) {
                     // to deal w issues w negative zero
@@ -276,7 +276,7 @@ describe("bucketSort", function() {
                 return ret;
             }
 
-            function generateVector(size) {
+            function generateVector(size:number) {
                 var ret = [];
                 var vectorSize = size+Math.round(Math.random()*4);
                 for (var i=0; i<vectorSize; i++) {
@@ -305,25 +305,25 @@ describe("bucketSort", function() {
     describe("stringToVector", function() {
         it("creates the right vectors", function() {
             assert.deepEqual(
-                BucketSort.__stringToVector(""), []
+                BucketSort.stringToVector(""), []
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("a"), [97]
+                BucketSort.stringToVector("a"), [97]
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("abc"), [97, 98, 99]
+                BucketSort.stringToVector("abc"), [97, 98, 99]
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("abc123abc456c"), [97, 98, 99, 123, 97, 98, 99, 456, 99]
+                BucketSort.stringToVector("abc123abc456c"), [97, 98, 99, 123, 97, 98, 99, 456, 99]
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("abc123abc456"), [97, 98, 99, 123, 97, 98, 99, 456]
+                BucketSort.stringToVector("abc123abc456"), [97, 98, 99, 123, 97, 98, 99, 456]
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("000"), [0]
+                BucketSort.stringToVector("000"), [0]
             );
             assert.deepEqual(
-                BucketSort.__stringToVector("1"), [1]
+                BucketSort.stringToVector("1"), [1]
             );
         });
     });
@@ -417,7 +417,7 @@ describe("bucketSort", function() {
     describe("__bucketSortHelper", function() {
         it("case: size 1 vector", function() {
             assert.deepEqual(
-                BucketSort.__bucketSortHelper(
+                BucketSort.bucketSortHelper(
                     [[3],[1],[2]], function(x) { return x; }, 0, 3, 0, false
                 ),
                 {

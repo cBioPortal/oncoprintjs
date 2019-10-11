@@ -49,13 +49,15 @@ export type ClusteringMessage = {
     casesAndEntities:CasesAndEntities;
 };
 
+
+const ctx:Worker = (self as any as Worker);
 /**
  * "Routing" logic for this worker, based on given message.
  *
  * @param m : message object with m.dimension (CASES or ENTITIES) and m.casesAndEntitites
  *      which is the input for the clustering method.
  */
-onmessage = function(m:MessageEvent) {
+ctx.onmessage = function(m:MessageEvent) {
     console.log('Clustering worker received message');
     var result = null;
     if ((m.data as ClusteringMessage).dimension === "CASES") {
@@ -66,7 +68,7 @@ onmessage = function(m:MessageEvent) {
         throw new Error("Illegal argument given to clustering-worker.js for m.data.dimension: " + m.data.dimension);
     }
     console.log('Posting clustering result back to main script');
-    (self as any as Worker).postMessage(result);
+    ctx.postMessage(result);
 }
 
 /**
@@ -260,3 +262,5 @@ function hclusterGeneticEntities(casesAndEntitites:CasesAndEntities):EntityItem[
     var clusters = clusterfck.hcluster(processedInputItems.notAllNaN, preRankedSpearmanDist);
     return clusters.clusters(1)[0].concat(processedInputItems.allNaN); // add all nan elements to the end post-sorting
 }
+
+export default null;

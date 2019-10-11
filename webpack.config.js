@@ -12,6 +12,13 @@ module.exports = env => ({
                 }]
             },
             {
+                test: /src\/js\/workers\/*/,
+                use:[{
+                    loader: 'worker-loader',
+                    options: { inline:true, fallback: false }
+                }]
+            },
+            {
                 test: /src\/js\/.+\.tsx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/
