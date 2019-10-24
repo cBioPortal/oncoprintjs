@@ -14,7 +14,7 @@ import OncoprintModel, {
     TrackProp
 } from "./oncoprintmodel";
 import OncoprintToolTip from "./oncoprinttooltip";
-import {arrayFindIndex, sgndiff} from "./utils";
+import {arrayFindIndex, ifndef, sgndiff} from "./utils";
 import MouseUpEvent = JQuery.MouseUpEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 
@@ -54,6 +54,7 @@ export type OncoprintTrackBuffer = WebGLBuffer & {
 
 const COLUMN_LABEL_ANGLE = 65;
 const COLUMN_LABEL_MARGIN = 30;
+const COLUMN_LABEL_CIRCLE_PADDING = 5;
 
 export default class OncoprintWebGLCellView {
     public readonly position_bit_pack_base = 128;
@@ -74,7 +75,8 @@ export default class OncoprintWebGLCellView {
 
     private scroll_x:number = 0;
     private scroll_y:number = 0;
-    private maximum_label_width = 0;
+    private maximum_column_label_width = 0;
+    private maximum_column_label_height = 0;
     private rendering_suppressed = false;
 
     private identified_shape_list_list:TrackProp<IdentifiedShapeList[]> = {};
@@ -344,7 +346,7 @@ export default class OncoprintWebGLCellView {
         if (label) {
             const highlightHeight = model.getCellWidth()*this.supersampling_ratio;
             this.prepareContextForColumnLabelText(model, this.overlay_ctx);
-            const highlightWidth = this.overlay_ctx.measureText(label).width+20;
+            const highlightWidth = this.overlay_ctx.measureText(label.text).width+20;
             const y = this.getColumnLabelY(model);
             const x = (model.getZoomedColumnLeft(id) - this.scroll_x)*this.supersampling_ratio;
             this.overlay_ctx.save();
@@ -562,9 +564,10 @@ export default class OncoprintWebGLCellView {
         // first clear
         this.column_label_ctx.fillStyle = "rgba(0,0,0,0)";
         this.column_label_ctx.clearRect(0,0, this.$column_label_canvas[0].width, this.$column_label_canvas[0].height);
-        this.maximum_label_width = 0;
+        this.maximum_column_label_width = 0;
+        this.maximum_column_label_height = 0;
 
-        // render labels
+        // continue to rendering
         const labels = model.getColumnLabels();
 
         // dont do anything if theres no labels
@@ -577,23 +580,54 @@ export default class OncoprintWebGLCellView {
         const scroll_x = this.scroll_x;
         const cell_width = model.getCellWidth();
 
-        this.column_label_ctx.fillStyle = "rgba(0,0,0,1)";
+        const font_size = OncoprintWebGLCellView.getColumnLabelsFontSize(model);
         this.prepareContextForColumnLabelText(model, this.column_label_ctx);
         for (let i=0; i<ids.length; i++) {
-            if (ids[i] in labels) {
+            const label = labels[ids[i]];
+            let label_height = this.column_label_ctx.measureText("m").width/this.supersampling_ratio;
+            if (label) {
                 const x = (x_map[ids[i]] + cell_width/2 - scroll_x)*this.supersampling_ratio;
+                if (label.circle_color) {
+                    // draw circle if specified
+                    this.column_label_ctx.save();
+                    const circleSpec = this.getColumnLabelCircleSpec(model);
+                    label_height = Math.max(2*circleSpec.radius, label_height);
+                    this.column_label_ctx.translate(x+circleSpec.dx*this.supersampling_ratio, y);
+                    this.column_label_ctx.fillStyle = label.circle_color;
+                    this.column_label_ctx.beginPath();
+                    this.column_label_ctx.arc(0, 0, this.supersampling_ratio*circleSpec.radius, 0, 2*Math.PI);
+                    this.column_label_ctx.fill();
+                    this.column_label_ctx.restore();
+                }
                 this.column_label_ctx.save();
-                this.column_label_ctx.translate(x, y);
-                this.column_label_ctx.rotate(COLUMN_LABEL_ANGLE*(Math.PI/180));
-                this.column_label_ctx.fillText(labels[ids[i]], 0, 0);
-                this.maximum_label_width = Math.max(
-                    this.maximum_label_width,
-                    this.column_label_ctx.measureText(labels[ids[i]]).width/this.supersampling_ratio
+                const left_padding = (label.left_padding_percent || 0)*model.getCellWidth()/100;
+                this.column_label_ctx.translate(x + left_padding*this.supersampling_ratio, y);
+                this.column_label_ctx.rotate(ifndef(label.angle_in_degrees, COLUMN_LABEL_ANGLE)*(Math.PI/180));
+                this.column_label_ctx.fillStyle = label.text_color || "rgba(0,0,0,1)";
+                this.column_label_ctx.fillText(label.text, 0, 0);
+                const text_width = this.column_label_ctx.measureText(label.text).width/this.supersampling_ratio;
+                const text_angle = ifndef(label.angle_in_degrees, COLUMN_LABEL_ANGLE)*Math.PI/180;
+
+                this.maximum_column_label_width = Math.max(
+                    this.maximum_column_label_width,
+                    Math.cos(text_angle)*text_width
+                );
+
+                this.maximum_column_label_height = Math.max(
+                    this.maximum_column_label_height,
+                    Math.sin(text_angle)*text_width,
+                    label_height
                 );
 
                 this.column_label_ctx.restore();
             }
         }
+    }
+
+    private getColumnLabelCircleSpec(model:OncoprintModel) {
+         const radius = 0.9*(model.getCellWidth()/2);
+         const dx = 0.05*model.getCellWidth();
+         return { radius, dx };
     }
 
     private clearTrackPositionAndColorBuffers(model:OncoprintModel, track_id?:TrackId) {
@@ -1060,8 +1094,8 @@ export default class OncoprintWebGLCellView {
     public getTotalWidth(model:OncoprintModel, base?:boolean) {
         let width = (model.getCellWidth(base) + model.getCellPadding(base))*model.getIdOrder().length;
 
-        if (this.maximum_label_width > 0) {
-            width += this.maximum_label_width*Math.cos(COLUMN_LABEL_ANGLE*Math.PI/180);
+        if (this.maximum_column_label_width > 0) {
+            width += this.maximum_column_label_width;
         }
 
         return width;
@@ -1082,9 +1116,9 @@ export default class OncoprintWebGLCellView {
     private getColumnLabelsHeight() {
         let height = 0;
 
-        if (this.maximum_label_width > 0) {
+        if (this.maximum_column_label_height > 0) {
             height += COLUMN_LABEL_MARGIN;
-            height += this.maximum_label_width*Math.sin(COLUMN_LABEL_ANGLE*Math.PI/180);
+            height += this.maximum_column_label_height;
         }
 
         return height;
@@ -1167,19 +1201,44 @@ export default class OncoprintWebGLCellView {
         const cell_width = model.getCellWidth();
         for (let i=0; i<ids_with_labels.length; i++) {
             const id = ids_with_labels[i];
+
+            if (!(id in left)) {
+                // skip hidden id
+                continue;
+            }
+
+            const label = labels[id];
+
             const x = left[id] + cell_width/2;
+            if (label.circle_color) {
+                // add circle
+                const spec = this.getColumnLabelCircleSpec(model);
+                root.appendChild(makeSvgElement("ellipse",{
+                    cx: x + spec.dx,
+                    cy: column_label_y,
+                    rx: spec.radius,
+                    ry: spec.radius,
+                    stroke:"rgba(0,0,0,0)",
+                    fill:label.circle_color
+                }));
+            }
+
+            const text_x = x + ((label.left_padding_percent || 0)/100)*cell_width;
+
+            const angle = ifndef(label.angle_in_degrees, COLUMN_LABEL_ANGLE);
             const textElt = makeSvgElement("text", {
-                x:x,
+                x:text_x,
                 y:column_label_y,
+                fill:label.text_color || "#000000",
                 "font-size":font_size,
                 "font-family":"Arial",
                 "font-weight":"normal",
                 "text-anchor":"start",
-                "fill":"black",
-                "transform":"rotate("+COLUMN_LABEL_ANGLE+","+x+","+column_label_y+")",
+                "transform":"rotate("+angle+","+text_x+","+column_label_y+")",
                 "alignment-baseline":"middle"
             });
-            textElt.textContent = labels[id];
+
+            textElt.textContent = label.text;
             root.appendChild(textElt);
         }
 
