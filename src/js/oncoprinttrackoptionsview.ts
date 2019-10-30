@@ -1,6 +1,6 @@
 import $ from "jquery";
 import menuDotsIcon from '../img/menudots.svg';
-import OncoprintModel, {TrackId, TrackProp, TrackSortDirection} from "./oncoprintmodel";
+import OncoprintModel, {TrackGroupProp, TrackId, TrackProp, TrackSortDirection} from "./oncoprintmodel";
 import ClickEvent = JQuery.ClickEvent;
 
 const TOGGLE_BTN_CLASS = "oncoprintjs__track_options__toggle_btn_img";
@@ -341,6 +341,10 @@ export default class OncoprintTrackOptionsView {
         this.setVertZoom(model, getCellViewHeight);
     }
     public setVertZoom(model:OncoprintModel, getCellViewHeight:()=>number) {
+        this.renderAllOptions(model);
+        this.resize(model, getCellViewHeight);
+    }
+    public setTrackGroupHeader(model:OncoprintModel, getCellViewHeight:()=>number) {
         this.renderAllOptions(model);
         this.resize(model, getCellViewHeight);
     }
