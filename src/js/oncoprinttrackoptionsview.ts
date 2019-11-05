@@ -128,7 +128,7 @@ export default class OncoprintTrackOptionsView {
         $(document).trigger(HEADER_VIEW_CLOSE_MENUS_EVENT);
     }
 
-    private static $makeDropdownOption(text:string, weight:string, disabled:boolean, callback:(evt:ClickEvent)=>void) {
+    private static $makeDropdownOption(text:string, weight:string, disabled?:boolean, callback?:(evt:ClickEvent)=>void) {
         const li = $('<li>').text(text).css({'font-weight': weight, 'font-size': 12, 'border-bottom': '1px solid rgba(0,0,0,0.3)'});
         if (!disabled) {
             if (callback) {
@@ -303,7 +303,7 @@ export default class OncoprintTrackOptionsView {
                     if (option.separator) {
                         $dropdown.append(OncoprintTrackOptionsView.$makeDropdownSeparator());
                     } else {
-                        $dropdown.append(OncoprintTrackOptionsView.$makeDropdownOption(option.label || "", option.weight || "normal", !!option.disabled, option.onClick && function (evt) {
+                        $dropdown.append(OncoprintTrackOptionsView.$makeDropdownOption(option.label || "", option.weight || "normal", option.disabled, option.onClick && function (evt) {
                             evt.stopPropagation();
                             option.onClick(track_id);
                         }));
@@ -350,6 +350,10 @@ export default class OncoprintTrackOptionsView {
         this.resize(model, getCellViewHeight);
     }
     public setTrackGroupHeader(model:OncoprintModel, getCellViewHeight:()=>number) {
+        this.renderAllOptions(model);
+        this.resize(model, getCellViewHeight);
+    }
+    public sort(model:OncoprintModel, getCellViewHeight:()=>number) {
         this.renderAllOptions(model);
         this.resize(model, getCellViewHeight);
     }
