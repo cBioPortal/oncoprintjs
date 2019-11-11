@@ -211,7 +211,7 @@ function makeUniqueColorGetter(init_used_colors:string[]) {
     };
 }
 
-function makeNAShapes(z:number) {
+function makeNAShapes(z:number):ShapeParams[] {
     return [
         {
             'type': 'rectangle',
@@ -220,11 +220,11 @@ function makeNAShapes(z:number) {
         }, {
             'type': 'line',
             'stroke': 'rgba(190,190,190,1)',
-            'stroke-width': '1',
-            'x1': '0%',
-            'x2': '100%',
-            'y1':'50%',
-            'y2':'50%',
+            'stroke-width': 1,
+            'x1': 0,
+            'x2': 100,
+            'y1':50,
+            'y2':50,
             'z':z
         }
     ];
@@ -876,13 +876,13 @@ class BarRuleSet extends LinearInterpRuleSet {
         let ret;
         switch (this.getValueRangeType()) {
             case LinearInterpRangeType.NON_POSITIVE:
-                ret = (function(t:number) { return "0%"; });
+                ret = (function(t:number) { return 0; });
                 break;
             case LinearInterpRangeType.NON_NEGATIVE:
-                ret = (function(t:number) { return (1 - t) * 100 + "%"; });
+                ret = (function(t:number) { return (1 - t) * 100; });
                 break;
             case LinearInterpRangeType.ALL:
-                ret = (function(t:number) { return Math.min(1-t, 1)*50 + "%"; });
+                ret = (function(t:number) { return Math.min(1-t, 1)*50; });
                 break;
         }
         return ret;
@@ -892,13 +892,13 @@ class BarRuleSet extends LinearInterpRuleSet {
         let ret;
         switch (this.getValueRangeType()) {
             case LinearInterpRangeType.NON_POSITIVE:
-                ret = (function(t:number) { return -t * 100 + "%"; });
+                ret = (function(t:number) { return -t * 100; });
                 break;
             case LinearInterpRangeType.NON_NEGATIVE:
-                ret = (function(t:number) { return t * 100 + "%"; });
+                ret = (function(t:number) { return t * 100; });
                 break;
             case LinearInterpRangeType.ALL:
-                ret = (function(t:number) { return Math.abs(t) * 50 + "%"; });
+                ret = (function(t:number) { return Math.abs(t) * 50; });
                 break;
         }
         return ret;
@@ -933,13 +933,13 @@ class StackedBarRuleSet extends ConditionRuleSet {
                     {shapes: [{
                             type: 'rectangle',
                             fill: fills[I],
-                            width: '100%',
+                            width: 100,
                             height: function(d) {
                                 var total = 0;
                                 for (var j=0; j<categories.length; j++) {
                                     total += parseFloat(d[value_key][categories[j]]);
                                 }
-                                return parseFloat(d[value_key][categories[I]])*100/total + '%';
+                                return parseFloat(d[value_key][categories[I]])*100/total;
                             },
                             y: function(d) {
                                 var total = 0;
@@ -951,7 +951,7 @@ class StackedBarRuleSet extends ConditionRuleSet {
                                     }
                                     total += new_val;
                                 }
-                                return prev_vals_sum*100/total + '%';
+                                return prev_vals_sum*100/total;
                             }
                         }],
                         exclude_from_legend: false,

@@ -1,28 +1,30 @@
 import {Datum} from "./oncoprintmodel";
 
-type StringOnlyParameter = "stroke" | "fill" | "type";
-type StringOrNumberParameter = "width" | "height" | "x" | "y" | "z" | "x1" | "x2" | "x3" | "y1" | "y2" | "y3" | "stroke-width" | "stroke-opacity";
-type Parameter = StringOnlyParameter | StringOrNumberParameter;
+type StringParameter = "stroke" | "fill" | "type";
+type PercentNumberParameter = "width" | "height" | "x" | "y" | "x1" | "x2" | "x3" | "y1" | "y2" | "y3";
+type PlainNumberParameter = "z" | "stroke-width" | "stroke-opacity";
+type NumberParameter = PercentNumberParameter | PlainNumberParameter;
+type Parameter = StringParameter | NumberParameter;
 
-const default_parameter_values:{[x in StringOnlyParameter]?:string} & {[x in StringOrNumberParameter]?:string|number} = {
-    'width': '100%',
-    'height': '100%',
-    'x': '0%',
-    'y': '0%',
+const default_parameter_values:{[x in StringParameter]?:string} & {[x in NumberParameter]?:number} = {
+    'width': 100,
+    'height': 100,
+    'x': 0,
+    'y': 0,
     'z': 0,
-    'x1': '0%',
-    'x2': '0%',
-    'x3': '0%',
-    'y1': '0%',
-    'y2': '0%',
-    'y3': '0%',
+    'x1': 0,
+    'x2': 0,
+    'x3': 0,
+    'y1': 0,
+    'y2': 0,
+    'y3': 0,
     'stroke': 'rgba(0,0,0,0)',
     'fill': 'rgba(23,23,23,1)',
-    'stroke-width': '0',
-    'stroke-opacity': '0'
+    'stroke-width': 0,
+    'stroke-opacity': 0
 };
-const parameter_name_to_dimension_index:{[x in Parameter]?:number} = {
-    'stroke-width':0,
+
+const percent_parameter_name_to_dimension_index:{[x in PercentNumberParameter]:number} = {
     'width': 0,
     'x':0,
     'x1':0,
@@ -39,10 +41,22 @@ const hash_parameter_order:Parameter[] = [
     "width", "height", "x", "y", "z", "x1", "x2", "x3", "y1", "y2", "y3", "stroke", "fill", "stroke-width", "stroke-opacity", "type"
 ];
 
-type ParamFunction = (d:Datum)=>(string|number);
-export type ShapeParams = {[x in StringOnlyParameter]?:string|ParamFunction} & {[x in StringOrNumberParameter]?:string|number|ParamFunction};
-type ShapeParamsWithType = {[x in Parameter]?:({ type:"function", value:ParamFunction} | {type:"value", value:string|number})};
-export type ComputedShapeParams = {[x in StringOnlyParameter]?:string} & {[x in StringOrNumberParameter]?:string|number};
+type StringParamFunction = (d:Datum)=>string;
+type NumberParamFunction = (d:Datum)=>number;
+type ParamFunction = StringParamFunction | NumberParamFunction;
+
+export type ShapeParams = {[x in StringParameter]?:string|StringParamFunction} & {[x in NumberParameter]?:number|NumberParamFunction};
+type ShapeParamsWithType = {
+    [x in StringParameter]?:({ type:"function", value:StringParamFunction} | {type:"value", value:string})
+} & {
+    [x in NumberParameter]?:({ type:"function", value:NumberParamFunction} | {type:"value", value:number})
+};
+
+export type ComputedShapeParams = {[x in StringParameter]?:string} & {[x in NumberParameter]?:number};
+
+function isPercentParam(param_name:string):param_name is PercentNumberParameter {
+    return param_name in percent_parameter_name_to_dimension_index;
+}
 
 export class Shape {
 
@@ -83,8 +97,10 @@ export class Shape {
             const param_name = parameters[i];
             const param_val = this.params[param_name];
             if (typeof param_val === 'function') {
+                //@ts-ignore
                 this.params_with_type[param_name] = {'type':'function', 'value':param_val};
             } else {
+                //@ts-ignore
                 this.params_with_type[param_name] = {'type':'value', 'value': param_val};
             }
         }
@@ -101,44 +117,51 @@ export class Shape {
                 if (param_val_map.type === 'function') {
                     param_val = (param_val as ParamFunction)(d);
                 }
-                if (typeof param_val === "string" && param_val[param_val.length-1] === '%') {
-                    // compute value as percentage of width or height
+                // at this point, param_val is resolved to either a string or number
 
-                    // check a couple of commonly-used special cases to avoid slower parseFloat
-                    if (param_val === '100%') {
-                        param_val = 1;
-                    } else {
-                        param_val = parseFloat(param_val) / 100;
-                    }
-                    param_val *= dimensions[parameter_name_to_dimension_index[param_name]];
+                if (isPercentParam(param_name)) {
+                    // if its a percentage param, compute value as percentage of width or height
+                    param_val = (param_val as number)/100 * dimensions[percent_parameter_name_to_dimension_index[param_name]];
                 }
             }
-            computed_params[param_name] = param_val as any;
+            //@ts-ignore
+            computed_params[param_name] = param_val;
         }
         return Shape.getCachedShape(computed_params);
     };
 }
 
+type SpecificComputedShapeParams<ShapeParamType> =
+    {[x in ShapeParamType & StringParameter]:string} & {[x in ShapeParamType & NumberParameter]:number};
+
+type RectangleParameter = "width" | "height" | "x" | "y" | "z" | "stroke" | "stroke-width" | "fill";
+export type ComputedRectangleParams = SpecificComputedShapeParams<RectangleParameter>;
 export class Rectangle extends Shape {
-    public getRequiredParameters(): Parameter[] {
+    public getRequiredParameters(): RectangleParameter[] {
         return ['width', 'height', 'x', 'y', 'z', 'stroke', 'fill', 'stroke-width'];
     }
 }
 
+type TriangleParameter = "x1" | "x2" | "x3" | "y1" | "y2" | "y3" | "z" | "stroke" | "stroke-width" | "fill";
+export type ComputedTriangleParams = SpecificComputedShapeParams<TriangleParameter>;
 export class Triangle extends Shape {
-    public getRequiredParameters(): Parameter[] {
+    public getRequiredParameters(): TriangleParameter[] {
         return ['x1', 'x2', 'x3', 'y1', 'y2', 'y3', 'z', 'stroke', 'fill', 'stroke-width'];
     }
 }
 
+export type EllipseParameter = "width" | "height" | "x" | "y" | "z" | "stroke" | "stroke-width" | "fill";
+export type ComputedEllipseParams = SpecificComputedShapeParams<EllipseParameter>;
 export class Ellipse extends Shape {
-    public getRequiredParameters(): Parameter[] {
+    public getRequiredParameters(): EllipseParameter[] {
         return ['width', 'height', 'x', 'y', 'z', 'stroke', 'fill', 'stroke-width'];
     }
 }
 
+export type LineParameter = "x1" | "y1" | "x2" | "y2" | "z" | "stroke" | "stroke-width";
+export type ComputedLineParams = SpecificComputedShapeParams<LineParameter>;
 export class Line extends Shape {
-    public getRequiredParameters(): Parameter[] {
+    public getRequiredParameters(): LineParameter[] {
         return ['x1', 'x2', 'y1', 'y2', 'z', 'stroke', 'stroke-width'];
     }
 }
