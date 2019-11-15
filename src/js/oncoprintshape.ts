@@ -62,6 +62,13 @@ export class Shape {
 
     private static cache:{[hash:string]:ComputedShapeParams} = {}; // shape cache to reuse objects and thus save memory
     private params_with_type:ShapeParamsWithType = {};
+    private onlyDependsOnWidthAndHeight:boolean;
+
+    private instanceCache = {
+        lastComputedParams: null as ComputedShapeParams|null,
+        lastWidth:-1,
+        lastHeight:-1
+    };
 
     constructor(private params:ShapeParams) {
         this.completeWithDefaults();
@@ -93,19 +100,29 @@ export class Shape {
     }
     public markParameterTypes() {
         const parameters = Object.keys(this.params) as Parameter[];
+        let onlyDependsOnWidthAndHeight = true;
         for (let i=0; i<parameters.length; i++) {
             const param_name = parameters[i];
             const param_val = this.params[param_name];
             if (typeof param_val === 'function') {
                 //@ts-ignore
                 this.params_with_type[param_name] = {'type':'function', 'value':param_val};
+                onlyDependsOnWidthAndHeight = false;
             } else {
                 //@ts-ignore
                 this.params_with_type[param_name] = {'type':'value', 'value': param_val};
             }
         }
+        this.onlyDependsOnWidthAndHeight = onlyDependsOnWidthAndHeight;
     }
     public getComputedParams(d:Datum, base_width:number, base_height:number) {
+        if (this.onlyDependsOnWidthAndHeight &&
+            this.instanceCache.lastWidth === base_width &&
+            this.instanceCache.lastHeight === base_height) {
+
+            return this.instanceCache.lastComputedParams!;
+        }
+
         const computed_params:Partial<ComputedShapeParams> = {};
         const param_names = Object.keys(this.params_with_type) as Parameter[];
         const dimensions:[number, number] = [base_width, base_height];
@@ -127,6 +144,14 @@ export class Shape {
             //@ts-ignore
             computed_params[param_name] = param_val;
         }
+
+        if (this.onlyDependsOnWidthAndHeight) {
+            // only cache if its cacheable, otherwise it would be a waste of memory to save
+            this.instanceCache.lastHeight = base_height;
+            this.instanceCache.lastWidth = base_width;
+            this.instanceCache.lastComputedParams = Shape.getCachedShape(computed_params);
+        }
+
         return Shape.getCachedShape(computed_params);
     };
 }
