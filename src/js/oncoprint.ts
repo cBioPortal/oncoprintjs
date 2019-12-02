@@ -243,11 +243,11 @@ export default class Oncoprint {
 
         this.header_view = new OncoprintHeaderView(this.$header_div);
 
-        this.cell_view = new OncoprintWebGLCellView($cell_div, $cell_canvas, $cell_overlay_canvas, $column_label_canvas, $dummy_scroll_div_contents, this.model, new OncoprintToolTip($tooltip_ctr), function(left, right) {
-                const enclosed_ids = self.model.getIdsInLeftInterval(left, right);
+        this.cell_view = new OncoprintWebGLCellView($cell_div, $cell_canvas, $cell_overlay_canvas, $column_label_canvas, $dummy_scroll_div_contents, this.model, new OncoprintToolTip($tooltip_ctr),
+            function(left, right) {
+                const enclosed_ids = self.model.getIdsInZoomedLeftInterval(left, right);
                 self.setHorzZoom(self.model.getHorzZoomToFit(self.cell_view.visible_area_width, enclosed_ids));
                 self.$dummy_scroll_div.scrollLeft(self.model.getZoomedColumnLeft(enclosed_ids[0]));
-                self.id_clipboard = enclosed_ids;
             },
             function(uid, track_id) {
                 self.doCellMouseOver(uid, track_id);
@@ -261,15 +261,17 @@ export default class Oncoprint {
                 self.setScroll(x,y);
             },
             function(vp:MinimapViewportSpec) {
-                self.setViewport(vp.col,vp.scroll_y_proportion,vp.num_cols, vp.zoom_y);
+                self.setViewport(vp);
             },
             function(val:number) {
                 const prev_viewport = self.cell_view.getViewportOncoprintSpace(self.model);
                 const prev_center_onc_space = (prev_viewport.left + prev_viewport.right) / 2;
-                const center_column = Math.floor(prev_center_onc_space / (self.model.getCellWidth(true) + self.model.getCellPadding(true)));
+                const id_order = self.model.getIdOrder();
+                const center_column = Math.min(id_order.length-1, self.model.getClosestColumnIndexToLeft(prev_center_onc_space));
+                const center_id = id_order[center_column];
                 self.setHorzZoom(val);
                 const viewport = self.cell_view.getViewportOncoprintSpace(self.model);
-                const center_column_x_zoomed = center_column * (self.model.getCellWidth() + self.model.getCellPadding());
+                const center_column_x_zoomed = self.model.getZoomedColumnLeft(center_id);
                 const half_viewport_width_zoomed = self.model.getHorzZoom() * (viewport.right - viewport.left) / 2;
 
                 self.setHorzScroll(center_column_x_zoomed - half_viewport_width_zoomed);
@@ -315,7 +317,9 @@ export default class Oncoprint {
             },
             function (track_id:TrackId) { self.removeTrack(track_id); },
             function (track_id, dir) { self.setTrackSortDirection(track_id, dir); },
-            function (track_id:TrackId) { self.removeExpansionTracksFor(track_id); });
+            function (track_id:TrackId) { self.removeExpansionTracksFor(track_id); },
+            self.setTrackShowGaps.bind(self)
+        );
         this.track_info_view = new OncoprintTrackInfoView($track_info_div, new OncoprintToolTip($tooltip_ctr));
 
         //this.track_info_view = new OncoprintTrackInfoView($track_info_div);
@@ -334,8 +338,6 @@ export default class Oncoprint {
 
         // We need to handle scrolling this way because for some reason huge
         //  canvas elements have terrible resolution.
-        const cell_view = this.cell_view;
-        const model = this.model;
 
         this.target_dummy_scroll_left = 0;
         this.target_dummy_scroll_top = 0;
@@ -862,16 +864,16 @@ export default class Oncoprint {
 
         return this.model.getVertScroll();
     }
-    public setViewport(col:number, scroll_y_proportion:number, num_cols:number, zoom_y:number) {
+    public setViewport(vp:MinimapViewportSpec) {
         if(this.webgl_unavailable || this.destroyed) {
             return;
         }
         // Zoom
-        const zoom_x = this.model.getHorzZoomToFitNumCols(this.cell_view.getVisibleAreaWidth(), num_cols);
-        this.setZoom(zoom_x, zoom_y);
+        const zoom_x = this.model.getHorzZoomToFitCols(this.cell_view.getVisibleAreaWidth(), vp.left_col, vp.right_col);
+        this.setZoom(zoom_x, vp.zoom_y);
         // Scroll
-        const scroll_left = Math.min(col * (this.model.getCellWidth() + this.model.getCellPadding()), this.maxOncoprintScrollLeft());
-        const scroll_top = Math.min(scroll_y_proportion*this.model.getOncoprintHeight(), this.maxOncoprintScrollTop());
+        const scroll_left = Math.min(this.model.getZoomedColumnLeft(this.model.getIdOrder()[vp.left_col]), this.maxOncoprintScrollLeft());
+        const scroll_top = Math.min(vp.scroll_y_proportion*this.model.getOncoprintHeight(), this.maxOncoprintScrollTop());
         this.setScroll(scroll_left, scroll_top);
 
         this.executeHorzZoomCallbacks();
@@ -1000,6 +1002,11 @@ export default class Oncoprint {
         this.label_view.setShowTrackSublabels(this.model, this.getCellViewHeight);
 
         this.resizeAndOrganizeAfterTimeout();
+    }
+
+    public setTrackShowGaps(track_id:TrackId, showGaps:boolean) {
+        this.model.setTrackShowGaps(track_id, showGaps);
+        this.cell_view.setTrackShowGaps(this.model);
     }
 
     public sort() {

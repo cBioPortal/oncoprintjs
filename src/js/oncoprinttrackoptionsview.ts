@@ -32,7 +32,8 @@ export default class OncoprintTrackOptionsView {
         private moveDownCallback:TrackCallback,
         private removeCallback:TrackCallback,
         private sortChangeCallback:(trackId:TrackId, sortDirection:TrackSortDirection)=>void,
-        private unexpandCallback:TrackCallback
+        private unexpandCallback:TrackCallback,
+        private showGapsCallback:(trackId:TrackId, showGaps:boolean)=>void
     ) {
         const position = $div.css('position');
         if (position !== 'absolute' && position !== 'relative') {
@@ -298,6 +299,34 @@ export default class OncoprintTrackOptionsView {
                     evt.stopPropagation();
                     self.unexpandCallback(track_id);
                 }));
+        }
+        if (model.getTrackCanShowGaps(track_id)) {
+            $dropdown.append(OncoprintTrackOptionsView.$makeDropdownSeparator());
+            const $show_gaps_opt = OncoprintTrackOptionsView.$makeDropdownOption(
+                'Show gaps',
+                model.getTrackShowGaps(track_id) ? 'bold' : 'normal',
+                false,
+                function(evt) {
+                    evt.stopPropagation();
+                    $show_gaps_opt.css('font-weight', 'bold');
+                    $dont_show_gaps_opt.css('font-weight', 'normal');
+                    self.showGapsCallback(track_id, true);
+                }
+            );
+            const $dont_show_gaps_opt = OncoprintTrackOptionsView.$makeDropdownOption(
+                "Don't show gaps",
+                model.getTrackShowGaps(track_id) ? 'normal' : 'bold',
+                false,
+                function(evt) {
+                    evt.stopPropagation();
+
+                    $show_gaps_opt.css('font-weight', 'normal');
+                    $dont_show_gaps_opt.css('font-weight', 'bold');
+                    self.showGapsCallback(track_id, false);
+                }
+            );
+            $dropdown.append($show_gaps_opt);
+            $dropdown.append($dont_show_gaps_opt);
         }
         // Add custom options
         const custom_options = model.getTrackCustomOptions(track_id);
