@@ -404,6 +404,10 @@ export default class OncoprintTrackOptionsView {
             return 18 + this.img_size;
         }
     }
+    public setTrackShowGaps(model:OncoprintModel, getCellViewHeight:()=>number) {
+        this.renderAllOptions(model);
+        this.resize(model, getCellViewHeight);
+    }
     public addTracks(model:OncoprintModel, getCellViewHeight:()=>number) {
         this.renderAllOptions(model);
         this.resize(model, getCellViewHeight);

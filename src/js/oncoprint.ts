@@ -961,6 +961,12 @@ export default class Oncoprint {
             if (this.keep_sorted && this.model.isSortAffected(track_id, "track")) {
                 this.sort();
             }
+
+            if (this.model.getTrackSortDirection(track_id) === 0) {
+                if (this.model.getTrackShowGaps(track_id)) {
+                    this.setTrackShowGaps(track_id, false);
+                }
+            }
         }
         return this.model.getTrackSortDirection(track_id);
     }
@@ -1006,6 +1012,10 @@ export default class Oncoprint {
 
     public setTrackShowGaps(track_id:TrackId, showGaps:boolean) {
         this.model.setTrackShowGaps(track_id, showGaps);
+        if (this.model.getTrackSortDirection(track_id) === 0 && showGaps) {
+            this.setTrackSortDirection(track_id, 1);
+        }
+        this.track_options_view.setTrackShowGaps(this.model, this.getCellViewHeight);
         this.cell_view.setTrackShowGaps(this.model);
     }
 
