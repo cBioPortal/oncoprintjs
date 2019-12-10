@@ -18,6 +18,7 @@ import {arrayFindIndex, ifndef, sgndiff} from "./utils";
 import MouseUpEvent = JQuery.MouseUpEvent;
 import MouseMoveEvent = JQuery.MouseMoveEvent;
 import {CellClickCallback, CellMouseOverCallback} from "./oncoprint";
+import {OMath} from "./polyfill";
 
 type ColorBankIndex = number; // index into vertex bank (e.g. 0, 4, 8, ...)
 type ColorBank = number[]; // flat list of color: [c0,c0,c0,c0,v1,v1,v1,c1,c1,c1,c1,...]
@@ -398,74 +399,112 @@ export default class OncoprintWebGLCellView {
 
     private setUpShaders(model:OncoprintModel) {
         const columnsRightAfterGapsSize = this.getColumnIndexesAfterAGap(model).length;
-        const vertex_shader_source = ['precision highp float;',
-            'attribute float aPosVertex;',
-            'attribute float aColVertex;',
-            'attribute float aVertexOncoprintColumn;',
+        const maxBinarySearchSteps = Math.ceil(OMath.log2(columnsRightAfterGapsSize));
+        const vertex_shader_source = `
+            precision highp float;
+            attribute float aPosVertex;
+            attribute float aColVertex;
+            attribute float aVertexOncoprintColumn;
 
-            'uniform float gapSize;',
+            uniform float gapSize;
 
             //              array length cant be 0
-            `uniform float columnsRightAfterGaps[${columnsRightAfterGapsSize}];`,
+            uniform float columnsRightAfterGaps[${columnsRightAfterGapsSize}];
 
-            'uniform float columnWidth;',
-            'uniform float scrollX;',
-            'uniform float zoomX;',
-            'uniform float scrollY;',
-            'uniform float zoomY;',
-            'uniform mat4 uMVMatrix;',
-            'uniform mat4 uPMatrix;',
-            'uniform float offsetY;',
-            'uniform float supersamplingRatio;',
-            'uniform float positionBitPackBase;',
-            'uniform float texSize;',
-            'varying float texCoord;',
+            uniform float columnWidth;
+            uniform float scrollX;
+            uniform float zoomX;
+            uniform float scrollY;
+            uniform float zoomY;
+            uniform mat4 uMVMatrix;
+            uniform mat4 uPMatrix;
+            uniform float offsetY;
+            uniform float supersamplingRatio;
+            uniform float positionBitPackBase;
+            uniform float texSize;
+            varying float texCoord;
 
-            'vec3 unpackVec3(float packedVec3, float base) {',
-            '	float pos0 = floor(packedVec3 / (base*base));',
-            '	float pos0Contr = pos0*base*base;',
-            '	float pos1 = floor((packedVec3 - pos0Contr)/base);',
-            '	float pos1Contr = pos1*base;',
-            '	float pos2 = packedVec3 - pos0Contr - pos1Contr;',
-            '	return vec3(pos0, pos1, pos2);',
-            '}',
+            vec3 getUnpackedPositionVec3() {
+            	float pos0 = floor(aPosVertex / (positionBitPackBase * positionBitPackBase));
+            	float pos0Contr = pos0 * positionBitPackBase * positionBitPackBase;
+            	float pos1 = floor((aPosVertex - pos0Contr)/positionBitPackBase);
+            	float pos1Contr = pos1 * positionBitPackBase;
+            	float pos2 = aPosVertex - pos0Contr - pos1Contr;
+            	return vec3(pos0, pos1, pos2);
+            }
 
-            `float computeGapOffset(float column, float[${columnsRightAfterGapsSize}] columnsRightAfterGaps, float gapSize) {`,
-            // first compute the number of gaps before this column
-            '   float numGaps = 0.0;',
-            `   for (int i=0; i<${columnsRightAfterGapsSize}; i++) {`,
-            '       if (column >= columnsRightAfterGaps[i]) {',
-            '           numGaps += 1.0;',
-            '       }',
-            '   }',
-            // multiply it by the gap size to get the total offset
-            '   return numGaps*gapSize;',
-            '}',
+            float computeGapOffset(float column) {
+                // first do binary search to compute the number of gaps before this column, G(c)
+                // Let I(c) = the index in columnsRightAfterGaps of the first entry thats greater than or equal to c
+                // Then:
+                // G(c) = {
+                //          I(c), c is not in columnsRightAfterGaps
+                //          I(c) + 1, c is in columnsRightAfterGaps (i.e. columnsRightAfterGaps[I(c)] = c)
+                //        }     
+                 
+                int lower_incl = 0;
+                int upper_excl = ${columnsRightAfterGapsSize};
+                int numGaps = 0;
+                
+                for (int loopDummyVar = 0; loopDummyVar < ${maxBinarySearchSteps}; loopDummyVar++) {
+                    if (lower_incl > upper_excl) {
+                        break;
+                    }
+                
+                    int middle = (lower_incl + upper_excl)/2;
+                    if (columnsRightAfterGaps[middle] < column) {
+                        // continue binary search
+                        lower_incl = middle + 1;
+                    } else if (columnsRightAfterGaps[middle] == column) {
+                        // see formula in comments at top of function
+                        numGaps = middle + 1;
+                        break;
+                    } else {
+                        // columnsRightAfterGaps[middle] > column
+                        if (middle == 0) {
+                            // see formula in comments at top of function
+                            numGaps = 0;
+                            break;
+                        } else if (columnsRightAfterGaps[middle-1] < column) {
+                            // see formula in comments at top of function - this case means column is not in columnsRightAfterGaps
+                            numGaps = middle;
+                            break;
+                        } else {
+                            // continue binary search
+                            upper_excl = middle;
+                        }
+                    }
+                }
+ 
+                // multiply it by the gap size to get the total offset
+                return float(numGaps)*gapSize;
+            }
 
-            'void main(void) {',
-            '	gl_Position = vec4(unpackVec3(aPosVertex, positionBitPackBase), 1.0);',
-            '	gl_Position[0] += aVertexOncoprintColumn*columnWidth;',
-            '	gl_Position *= vec4(zoomX, zoomY, 1.0, 1.0);',
+            void main(void) {
+            	gl_Position = vec4(getUnpackedPositionVec3(), 1.0);
+            	gl_Position[0] += aVertexOncoprintColumn*columnWidth;
+            	gl_Position *= vec4(zoomX, zoomY, 1.0, 1.0);
 
             // gaps should not be affected by zoom:
-            '   gl_Position[0] += computeGapOffset(aVertexOncoprintColumn, columnsRightAfterGaps, gapSize);',
+                gl_Position[0] += computeGapOffset(aVertexOncoprintColumn);
 
             // offsetY is given zoomed:
-            '	gl_Position[1] += offsetY;',
+            	gl_Position[1] += offsetY;
 
-            '	gl_Position -= vec4(scrollX, scrollY, 0.0, 0.0);',
-            '	gl_Position[0] *= supersamplingRatio;',
-            '	gl_Position[1] *= supersamplingRatio;',
-            '	gl_Position = uPMatrix * uMVMatrix * gl_Position;',
+            	gl_Position -= vec4(scrollX, scrollY, 0.0, 0.0);
+            	gl_Position[0] *= supersamplingRatio;
+            	gl_Position[1] *= supersamplingRatio;
+            	gl_Position = uPMatrix * uMVMatrix * gl_Position;
 
-            '	texCoord = (aColVertex + 0.5) / texSize;',
-            '}'].join('\n');
-        const fragment_shader_source = ['precision mediump float;',
-            'varying float texCoord;',
-            'uniform sampler2D uSampler;',
-            'void main(void) {',
-            '   gl_FragColor = texture2D(uSampler, vec2(texCoord, 0.5));',
-            '}'].join('\n');
+            	texCoord = (aColVertex + 0.5) / texSize;
+            }`;
+        const fragment_shader_source = `
+            precision mediump float;
+            varying float texCoord;
+            uniform sampler2D uSampler;
+            void main(void) {
+                gl_FragColor = texture2D(uSampler, vec2(texCoord, 0.5));
+            }`;
         const vertex_shader = this.createShader(vertex_shader_source, 'VERTEX_SHADER');
         const fragment_shader = this.createShader(fragment_shader_source, 'FRAGMENT_SHADER');
 
