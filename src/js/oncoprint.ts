@@ -264,22 +264,17 @@ export default class Oncoprint {
                 self.setViewport(vp);
             },
             function(val:number) {
-                const prev_viewport = self.cell_view.getViewportOncoprintSpace(self.model);
-                const prev_center_onc_space = (prev_viewport.left + prev_viewport.right) / 2;
-                const id_order = self.model.getIdOrder();
-                const center_column = Math.min(id_order.length-1, self.model.getClosestColumnIndexToLeft(prev_center_onc_space));
-                const center_id = id_order[center_column];
-                self.setHorzZoom(val);
-                const viewport = self.cell_view.getViewportOncoprintSpace(self.model);
-                const center_column_x_zoomed = self.model.getZoomedColumnLeft(center_id);
-                const half_viewport_width_zoomed = self.model.getHorzZoom() * (viewport.right - viewport.left) / 2;
-
-                self.setHorzScroll(center_column_x_zoomed - half_viewport_width_zoomed);
+                self.setHorzZoomCentered(val);
             },
             function(val:number) {
+                // Save unzoomed vertical center pre-zoom
                 const prev_viewport = self.cell_view.getViewportOncoprintSpace(self.model);
                 const center_onc_space = (prev_viewport.top + prev_viewport.bottom) / 2;
+
+                // Execute zoom
                 self.setVertZoom(val);
+
+                // Set scroll to recenter the vertical center
                 const viewport = self.cell_view.getViewportOncoprintSpace(self.model);
                 const half_viewport_height_zoomed = self.model.getVertZoom() * (viewport.bottom - viewport.top) / 2;
 
@@ -725,6 +720,17 @@ export default class Oncoprint {
         return this.model.getHorzZoom();
     }
 
+    public setHorzZoomCentered(z:number) {
+        // Save id thats at center pre-zoom
+        const centerColIndex = this.cell_view.getViewportOncoprintSpace(this.model).center_col_index;
+        const centerId = this.model.getIdOrder()[centerColIndex];
+
+        // Execute zoom
+        this.setHorzZoom(z);
+
+        // Set scroll to recenter the saved id
+        this.setHorzScroll(this.model.getZoomedColumnLeft(centerId) - this.cell_view.visible_area_width/2);
+    }
 
     public setHorzZoom(z:number, still_keep_horz_zoomed_to_fit?:boolean) {
         if(this.webgl_unavailable || this.destroyed) {

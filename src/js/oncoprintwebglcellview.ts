@@ -1001,7 +1001,8 @@ export default class OncoprintWebGLCellView {
         const zoom_y = model.getVertZoom();
 
         const id_order = model.getIdOrder();
-        const left_id = id_order[model.getClosestColumnIndexToLeft(this.scroll_x, true)];
+        const left_index = model.getClosestColumnIndexToLeft(this.scroll_x, true);
+        const left_id = id_order[left_index];
         const right_index = model.getClosestColumnIndexToLeft(this.scroll_x + this.visible_area_width, true, true);
 
         let right;
@@ -1011,14 +1012,12 @@ export default class OncoprintWebGLCellView {
             right = model.getColumnLeft(id_order[id_order.length-1]) + model.getCellWidth(true);
         }
 
-        const window_top = Math.round(scroll_y / zoom_y);
-        const window_bottom = Math.round((scroll_y + this.getVisibleAreaHeight(model)) / zoom_y);
-
         return {
-            'top': window_top,
-            'bottom': window_bottom,
-            'left': model.getColumnLeft(left_id),
-            right
+            top: Math.round(scroll_y / zoom_y),
+            bottom: Math.round((scroll_y + this.getVisibleAreaHeight(model)) / zoom_y),
+            left: model.getColumnLeft(left_id),
+            right,
+            center_col_index: Math.floor((right_index + left_index) / 2)
         };
     }
 
