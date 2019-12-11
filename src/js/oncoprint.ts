@@ -246,7 +246,7 @@ export default class Oncoprint {
         this.cell_view = new OncoprintWebGLCellView($cell_div, $cell_canvas, $cell_overlay_canvas, $column_label_canvas, $dummy_scroll_div_contents, this.model, new OncoprintToolTip($tooltip_ctr),
             function(left, right) {
                 const enclosed_ids = self.model.getIdsInZoomedLeftInterval(left, right);
-                self.setHorzZoom(self.model.getHorzZoomToFit(self.cell_view.visible_area_width, enclosed_ids));
+                self.setHorzZoom(self.model.getHorzZoomToFit(self.cell_view.getVisibleAreaWidth(), enclosed_ids));
                 self.$dummy_scroll_div.scrollLeft(self.model.getZoomedColumnLeft(enclosed_ids[0]));
             },
             function(uid, track_id) {
@@ -257,7 +257,8 @@ export default class Oncoprint {
             }
         );
 
-        this.minimap_view = new OncoprintMinimapView($minimap_div, $minimap_canvas, $minimap_overlay_canvas, this.model, this.cell_view, 150, 150, function(x,y) {
+        this.minimap_view = new OncoprintMinimapView($minimap_div, $minimap_canvas, $minimap_overlay_canvas, this.model, this.cell_view, 150, 150,
+            function(x,y) {
                 self.setScroll(x,y);
             },
             function(vp:MinimapViewportSpec) {
@@ -682,7 +683,7 @@ export default class Oncoprint {
     }
     private getHorzZoomToFit(ids:ColumnId[]) {
         ids = ids || [];
-        return this.model.getHorzZoomToFit(this.cell_view.visible_area_width, ids);
+        return this.model.getHorzZoomToFit(this.cell_view.getVisibleAreaWidth(), ids);
     }
     private executeHorzZoomCallbacks() {
         for (let i=0; i<this.horz_zoom_callbacks.length; i++) {

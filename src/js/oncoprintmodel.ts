@@ -645,25 +645,26 @@ export default class OncoprintModel {
     }
 
     public getHorzZoomToFitCols(width:number, left_col:ColumnIndex, right_col:ColumnIndex) {
-        const idToLeftWithPadding = this.column_left_always_with_padding.get();
-        const idToLeftNoPadding = this.getColumnLeftNoPadding();
-        const ids = this.getIdOrder();
-        const leftId = ids[left_col];
-        const rightId = ids[right_col];
+        // in the end, the zoomed width is:
+        //  W = z*(right_col - left_col)*baseColumnWidth + #gaps*gapSize
+        //  -> z = (width - #gaps*gapSize)/(right_col - left_col)*baseColumnWidth
 
-        let rightColLeftWithPadding, rightColLeftNoPadding;
-        if (right_col === ids.length) {
-            const lastId = ids[ids.length-1];
-            const cellWidth = this.getCellWidth(true);
-            rightColLeftWithPadding = idToLeftWithPadding[lastId] + cellWidth;
-            rightColLeftNoPadding = idToLeftNoPadding[lastId] + cellWidth;
-        } else {
-            rightColLeftWithPadding = idToLeftWithPadding[rightId];
-            rightColLeftNoPadding = idToLeftNoPadding[rightId];
-        }
+        // numerator calculations
+        const allGaps = this.getColumnIndexesAfterAGap();
+        const gapsBetween = allGaps.filter(g=>(g >= left_col && g < right_col));
+        const numerator = width - (gapsBetween.length*this.getGapSize());
 
-        const zoom_if_cell_padding_on = clamp(width / (rightColLeftWithPadding - idToLeftWithPadding[leftId]), 0, 1);
-        const zoom_if_cell_padding_off = clamp(width / (rightColLeftNoPadding - idToLeftNoPadding[leftId]), 0, 1);
+        // denominator calculations
+        const columnWidthWithPadding = this.getCellWidth(true) + this.getCellPadding(true);
+        const columnWidthNoPadding = this.getCellWidth(true);
+
+        const denominatorWithPadding = (right_col - left_col)*columnWidthWithPadding;
+        const denominatorNoPadding = (right_col - left_col)*columnWidthNoPadding;
+
+        // put them together
+        const zoom_if_cell_padding_on = clamp(numerator/denominatorWithPadding, 0, 1);
+        const zoom_if_cell_padding_off = clamp(numerator/denominatorNoPadding, 0, 1);
+
         let zoom;
         if (!this.cell_padding_on) {
             zoom = zoom_if_cell_padding_off;

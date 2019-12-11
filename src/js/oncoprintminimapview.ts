@@ -575,10 +575,10 @@ export default class OncoprintMinimapView {
                 if (["resize_t", "resize_b", "resize_l", "resize_r",
                     "resize_tl", "resize_tr", "resize_bl", "resize_br"].indexOf(drag_type as any) > -1) {
                     viewport_callback({
-                        'left_col': self.current_rect.left_col,
-                        'scroll_y_proportion': (self.current_rect.top / parseInt(self.$canvas[0].height as any, 10)),
-                        'right_col': self.current_rect.right_col,
-                        'zoom_y': (drag_start_rect.height / self.current_rect.height) * drag_start_vert_zoom
+                        left_col: self.current_rect.left_col,
+                        scroll_y_proportion: (self.current_rect.top / parseInt(self.$canvas[0].height as any, 10)),
+                        right_col: self.current_rect.right_col,
+                        zoom_y: (drag_start_rect.height / self.current_rect.height) * drag_start_vert_zoom
                     });
                 }
                 dragging = false;
@@ -914,8 +914,8 @@ export default class OncoprintMinimapView {
             const viewport = cell_view.getViewportOncoprintSpace(model);
 
             const zoom = this.getZoom(model);
-            left_col = Math.floor(viewport.left / (cell_width + cell_padding));
-            right_col = model.getClosestColumnIndexToLeft(viewport.right, false, true)
+            left_col = model.getClosestColumnIndexToLeft(viewport.left, false);
+            right_col = model.getClosestColumnIndexToLeft(viewport.right, false, true);
             left = left_col * cell_width * zoom.x;
             width = (right_col-left_col) * cell_width * zoom.x;
             top = viewport.top * zoom.y;
