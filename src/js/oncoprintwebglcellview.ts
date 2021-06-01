@@ -92,6 +92,12 @@ export default class OncoprintWebGLCellView {
     private vertex_position_buffer:TrackProp<OncoprintTrackBuffer> = {};
     private vertex_color_buffer:TrackProp<OncoprintTrackBuffer> = {};
     private vertex_column_buffer:TrackProp<OncoprintTrackBuffer> = {};
+    private is_buffer_empty:TrackProp<{
+        position:boolean;
+        color:boolean;
+        column:boolean;
+        color_texture:boolean;
+    }> = {};
     private color_texture:TrackProp<{texture: WebGLTexture, size:number}> = {};
     private id_to_first_vertex_index:TrackProp<ColumnProp<number>> = {}; // index of first vertex corresponding to given id for given track, e.g. 0, 3, 6, ...
 
@@ -734,17 +740,10 @@ export default class OncoprintWebGLCellView {
             tracks_to_clear = [track_id];
         }
         for (let i=0; i<tracks_to_clear.length; i++) {
-            if (this.vertex_position_buffer[tracks_to_clear[i]]) {
-                this.ctx.deleteBuffer(this.vertex_position_buffer[tracks_to_clear[i]]);
-                delete this.vertex_position_buffer[tracks_to_clear[i]];
-            }
-            if (this.vertex_color_buffer[tracks_to_clear[i]]) {
-                this.ctx.deleteBuffer(this.vertex_color_buffer[tracks_to_clear[i]]);
-                delete this.vertex_color_buffer[tracks_to_clear[i]];
-            }
-            if (this.color_texture[tracks_to_clear[i]]) {
-                this.ctx.deleteTexture(this.color_texture[tracks_to_clear[i]].texture);
-                delete this.color_texture[tracks_to_clear[i]];
+            if (this.is_buffer_empty[tracks_to_clear[i]]) {
+                this.is_buffer_empty[tracks_to_clear[i]].position = true;
+                this.is_buffer_empty[tracks_to_clear[i]].color = true;
+                this.is_buffer_empty[tracks_to_clear[i]].color_texture = true;
             }
         }
     }
@@ -757,17 +756,56 @@ export default class OncoprintWebGLCellView {
             tracks_to_clear = [track_id];
         }
         for (let i=0; i<tracks_to_clear.length; i++) {
-            if (this.vertex_column_buffer[tracks_to_clear[i]]) {
-                this.ctx.deleteBuffer(this.vertex_column_buffer[tracks_to_clear[i]]);
-                delete this.vertex_column_buffer[tracks_to_clear[i]];
+            if (this.is_buffer_empty[tracks_to_clear[i]]) {
+                this.is_buffer_empty[tracks_to_clear[i]].column = true;
             }
         }
     };
 
+    private deleteBuffers(model: OncoprintModel, track_id?:TrackId) {
+        let tracks_to_clear;
+        if (typeof track_id === 'undefined') {
+            tracks_to_clear = model.getTracks();
+        } else {
+            tracks_to_clear = [track_id];
+        }
+        for (let i=0; i<tracks_to_clear.length; i++) {
+            const track_id = tracks_to_clear[i];
+            if (this.vertex_position_buffer[track_id]) {
+                this.ctx.deleteBuffer(this.vertex_position_buffer[track_id]);
+                delete this.vertex_position_buffer[track_id];
+            }
+            if (this.vertex_color_buffer[track_id]) {
+                this.ctx.deleteBuffer(this.vertex_color_buffer[track_id]);
+                delete this.vertex_color_buffer[track_id];
+            }
+            if (this.vertex_column_buffer[track_id]) {
+                this.ctx.deleteBuffer(this.vertex_column_buffer[track_id]);
+                delete this.vertex_column_buffer[track_id];
+            }
+            if (this.color_texture[track_id]) {
+                this.ctx.deleteTexture(this.color_texture[track_id].texture);
+                delete this.color_texture[track_id];
+            }
+            this.is_buffer_empty[track_id] = {
+                position: true,
+                color: true,
+                color_texture:true,
+                column: true
+            };
+        }
+    }
 
     private getTrackBuffers(track_id:TrackId) {
-        if (typeof this.vertex_position_buffer[track_id] === 'undefined') {
-            const pos_buffer = this.ctx.createBuffer() as OncoprintTrackBuffer;
+        this.is_buffer_empty[track_id] = this.is_buffer_empty[track_id] || {
+            position: true,
+            color: true,
+            color_texture: true,
+            column: true
+        };
+
+        if (this.is_buffer_empty[track_id].position) {
+            const pos_buffer = this.vertex_position_buffer[track_id] || this.ctx.createBuffer() as OncoprintTrackBuffer;
             const pos_array = this.vertex_data[track_id].pos_array;
 
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, pos_buffer);
@@ -778,8 +816,8 @@ export default class OncoprintWebGLCellView {
             this.vertex_position_buffer[track_id] = pos_buffer;
         }
 
-        if (typeof this.vertex_color_buffer[track_id] === 'undefined') {
-            const col_buffer = this.ctx.createBuffer() as OncoprintTrackBuffer;
+        if (this.is_buffer_empty[track_id].color) {
+            const col_buffer = this.vertex_color_buffer[track_id] || this.ctx.createBuffer() as OncoprintTrackBuffer;
             const col_array = this.vertex_data[track_id].col_array;
 
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, col_buffer);
@@ -790,8 +828,8 @@ export default class OncoprintWebGLCellView {
             this.vertex_color_buffer[track_id] = col_buffer;
         }
 
-        if (typeof this.color_texture[track_id] === "undefined") {
-            const tex = this.ctx.createTexture();
+        if (this.is_buffer_empty[track_id].color_texture) {
+            const tex = this.color_texture[track_id] ? this.color_texture[track_id].texture : this.ctx.createTexture();
             this.ctx.bindTexture(this.ctx.TEXTURE_2D, tex);
 
             const color_bank = this.vertex_data[track_id].col_bank;
@@ -806,8 +844,8 @@ export default class OncoprintWebGLCellView {
             this.color_texture[track_id] = {'texture': tex, 'size':width};
         }
 
-        if (typeof this.vertex_column_buffer[track_id] === 'undefined') {
-            const vertex_column_buffer = this.ctx.createBuffer() as OncoprintTrackBuffer;
+        if (this.is_buffer_empty[track_id].column) {
+            const vertex_column_buffer = this.vertex_column_buffer[track_id] || this.ctx.createBuffer() as OncoprintTrackBuffer;
             const vertex_column_array = this.vertex_column_array[track_id];
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, vertex_column_buffer);
             this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(vertex_column_array), this.ctx.STATIC_DRAW);
@@ -816,6 +854,13 @@ export default class OncoprintWebGLCellView {
 
             this.vertex_column_buffer[track_id] = vertex_column_buffer;
         }
+        this.is_buffer_empty[track_id] = {
+            position: false,
+            color: false,
+            column: false,
+            color_texture: false
+        };
+
         return {'position':this.vertex_position_buffer[track_id],
             'color': this.vertex_color_buffer[track_id],
             'color_tex': this.color_texture[track_id],
@@ -930,8 +975,7 @@ export default class OncoprintWebGLCellView {
     }
 
     private refreshCanvas(model:OncoprintModel) {
-        this.clearTrackPositionAndColorBuffers(model); // whenever you get a new context, you have to get new buffers
-        this.clearTrackColumnBuffers(model);
+        this.deleteBuffers(model);// whenever you get a new context, you have to get new buffers
         this.getNewCanvas();
         this.getWebGLContextAndSetUpMatrices();
         this.setUpShaders(model);
@@ -1019,13 +1063,13 @@ export default class OncoprintWebGLCellView {
     }
 
     public removeTrack(model:OncoprintModel, track_id:TrackId) {
+        this.deleteBuffers(model, track_id);
+
         delete this.identified_shape_list_list[track_id];
         delete this.vertex_data[track_id];
         delete this.vertex_column_array[track_id];
         delete this.id_to_first_vertex_index[track_id];
-
-        this.clearTrackPositionAndColorBuffers(model, track_id);
-        this.clearTrackColumnBuffers(model, track_id);
+        delete this.is_buffer_empty[track_id];
 
         if (!this.rendering_suppressed) {
             this.renderAllTracks(model);
