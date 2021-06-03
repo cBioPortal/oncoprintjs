@@ -311,6 +311,7 @@ export class RuleSet {
     public exclude_from_legend?:boolean;
     protected active_rule_ids:ActiveRules;
     protected rules_with_id:RuleWithId[];
+    protected universal_rule?:RuleWithId;
 
     constructor(params:Omit<RuleSetParams, "type">) {
         /* params:
@@ -323,7 +324,6 @@ export class RuleSet {
         this.exclude_from_legend = params.exclude_from_legend;
         this.active_rule_ids = {};
         this.rules_with_id = [];
-
     }
 
     public getLegendLabel() {
@@ -347,6 +347,10 @@ export class RuleSet {
         }
         this.rules_with_id.push({id: rule_id, rule: new Rule(params)});
         return rule_id;
+    }
+
+    public setUniversalRule(r:RuleWithId) {
+        this.universal_rule = r;
     }
 
     public removeRule(rule_id:RuleId) {
@@ -399,8 +403,12 @@ export class RuleSet {
         return shapes;
     }
 
-    public getRulesWithId(datum?:Datum):RuleWithId[] {
+    public getSpecificRulesForDatum(datum?:Datum):RuleWithId[] {
         throw "Not implemented on base class";
+    }
+
+    public getUniversalRule() {
+        return this.universal_rule;
     }
 
     public apply(data:Datum[], cell_width:number, cell_height:number, out_active_rules?:ActiveRules|undefined, data_id_key?:string&keyof Datum, important_ids?:ColumnProp<boolean>) {
@@ -411,13 +419,17 @@ export class RuleSet {
         for (var i = 0; i < data.length; i++) {
             var datum = data[i];
             var should_mark_active = !important_ids || !!important_ids[datum[data_id_key!]];
-            var rules = this.getRulesWithId(datum);
+            var rules = this.getSpecificRulesForDatum(datum);
             if (typeof out_active_rules !== 'undefined' && should_mark_active) {
                 for (let j = 0; j < rules.length; j++) {
                     out_active_rules[rules[j].id] = true;
                 }
             }
             ret.push(this.applyRulesToDatum(rules, data[i], cell_width, cell_height));
+        }
+        // mark universal rule as active
+        if (this.getUniversalRule()) {
+            out_active_rules[this.getUniversalRule().id] = true;
         }
         return ret;
     }
@@ -426,15 +438,13 @@ export class RuleSet {
 class LookupRuleSet extends RuleSet {
     private lookup_map_by_key_and_value:{[key:string]:{[value:string]:RuleWithId}} = {};
     private lookup_map_by_key:{[key:string]:RuleWithId} = {};
-    private universal_rules:RuleWithId[] = [];
     private rule_id_to_conditions:{[ruleId:number]:{ key:string, value:string }[] } = {};
 
-    public getRulesWithId(datum?:Datum) {
+    public getSpecificRulesForDatum(datum?:Datum) {
         if (typeof datum === 'undefined') {
             return this.rules_with_id;
         }
         let ret:RuleWithId[] = [];
-        ret = ret.concat(this.universal_rules);
         for (var key in datum) {
             if (typeof datum[key] !== 'undefined' && datum.hasOwnProperty(key)) {
                 var key_rule = this.lookup_map_by_key[key];
@@ -452,7 +462,7 @@ class LookupRuleSet extends RuleSet {
 
     private indexRuleForLookup(condition_key:string, condition_value:string, rule_with_id:RuleWithId) {
         if (condition_key === null) {
-            this.universal_rules.push(rule_with_id);
+            this.setUniversalRule(rule_with_id);
         } else {
             if (condition_value === null) {
                 this.lookup_map_by_key[condition_key] = rule_with_id;
@@ -483,16 +493,8 @@ class LookupRuleSet extends RuleSet {
         while (this.rule_id_to_conditions[rule_id].length > 0) {
             var condition = this.rule_id_to_conditions[rule_id].pop();
             if (condition.key === null) {
-                var index = -1;
-                for (var i = 0; i < this.universal_rules.length; i++) {
-                    if (this.universal_rules[i].id === rule_id) {
-                        index = i;
-                        break;
-                    }
-                }
-                if (index > -1) {
-                    this.universal_rules.splice(index, 1);
-                }
+                // universal rule
+                this.universal_rule = undefined;
             } else {
                 if (condition.value === null) {
                     delete this.lookup_map_by_key[condition.key];
@@ -526,7 +528,7 @@ class ConditionRuleSet extends RuleSet {
         }
     }
 
-    public getRulesWithId(datum?:Datum) {
+    public getSpecificRulesForDatum(datum?:Datum) {
         if (typeof datum === 'undefined') {
             return this.rules_with_id;
         }
@@ -1093,9 +1095,9 @@ class GradientCategoricalRuleSet extends RuleSet {
     }
 
     // RuleSet API
-    public getRulesWithId(datum?:Datum) {
-        const categoricalRules = this.categoricalRuleSet.getRulesWithId(datum);
-        const gradientRules = this.gradientRuleSet.getRulesWithId(datum);
+    public getSpecificRulesForDatum(datum?:Datum) {
+        const categoricalRules = this.categoricalRuleSet.getSpecificRulesForDatum(datum);
+        const gradientRules = this.gradientRuleSet.getSpecificRulesForDatum(datum);
         const rules = categoricalRules.concat(gradientRules);
         return rules;
     }

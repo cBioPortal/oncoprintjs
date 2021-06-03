@@ -1,3 +1,5 @@
+import {ComputedShapeParams} from "./oncoprintshape";
+
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export function cloneShallow<T extends Object>(obj:T) {
@@ -68,4 +70,15 @@ export function sgndiff(a:number, b:number) {
 
 export function clamp(x:number, lower:number, upper:number) {
     return Math.max(lower, Math.min(upper, x));
+}
+export function z_comparator(shapeA:ComputedShapeParams, shapeB:ComputedShapeParams) {
+    const zA = shapeA.z;
+    const zB = shapeB.z;
+    if (zA < zB) {
+        return -1;
+    } else if (zA > zB) {
+        return 1;
+    } else {
+        return 0;
+    }
 }

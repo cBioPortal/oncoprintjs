@@ -6,7 +6,7 @@ import CachedProperty from './CachedProperty';
 import {hclusterColumns, hclusterTracks} from './clustering';
 import $ from 'jquery';
 import * as BucketSort from "./bucketsort";
-import {cloneShallow, doesCellIntersectPixel, ifndef} from "./utils";
+import {cloneShallow, doesCellIntersectPixel, ifndef, z_comparator} from "./utils";
 import _ from "lodash";
 import {RuleSet, RuleSetParams, RuleWithId} from "./oncoprintruleset";
 import {InitParams} from "./oncoprint";
@@ -828,7 +828,36 @@ export default class OncoprintModel {
         }
     };
 
-    public getIdentifiedShapeListList(track_id:TrackId, use_base_size:boolean, sort_by_z:boolean):IdentifiedShapeList[] {
+    public getAlwaysShapes(
+        track_id:TrackId,
+        use_base_size:boolean,
+        sort_by_z:boolean
+    ):ComputedShapeParams[] {
+        const universalRule = this.getRuleSet(track_id).getUniversalRule();
+        if (!universalRule) {
+            return [];
+        }
+        const spacing = this.getTrackHasColumnSpacing(track_id);
+        const width = this.getCellWidth(use_base_size) + (!spacing ? this.getCellPadding(use_base_size, true) : 0);
+        const height = this.getCellHeight(track_id, use_base_size);
+        const shapes = universalRule.rule.apply(
+            {}, // a universal rule does not rely on anything specific to the data
+            width,
+            height
+        )
+
+        if (sort_by_z) {
+            shapes.sort(z_comparator);
+        }
+
+        return shapes;
+    }
+
+    public getSpecificShapesForData(
+        track_id:TrackId,
+        use_base_size:boolean,
+        sort_by_z:boolean
+    ):IdentifiedShapeList[] {
         const active_rules = {};
         const data = this.getTrackData(track_id);
         const id_key = this.getTrackDataIdKey(track_id);
@@ -840,18 +869,6 @@ export default class OncoprintModel {
 
         this.setTrackActiveRules(track_id, active_rules);
 
-
-        function z_comparator(shapeA:ComputedShapeParams, shapeB:ComputedShapeParams) {
-            const zA = shapeA.z;
-            const zB = shapeB.z;
-            if (zA < zB) {
-                return -1;
-            } else if (zA > zB) {
-                return 1;
-            } else {
-                return 0;
-            }
-        }
         return shapes.map(function(shape_list:ComputedShapeParams[], index:number) {
             if (sort_by_z) {
                 shape_list.sort(z_comparator);
@@ -866,7 +883,7 @@ export default class OncoprintModel {
     public getActiveRules(rule_set_id:RuleSetId) {
         const rule_set_active_rules = this.rule_set_active_rules[rule_set_id];
         if (rule_set_active_rules) {
-            return this.rule_sets[rule_set_id].getRulesWithId().filter(function(rule_with_id:RuleWithId) {
+            return this.rule_sets[rule_set_id].getSpecificRulesForDatum().filter(function(rule_with_id:RuleWithId) {
                 return !!rule_set_active_rules[rule_with_id.id];
             });
         } else {

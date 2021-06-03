@@ -63,7 +63,7 @@ describe("GradientCategoricalRuleSet", function() {
 
     it("Suppresses duplicate No Data rules", function() {
         var mixRuleSet = OncoprintRuleSet(mixParams);
-        var elements = mixRuleSet.getRulesWithId();
+        var elements = mixRuleSet.getSpecificRulesForDatum();
         assert.equal(elements.length, 2);
     });
 
