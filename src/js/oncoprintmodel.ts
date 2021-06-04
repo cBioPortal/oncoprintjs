@@ -828,7 +828,7 @@ export default class OncoprintModel {
         }
     };
 
-    public getAlwaysShapes(
+    public getTrackUniversalShapes(
         track_id:TrackId,
         use_base_size:boolean,
         sort_by_z:boolean
