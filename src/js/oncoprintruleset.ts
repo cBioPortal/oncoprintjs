@@ -54,6 +54,7 @@ export interface ICategoricalRuleSetParams extends IGeneralRuleSetParams {
     type: RuleSetType.CATEGORICAL;
     category_key: string; // key into data which gives category
     category_to_color?: {[category:string]:string};
+    universal_rule_categories?: {[category:string]:any};
 }
 
 export interface IGradientRuleSetParams extends ILinearInterpRuleSetParams {
@@ -557,6 +558,7 @@ class CategoricalRuleSet extends LookupRuleSet {
     public readonly category_key:string;
     private readonly category_to_color:{[category:string]:string};
     private readonly getUnusedColor:(color?:string)=>string;
+    private readonly universal_rule_categories?:{[category:string]:any};
     constructor(params:Omit<ICategoricalRuleSetParams, "type">, omitNArule?:boolean) {
         super(params);
         if (!omitNArule) {
@@ -570,6 +572,7 @@ class CategoricalRuleSet extends LookupRuleSet {
         }
 
         this.category_key = params.category_key;
+        this.universal_rule_categories = params.universal_rule_categories;
         this.category_to_color = cloneShallow(ifndef(params.category_to_color, {}));
         this.getUnusedColor = makeUniqueColorGetter(objectValues(this.category_to_color).map(colorToHex));
         for (const category of Object.keys(this.category_to_color)) {
@@ -591,7 +594,12 @@ class CategoricalRuleSet extends LookupRuleSet {
             exclude_from_legend: false,
             legend_config: {'type': 'rule', 'target': legend_rule_target}
         };
-        this.addRule(this.category_key, category, rule_params);
+        if (this.universal_rule_categories && this.universal_rule_categories.hasOwnProperty(category)) {
+            // add universal rule
+            this.addRule(null, category, rule_params);
+        } else {
+            this.addRule(this.category_key, category, rule_params);
+        }
     }
 
     public apply(data:Datum, cell_width:number, cell_height:number, out_active_rules:ActiveRules|undefined, data_id_key:string&keyof Datum, important_ids?:ColumnProp<boolean>) {

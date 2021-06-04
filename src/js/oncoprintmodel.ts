@@ -878,6 +878,22 @@ export default class OncoprintModel {
                 shape_list: shape_list
             };
         });
+
+        /*
+        return shapes.reduce(function(ret:IdentifiedShapeList[], shape_list:ComputedShapeParams[], index:number) {
+            if (shape_list.length > 0) {
+                // only add entry for nonempty shape list
+                if (sort_by_z) {
+                    shape_list.sort(z_comparator);
+                }
+                ret.push({
+                    id: data[index][id_key],
+                    shape_list: shape_list
+                })
+            }
+            return ret;
+        }, []);
+         */
     }
 
     public getActiveRules(rule_set_id:RuleSetId) {
