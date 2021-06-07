@@ -589,6 +589,7 @@ export default class OncoprintWebGLCellView {
                 }
             }
         }
+        this.ctx.flush();
         this.renderColumnLabels(model, id_order.slice(horz_first_id_in_window_index, horz_first_id_after_window_index === -1 ? undefined : horz_first_id_after_window_index));
 
         // finally, refresh overlay (highlights)
