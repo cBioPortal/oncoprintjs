@@ -83,12 +83,14 @@ export function z_comparator(shapeA:ComputedShapeParams, shapeB:ComputedShapePar
     }
 }
 
-export function fastParseInt10(x:string) {
+export function fastParseInt10(x:string, substringStart?:number, substringEnd?:number) {
     // simple, fast parseInt when you know its a base-10 int and
     //  you don't need any error handling.
     // Performance testing shows this is 85% faster than built-in parseInt
+    substringStart = substringStart || 0;
+    substringEnd = substringEnd || x.length;
     let ret = 0;
-    for (let i=0; i<x.length; i++){
+    for (let i=substringStart; i<substringEnd; i++){
         ret *= 10;
         ret += x.charCodeAt(i)-48; // the integer character codes from 0 to 9 are 48, 49, ..., 58
     }

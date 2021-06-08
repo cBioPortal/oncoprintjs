@@ -107,7 +107,7 @@ export function stringToVector(string:string) {
             // character is not numeric
             if (numberStartIncl > -1) {
                 // if we're in a number, then we need to add the number to the vector
-                vector.push(fastParseInt10(string.substring(numberStartIncl, i)));
+                vector.push(fastParseInt10(string, numberStartIncl, i));
                 // and record no longer in a number
                 numberStartIncl = -1;
             }
@@ -117,7 +117,7 @@ export function stringToVector(string:string) {
     }
     if (numberStartIncl > -1) {
         // if we're in a number at the end of the string, add it to vector
-        vector.push(fastParseInt10(string.substring(numberStartIncl)));
+        vector.push(fastParseInt10(string, numberStartIncl));
         // no need to reset numberStartIncl because the algorithm is done
     }
     return vector;
