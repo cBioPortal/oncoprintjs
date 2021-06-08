@@ -1,10 +1,12 @@
+import { fastParseInt16 } from "./utils";
+
 export default function extractrgba(str:string) {
     let ret = [0, 0, 0, 1];
     if (str[0] === "#") {
         // hex, convert to rgba
-        const r = parseInt(str[1] + str[2], 16);
-        const g = parseInt(str[3] + str[4], 16);
-        const b = parseInt(str[5] + str[6], 16);
+        const r = fastParseInt16(str[1] + str[2]);
+        const g = fastParseInt16(str[3] + str[4]);
+        const b = fastParseInt16(str[5] + str[6]);
         str = 'rgba('+r+','+g+','+b+',1)';
     }
     const match = str.match(/^[\s]*rgba\([\s]*([0-9.]+)[\s]*,[\s]*([0-9.]+)[\s]*,[\s]*([0-9.]+)[\s]*,[\s]*([0-9.]+)[\s]*\)[\s]*$/);
