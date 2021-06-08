@@ -897,7 +897,7 @@ export default class OncoprintWebGLCellView {
 
         function addShapeVertexes(_shape:ComputedShapeParams, zindex:number) {
             const hash = Shape.hashComputedShape(_shape, zindex);
-            if (!vertexifiedShapes.hasOwnProperty(hash)) {
+            if (!(hash in vertexifiedShapes)) {
                 vertexifiedShapes[hash] = {position:[], color:[]};
                 const position = vertexifiedShapes[hash].position;
                 const color = vertexifiedShapes[hash].color;

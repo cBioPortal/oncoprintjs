@@ -447,7 +447,7 @@ class LookupRuleSet extends RuleSet {
         }
         let ret:RuleWithId[] = [];
         for (var key in datum) {
-            if (typeof datum[key] !== 'undefined' && datum.hasOwnProperty(key)) {
+            if ((key in datum) && typeof datum[key] !== 'undefined') {
                 var key_rule = this.lookup_map_by_key[key];
                 if (typeof key_rule !== 'undefined') {
                     ret.push(key_rule);
@@ -609,7 +609,7 @@ class CategoricalRuleSet extends LookupRuleSet {
                 continue;
             }
             const category = data[i][this.category_key];
-            if (!this.category_to_color.hasOwnProperty(category)) {
+            if (!(category in this.category_to_color)) {
                 const color = this.getUnusedColor();
 
                 this.category_to_color[category] = color;
