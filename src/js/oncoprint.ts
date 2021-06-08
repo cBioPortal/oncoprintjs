@@ -1175,17 +1175,19 @@ export default class Oncoprint {
         if(this.webgl_unavailable || this.destroyed) {
             return;
         }
-        this.model.rendering_suppressed_depth -= 1;
-        this.model.rendering_suppressed_depth = Math.max(0, this.model.rendering_suppressed_depth);
-        if (this.model.rendering_suppressed_depth === 0) {
-            this.label_view.releaseRendering(this.model, this.getCellViewHeight);
-            this.header_view.releaseRendering(this.model);
-            this.cell_view.releaseRendering(this.model);
-            this.track_options_view.releaseRendering(this.model, this.getCellViewHeight);
-            this.track_info_view.releaseRendering(this.model, this.getCellViewHeight);
-            this.legend_view.releaseRendering(this.model);
-            this.minimap_view.releaseRendering(this.model, this.cell_view);
-            this.resizeAndOrganizeAfterTimeout(onComplete);
+        if (this.model.rendering_suppressed_depth > 0) {
+            this.model.rendering_suppressed_depth -= 1;
+            this.model.rendering_suppressed_depth = Math.max(0, this.model.rendering_suppressed_depth);
+            if (this.model.rendering_suppressed_depth === 0) {
+                this.label_view.releaseRendering(this.model, this.getCellViewHeight);
+                this.header_view.releaseRendering(this.model);
+                this.cell_view.releaseRendering(this.model);
+                this.track_options_view.releaseRendering(this.model, this.getCellViewHeight);
+                this.track_info_view.releaseRendering(this.model, this.getCellViewHeight);
+                this.legend_view.releaseRendering(this.model);
+                this.minimap_view.releaseRendering(this.model, this.cell_view);
+                this.resizeAndOrganizeAfterTimeout(onComplete);
+            }
         }
     }
 
