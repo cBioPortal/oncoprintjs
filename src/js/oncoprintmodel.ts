@@ -1144,7 +1144,10 @@ export default class OncoprintModel {
             const params = params_list[i];
             this.addTrack(params);
         }
-        this.track_tops.update();
+        if (this.rendering_suppressed_depth === 0) {
+            this.setIdOrder(Object.keys(this.present_ids.get()));
+            this.track_tops.update();
+        }
     }
 
     private addTrack(params: LibraryTrackSpec<Datum>) {
@@ -1241,8 +1244,11 @@ export default class OncoprintModel {
         this.track_id_to_datum.update(this, track_id);
         this.track_present_ids.update(this, track_id);
         this.precomputed_comparator.update(this, track_id);
+    }
 
+    public releaseRendering() {
         this.setIdOrder(Object.keys(this.present_ids.get()));
+        this.track_tops.update();
     }
 
     private ensureTrackGroupExists(index:TrackGroupIndex) {

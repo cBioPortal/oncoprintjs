@@ -1179,6 +1179,7 @@ export default class Oncoprint {
             this.model.rendering_suppressed_depth -= 1;
             this.model.rendering_suppressed_depth = Math.max(0, this.model.rendering_suppressed_depth);
             if (this.model.rendering_suppressed_depth === 0) {
+                this.model.releaseRendering();
                 this.label_view.releaseRendering(this.model, this.getCellViewHeight);
                 this.header_view.releaseRendering(this.model);
                 this.cell_view.releaseRendering(this.model);
