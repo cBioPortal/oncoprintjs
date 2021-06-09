@@ -1,4 +1,5 @@
 import {ComputedShapeParams} from "./oncoprintshape";
+import {RGBAColor} from "./oncoprintruleset";
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
@@ -116,4 +117,8 @@ export function fastParseInt16(x:string) {
         }
     }
     return ret;
+}
+
+export function rgbString(color:RGBAColor) {
+    return `rgb(${color[0]},${color[1]},${color[2]})`;
 }

@@ -1284,7 +1284,7 @@ export default class Oncoprint {
         const everything_group = svgfactory.group(0,0);
         root.appendChild(everything_group);
 
-        const bgrect = svgfactory.bgrect(10,10,'#ffffff');
+        const bgrect = svgfactory.bgrect(10,10,[255,255,255,1]);
 
         if (with_background) {
             everything_group.appendChild(bgrect);
