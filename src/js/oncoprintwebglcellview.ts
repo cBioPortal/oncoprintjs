@@ -913,7 +913,6 @@ export default class OncoprintWebGLCellView {
                 const color = vertexifiedShapes[hash].color;
                 shapeToVertexes(_shape, zindex, function(pos:PositionVertex, col:ColorVertex) {
                     pos = pos.map(Math.round) as PositionVertex;
-                    col = col.map(function(x) { return Math.round(x*255);}) as ColorVertex;
 
                     position.push(packPos(pos));
 

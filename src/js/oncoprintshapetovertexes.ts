@@ -5,10 +5,10 @@ const halfsqrt2 = Math.sqrt(2) / 2;
 
 function normalizeRGBA(color:RGBAColor):[number, number, number, number] {
     return [
-        color[0]/255,
-        color[1]/255,
-        color[2]/255,
-        color[3]
+        Math.round(color[0]),
+        Math.round(color[1]),
+        Math.round(color[2]),
+        Math.round(color[3]*255)
     ]
 }
 
