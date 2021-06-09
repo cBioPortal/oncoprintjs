@@ -1,4 +1,4 @@
-import {ComputedShapeParams} from "./oncoprintshape";
+import {ComputedShapeParams, Rectangle} from "./oncoprintshape";
 
 const halfsqrt2 = Math.sqrt(2) / 2;
 
@@ -180,4 +180,27 @@ export default function(oncoprint_shape_computed_params:ComputedShapeParams, z_i
     } else if (type === "line") {
         return lineToVertexes(oncoprint_shape_computed_params, z_index, addVertex);
     }
+}
+
+export function getNumWebGLVertexes(shape:ComputedShapeParams) {
+    let ret:number;
+    switch (shape.type) {
+        case 'rectangle':
+            if (shape['stroke-width'] > 0) {
+                ret = 30;
+            } else {
+                ret = 6;
+            }
+            break;
+        case 'triangle':
+            ret = 3;
+            break;
+        case 'ellipse':
+            ret = 24;
+            break;
+        case 'line':
+            ret = 6;
+            break;
+    }
+    return ret;
 }

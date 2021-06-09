@@ -1,7 +1,7 @@
 import gl_matrix from 'gl-matrix';
 import svgfactory from './svgfactory';
 import makeSvgElement from './makesvgelement';
-import shapeToVertexes from './oncoprintshapetovertexes';
+import shapeToVertexes, {getNumWebGLVertexes} from './oncoprintshapetovertexes';
 import CachedProperty from './CachedProperty';
 import {ComputedShapeParams, Shape} from './oncoprintshape';
 import $ from 'jquery';
@@ -99,12 +99,12 @@ export default class OncoprintWebGLCellView {
     private specific_shapes:TrackProp<IdentifiedShapeList[]> = {};
     private universal_shapes:TrackProp<ComputedShapeParams[]> = {};
     public vertex_data:TrackProp<{
-        pos_array:number[],
-        col_array:ColorBankIndex[],
+        pos_array:Float32Array;
+        col_array:Float32Array;//ColorBankIndex[],
         col_bank:ColorBank,
         universal_shapes_start_index:number
     }> = {};
-    public vertex_column_array:TrackProp<ColumnIdIndex[]> = {};
+    public vertex_column_array:TrackProp<Float32Array> = {}; // ColumnIdIndex[]
     private vertex_position_buffer:TrackProp<OncoprintVertexTrackBuffer> = {};
     private vertex_color_buffer:TrackProp<OncoprintVertexTrackBuffer> = {};
     private vertex_column_buffer:TrackProp<OncoprintTrackBuffer> = {};
@@ -779,7 +779,7 @@ export default class OncoprintWebGLCellView {
             const universal_shapes_start_index = this.vertex_data[track_id].universal_shapes_start_index;
 
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, pos_buffer);
-            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(pos_array), this.ctx.STATIC_DRAW);
+            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, pos_array, this.ctx.STATIC_DRAW);
             pos_buffer.itemSize = 1;
             pos_buffer.specificShapesNumItems = universal_shapes_start_index / pos_buffer.itemSize;
             pos_buffer.universalShapesNumItems = (pos_array.length - universal_shapes_start_index) / pos_buffer.itemSize;
@@ -793,7 +793,7 @@ export default class OncoprintWebGLCellView {
             const universal_shapes_start_index = this.vertex_data[track_id].universal_shapes_start_index;
 
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, col_buffer);
-            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(col_array), this.ctx.STATIC_DRAW);
+            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, col_array, this.ctx.STATIC_DRAW);
             col_buffer.itemSize = 1;
             col_buffer.specificShapesNumItems = universal_shapes_start_index / col_buffer.itemSize;
             col_buffer.universalShapesNumItems = (col_array.length - universal_shapes_start_index) / col_buffer.itemSize;
@@ -821,7 +821,7 @@ export default class OncoprintWebGLCellView {
             const vertex_column_buffer = this.vertex_column_buffer[track_id] || this.ctx.createBuffer() as OncoprintTrackBuffer;
             const vertex_column_array = this.vertex_column_array[track_id];
             this.ctx.bindBuffer(this.ctx.ARRAY_BUFFER, vertex_column_buffer);
-            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, new Float32Array(vertex_column_array), this.ctx.STATIC_DRAW);
+            this.ctx.bufferData(this.ctx.ARRAY_BUFFER, vertex_column_array, this.ctx.STATIC_DRAW);
             vertex_column_buffer.itemSize = 1;
             vertex_column_buffer.numItems = vertex_column_array.length / vertex_column_buffer.itemSize;
 
@@ -850,12 +850,14 @@ export default class OncoprintWebGLCellView {
         const id_and_first_vertex:[ColumnId, number][] = Object.keys(id_to_first_vertex_index).map(function(id) {
             return [id, id_to_first_vertex_index[id]] as [ColumnId, number];
         }).sort(function(a,b) { return sgndiff(a[1], b[1]); });
-        const vertex_column_array = [];
+        const vertex_column_array = new Float32Array(num_items);
+        let vertex_index = 0;
         for (let i=0; i<id_and_first_vertex.length; i++) {
             const num_to_add = (i === id_and_first_vertex.length - 1 ? num_items : id_and_first_vertex[i+1][1]) - id_and_first_vertex[i][1];
             const column = id_to_index[id_and_first_vertex[i][0]];
             for (let j=0; j<num_to_add; j++) {
-                vertex_column_array.push(column);
+                vertex_column_array[vertex_index] = column;
+                vertex_index += 1;
             }
         }
         this.vertex_column_array[track_id] = vertex_column_array;
@@ -871,13 +873,17 @@ export default class OncoprintWebGLCellView {
         this.ensureSimpleCountBuffer(model);
 
         const specific_shapes = this.specific_shapes[track_id];
+        const universal_shapes = this.universal_shapes[track_id];
         const id_to_index = model.getIdToIndexMap();
         specific_shapes.sort(function(a, b) {
             return sgndiff(id_to_index[a.id], id_to_index[b.id]);
         });
         // Compute vertex array
-        const vertex_pos_array:number[] = [];
-        const vertex_col_array:number[] = [];
+        const num_vertexes = _.sumBy(specific_shapes, (shapeList:IdentifiedShapeList)=>{
+            return _.sumBy(shapeList.shape_list, getNumWebGLVertexes);
+        }) + (universal_shapes ? _.sumBy(universal_shapes, getNumWebGLVertexes) : 0);
+        const vertex_pos_array = new Float32Array(num_vertexes);
+        const vertex_col_array = new Float32Array(num_vertexes);
         const id_to_first_vertex_index:{[columnId:string]:number} = {};
 
         const color_vertexes:ColorVertex[] = [];
@@ -894,6 +900,7 @@ export default class OncoprintWebGLCellView {
         }
 
         const vertexifiedShapes:{[shapeHash:string]:{position:number[], color:number[]}} = {};
+        let vertex_array_index = 0;
 
         function addShapeVertexes(_shape:ComputedShapeParams, zindex:number) {
             const hash = Shape.hashComputedShape(_shape, zindex);
@@ -917,15 +924,20 @@ export default class OncoprintWebGLCellView {
                     color.push(col_index);
                 });
             }
-            vertex_pos_array.push.apply(vertex_pos_array, vertexifiedShapes[hash].position);
-            vertex_col_array.push.apply(vertex_col_array, vertexifiedShapes[hash].color);
+            const positionVertexes = vertexifiedShapes[hash].position;
+            const colorVertexes = vertexifiedShapes[hash].color;
+            for (let i=0; i<positionVertexes.length; i++) {
+                vertex_pos_array[vertex_array_index] = positionVertexes[i];
+                vertex_col_array[vertex_array_index] = colorVertexes[i];
+                vertex_array_index += 1;
+            }
         }
 
         for (let i = 0; i < specific_shapes.length; i++) {
             const shape_list = specific_shapes[i].shape_list;
             const id = specific_shapes[i].id;
 
-            id_to_first_vertex_index[id] = vertex_pos_array.length;
+            id_to_first_vertex_index[id] = vertex_array_index;
 
             for (let j = 0; j < shape_list.length; j++) {
                 const shape = shape_list[j];
@@ -934,8 +946,7 @@ export default class OncoprintWebGLCellView {
         }
 
         // record start index of universal shapes
-        const universal_shapes_start_index = vertex_pos_array.length;
-        const universal_shapes = this.universal_shapes[track_id];
+        const universal_shapes_start_index = vertex_array_index;
         if (universal_shapes) {
             for (let j = 0; j < universal_shapes.length; j++) {
                 const shape = universal_shapes[j];
