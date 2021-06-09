@@ -884,7 +884,10 @@ export default class OncoprintWebGLCellView {
         }) + (universal_shapes ? _.sumBy(universal_shapes, getNumWebGLVertexes) : 0);
         const vertex_pos_array = new Float32Array(num_vertexes);
         const vertex_col_array = new Float32Array(num_vertexes);
-        const id_to_first_vertex_index:{[columnId:string]:number} = {};
+
+        // original values dont mean anything but its faster to create an object with all the keys
+        //  already in it than to slowly grow it
+        const id_to_first_vertex_index:{[columnId:string]:number} = _.clone(id_to_index);
 
         const color_vertexes:ColorVertex[] = [];
         const color_bank_index:{[colorHash:string]:ColorBankIndex} = {};
