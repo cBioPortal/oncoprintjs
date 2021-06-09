@@ -892,47 +892,30 @@ export default class OncoprintWebGLCellView {
         const color_vertexes:ColorVertex[] = [];
         const color_bank_index:{[colorHash:string]:ColorBankIndex} = {};
 
-        function hashVector(colorVertex:number[]) {
-            return colorVertex.join(",");
-        }
-
         const position_bit_pack_base = this.position_bit_pack_base;
         function packPos(posVertex:number[]) {
             // values must be in [0,255] (integer)
             return position_bit_pack_base*position_bit_pack_base*posVertex[0] + position_bit_pack_base*posVertex[1] + posVertex[2];
         }
 
-        const vertexifiedShapes:{[shapeHash:string]:{position:number[], color:number[]}} = {};
         let vertex_array_index = 0;
 
         function addShapeVertexes(_shape:ComputedShapeParams, zindex:number) {
-            const hash = Shape.hashComputedShape(_shape, zindex);
-            if (!(hash in vertexifiedShapes)) {
-                vertexifiedShapes[hash] = {position:[], color:[]};
-                const position = vertexifiedShapes[hash].position;
-                const color = vertexifiedShapes[hash].color;
-                shapeToVertexes(_shape, zindex, function(pos:PositionVertex, col:ColorVertex) {
-                    pos = pos.map(Math.round) as PositionVertex;
+            shapeToVertexes(_shape, zindex, function(pos:PositionVertex, col:ColorVertex) {
+                pos = pos.map(Math.round) as PositionVertex;
 
-                    position.push(packPos(pos));
+                vertex_pos_array[vertex_array_index] = packPos(pos);
 
-                    const col_hash = hashVector(col);
-                    let col_index = color_bank_index[col_hash];
-                    if (typeof col_index === "undefined") {
-                        col_index = color_vertexes.length;
-                        color_vertexes.push(col);
-                        color_bank_index[col_hash] = col_index;
-                    }
-                    color.push(col_index);
-                });
-            }
-            const positionVertexes = vertexifiedShapes[hash].position;
-            const colorVertexes = vertexifiedShapes[hash].color;
-            for (let i=0; i<positionVertexes.length; i++) {
-                vertex_pos_array[vertex_array_index] = positionVertexes[i];
-                vertex_col_array[vertex_array_index] = colorVertexes[i];
+                const color_hash = `${col[0]},${col[1]},${col[2]},${col[3]}`;
+                let color_index = color_bank_index[color_hash];
+                if (typeof color_index === "undefined") {
+                    color_index = color_vertexes.length;
+                    color_vertexes.push(col);
+                    color_bank_index[color_hash] = color_index;
+                }
+                vertex_col_array[vertex_array_index] = color_index;
                 vertex_array_index += 1;
-            }
+            });
         }
 
         for (let i = 0; i < specific_shapes.length; i++) {
