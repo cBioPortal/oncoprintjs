@@ -872,12 +872,9 @@ export default class OncoprintWebGLCellView {
         // check simple count buffer whenever we recompute vertexes
         this.ensureSimpleCountBuffer(model);
 
-        const specific_shapes = this.specific_shapes[track_id];
         const universal_shapes = this.universal_shapes[track_id];
         const id_to_index = model.getIdToIndexMap();
-        specific_shapes.sort(function(a, b) {
-            return sgndiff(id_to_index[a.id], id_to_index[b.id]);
-        });
+        const specific_shapes = _.sortBy(this.specific_shapes[track_id], o=>id_to_index[o.id]);
         // Compute vertex array
         const num_vertexes = _.sumBy(specific_shapes, (shapeList:IdentifiedShapeList)=>{
             return _.sumBy(shapeList.shape_list, getNumWebGLVertexes);
