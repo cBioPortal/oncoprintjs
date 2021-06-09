@@ -208,6 +208,7 @@ export default class OncoprintModel {
     // Global properties
     private sort_config:SortConfig;
     public rendering_suppressed_depth:number;
+    public keep_sorted = false;
 
     // Rendering properties
     public readonly max_height:number;
@@ -1139,15 +1140,17 @@ export default class OncoprintModel {
         return this.track_groups;
     }
 
-    public addTracks(params_list:LibraryTrackSpec<Datum>[]) {
+    public async addTracks(params_list:LibraryTrackSpec<Datum>[]) {
         for (let i = 0; i < params_list.length; i++) {
             const params = params_list[i];
             this.addTrack(params);
         }
         if (this.rendering_suppressed_depth === 0) {
-            this.setIdOrder(Object.keys(this.present_ids.get()));
-            this.track_tops.update();
+            if (this.keep_sorted) {
+                await this.sort();
+            }
         }
+        this.track_tops.update();
     }
 
     private addTrack(params: LibraryTrackSpec<Datum>) {
@@ -1246,8 +1249,14 @@ export default class OncoprintModel {
         this.precomputed_comparator.update(this, track_id);
     }
 
-    public releaseRendering() {
-        this.setIdOrder(Object.keys(this.present_ids.get()));
+    public getAllIds() {
+        return Object.keys(this.present_ids.get());
+    }
+
+    public async releaseRendering() {
+        if (this.keep_sorted) {
+            await this.sort();
+        }
         this.track_tops.update();
     }
 
@@ -1921,7 +1930,7 @@ export default class OncoprintModel {
             return mandatory_values.concat(preferred_values);
         }
 
-        const ids_with_vectors = this.getIdOrder(true).map(function(id) {
+        const ids_with_vectors = this.getAllIds().map(function(id) {
             return {
                 id: id,
                 vector: getVector(id)
