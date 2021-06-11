@@ -50,9 +50,9 @@ describe("GradientCategoricalRuleSet", function() {
         var mixRuleSet = OncoprintRuleSet(mixParams);
         var elements = mixRuleSet.apply([gradientDatumLargest, gradientDatumSmallest, naDatum], 12, 12,  undefined, "id");
         assert.equal(elements.length, 3);
-        assert.equal(elements[0][0].fill,[0,255,0,1]);
-        assert.equal(elements[1][0].fill,[255,0,0,1]);
-        assert.equal(elements[2][0].fill,[224,224,224,1]);
+        assert.deepEqual(elements[0][0].fill,[0,255,0,1]);
+        assert.deepEqual(elements[1][0].fill,[255,0,0,1]);
+        assert.deepEqual(elements[2][0].fill,[224,224,224,1]);
     });
 
     it("Formats categorical value", function() {
