@@ -51,6 +51,7 @@ export type TrackSortSpecification<D> = TrackSortSpecificationComparators<D> | T
 export type ActiveRules = {[ruleId:number]:boolean};
 export type ActiveRulesCount = {[ruleId:number]:number};
 export type TrackSortDirectionChangeCallback = (track_id:TrackId, dir:number)=>void;
+export type TrackGapChangeCallBack = (track_id:TrackId, on:boolean)=>void;
 export type CustomTrackOption = {label?:string, separator?: boolean, onClick?:(id:TrackId)=>void, weight?:string, disabled?:boolean};
 export type CustomTrackGroupOption = {label?:string, separator?: boolean, onClick?:(id:TrackGroupIndex)=>void, weight?:()=>string, disabled?:()=>boolean};
 export type UserTrackSpec<D> = {
@@ -77,6 +78,7 @@ export type UserTrackSpec<D> = {
     sortCmpFn:TrackSortSpecification<D>;
     sort_direction_changeable?:boolean;
     onSortDirectionChange?:TrackSortDirectionChangeCallback;
+    onGapChange?:TrackGapChangeCallBack
     init_sort_direction?:TrackSortDirection;
     data?:D[];
     rule_set_params?: RuleSetParams;
@@ -256,6 +258,7 @@ export default class OncoprintModel {
     private track_sort_direction_changeable:TrackProp<boolean>;
     private track_sort_direction:TrackProp<TrackSortDirection>;
     private track_sort_direction_change_callback:TrackProp<TrackSortDirectionChangeCallback>;
+    private track_gap_change_callback:TrackProp<TrackGapChangeCallBack>;
     private track_data:TrackProp<Datum[]>;
     private track_rule_set_id:TrackProp<RuleSetId>;
     private track_active_rules:TrackProp<ActiveRules>;
@@ -352,6 +355,7 @@ export default class OncoprintModel {
         this.track_sort_direction_changeable = {};
         this.track_sort_direction = {}; // 1: ascending, -1: descending, 0: not
         this.track_sort_direction_change_callback = {};
+        this.track_gap_change_callback = {};
         this.track_data = {};
         this.track_rule_set_id = {}; // track id -> rule set id
         this.track_active_rules = {}; // from track id to active rule map (map with rule ids as keys)
@@ -481,7 +485,6 @@ export default class OncoprintModel {
         this.track_tops_zoomed.addBoundProperty(this.header_tops_zoomed);
         this.cell_tops_zoomed.addBoundProperty(this.label_tops_zoomed);
 
-
         this.precomputed_comparator = new CachedProperty({}, function(model:OncoprintModel, track_id:TrackId) {
             const curr_precomputed_comparator = model.precomputed_comparator.get();
             curr_precomputed_comparator[track_id] = new PrecomputedComparator(model.getTrackData(track_id),
@@ -598,7 +601,7 @@ export default class OncoprintModel {
 
     public setTrackShowGaps(trackId:TrackId, show:boolean) {
         this.track_show_gaps[trackId] = show;
-
+        this.track_gap_change_callback[trackId](trackId, show);
         this.ids_after_a_gap.update(this);
     }
 
@@ -1160,6 +1163,7 @@ export default class OncoprintModel {
 
         this.track_sort_direction_changeable[track_id] = ifndef(params.sort_direction_changeable, false);
         this.track_sort_direction_change_callback[track_id] = ifndef(params.onSortDirectionChange, function() {});
+        this.track_gap_change_callback[track_id] = ifndef(params.onGapChange, function() {});
         this.track_data[track_id] = ifndef(params.data, []);
         this.track_data_id_key[track_id] = ifndef(params.data_id_key, 'id');
 
