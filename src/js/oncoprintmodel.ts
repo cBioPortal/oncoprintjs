@@ -1156,8 +1156,15 @@ export default class OncoprintModel {
             this.track_expand_button_getter[track_id] = params.expandButtonTextGetter;
         }
 
+        this.track_sort_direction[track_id] = ifndef(params.init_sort_direction, 1);
+
         this.track_can_show_gaps[track_id] = ifndef(params.track_can_show_gaps, false);
-        this.track_show_gaps[track_id] = ifndef(params.show_gaps_on_init, false);
+        const trackShowGaps = ifndef(params.show_gaps_on_init, false);
+        this.track_show_gaps[track_id] = trackShowGaps;
+        const trackNotSorted = this.track_sort_direction[track_id] === 0;
+        if (trackShowGaps && trackNotSorted) {
+            this.track_sort_direction[track_id] = 1;
+        }
 
         this.track_sort_cmp_fn[track_id] = params.sortCmpFn;
 
@@ -1183,8 +1190,6 @@ export default class OncoprintModel {
         if (params.important_ids) {
             this.setTrackImportantIds(track_id, params.important_ids);
         }
-
-        this.track_sort_direction[track_id] = ifndef(params.init_sort_direction, 1);
 
         params.target_group = ifndef(params.target_group, 0);
         this.ensureTrackGroupExists(params.target_group);
