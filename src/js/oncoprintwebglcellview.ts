@@ -1114,7 +1114,6 @@ export default class OncoprintWebGLCellView {
             this.computeVertexPositionsAndVertexColors(model, track_ids[i]);
             this.computeVertexColumns(model, track_ids[i]);
         }
-        this.setTrackShowGaps(model);
         this.renderAllTracks(model);
     }
     public setIdOrder(model:OncoprintModel, ids:ColumnId[]) {
